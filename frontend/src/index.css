@@ -364,17 +364,19 @@ h1 em { color: var(--gold); font-style: normal; }
 
 /* Top Navigation Bar */
 .member-back-nav {
-  position: absolute; top: 32px; left: 32px; z-index: 10;
+  position: absolute; top: 32px; left: 32px; z-index: 20;
   display: flex; align-items: center; gap: 8px; padding: 8px 16px;
   background: rgba(255, 255, 255, 0.1); border-radius: 20px;
   font-size: 0.85rem; font-weight: 500; cursor: pointer; border: none; color: #fff;
   transition: background 0.2s ease;
+  transform: translateZ(10px);
 }
 .member-back-nav:hover { background: rgba(255, 255, 255, 0.15); }
 
 .member-nav-bar {
-  position: absolute; top: 32px; right: 32px; z-index: 10;
+  position: absolute; top: 32px; right: 32px; z-index: 20;
   display: flex; align-items: center; gap: 24px;
+  transform: translateZ(10px);
 }
 .member-indicator {
   font-size: 1.1rem; font-family: 'Fraunces', serif; font-weight: 600; color: #d4af37;

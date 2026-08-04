@@ -306,24 +306,6 @@ export function PortfolioDeck() {
               exit={{ rotateY: -8, scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             >
-              <button className="member-back-nav" onClick={() => setExpandedPortfolio(null)}>
-                <ArrowLeft size={16} /> Back to Deck
-              </button>
-              
-              <div className="member-nav-bar">
-                <div className="member-indicator">
-                  0{activeMemberIndex + 1} / 0{dummyMembers.length}
-                </div>
-                <div className="member-arrows">
-                  <button onClick={() => setActiveMemberIndex(curr => (curr - 1 + dummyMembers.length) % dummyMembers.length)}>
-                    <ArrowLeft size={16} />
-                  </button>
-                  <button onClick={() => setActiveMemberIndex(curr => (curr + 1) % dummyMembers.length)}>
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-
               <div className="member-left-col">
                 <div className="member-radial-glow" />
                 <div className="member-portrait" />
@@ -419,6 +401,25 @@ export function PortfolioDeck() {
                     </div>
                   </motion.div>
                 </AnimatePresence>
+              </div>
+
+              {/* Absolute overlays moved to the end of DOM structure for 3D stacking */}
+              <button className="member-back-nav" onClick={() => setExpandedPortfolio(null)}>
+                <ArrowLeft size={16} /> Back to Deck
+              </button>
+              
+              <div className="member-nav-bar">
+                <div className="member-indicator">
+                  0{activeMemberIndex + 1} / 0{dummyMembers.length}
+                </div>
+                <div className="member-arrows">
+                  <button onClick={() => setActiveMemberIndex(curr => (curr - 1 + dummyMembers.length) % dummyMembers.length)}>
+                    <ArrowLeft size={16} />
+                  </button>
+                  <button onClick={() => setActiveMemberIndex(curr => (curr + 1) % dummyMembers.length)}>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
