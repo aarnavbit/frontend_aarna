@@ -1,8 +1,8 @@
-/** Accessible three-step OC application form with JSON submission and recovery-friendly errors. */
+/** Accessible three-step OC application form with premium motion, 3D card transitions, and auto-save. */
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '../api/client'
 import { portfolios } from '../data/clubContent'
 
@@ -58,33 +58,132 @@ function validateStep(step, values) {
 
 function FormField({ label, error, hint, children }) {
   return (
-    <label className={'form-field' + (error ? ' has-error' : '')}>
+    <motion.label 
+      className={'form-field' + (error ? ' has-error' : '')}
+      initial={false}
+      animate={error ? { x: [0, -4, 4, -4, 4, 0] } : { x: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <span>{label}</span>
       {children}
       {hint && <small>{hint}</small>}
       {error && <small className="field-error" role="alert">{error}</small>}
-    </label>
+    </motion.label>
   )
 }
 
 export function ApplicationForm() {
   const [step, setStep] = useState(0)
+  const [direction, setDirection] = useState(1)
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState({ state: 'idle', message: '' })
   const [submission, setSubmission] = useState(null)
   const reduceMotion = useReducedMotion()
+  const isInitialMount = useRef(true)
+  const formRef = useRef(null)
+  const userHasModifiedCurrentStep = useRef(false)
+
+  // Auto-scroll after 4 seconds of inactivity
+  useEffect(() => {
+    let timeoutId
+    let cancelled = false
+
+    const handleInteraction = () => {
+      cancelled = true
+      clearTimeout(timeoutId)
+    }
+
+    // Listen for any manual scrolling or typing to cancel
+    window.addEventListener('wheel', handleInteraction, { once: true, passive: true })
+    window.addEventListener('touchmove', handleInteraction, { once: true, passive: true })
+    window.addEventListener('keydown', handleInteraction, { once: true, passive: true })
+
+    timeoutId = setTimeout(() => {
+      if (!cancelled && formRef.current) {
+        const y = formRef.current.getBoundingClientRect().top + window.scrollY - 80
+        window.scrollTo({ top: y, behavior: 'smooth' })
+      }
+    }, 4000)
+
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('wheel', handleInteraction)
+      window.removeEventListener('touchmove', handleInteraction)
+      window.removeEventListener('keydown', handleInteraction)
+    }
+  }, [step])
+
+  // Wake up backend silently
+  useEffect(() => {
+    if (!sessionStorage.getItem('aarna_warmup')) {
+      api.wakeup()
+      sessionStorage.setItem('aarna_warmup', 'true')
+    }
+  }, [])
+
+  // Restore draft
+  useEffect(() => {
+    const saved = localStorage.getItem('aarna_apply_draft')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.values) setValues(parsed.values)
+        if (parsed.step !== undefined) setStep(parsed.step)
+      } catch (e) {}
+    }
+  }, [])
+
+  // Auto-save draft
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    if (status.state !== 'success' && status.state !== 'submitting') {
+      const timer = setTimeout(() => {
+        localStorage.setItem('aarna_apply_draft', JSON.stringify({ values, step }))
+      }, 400)
+      return () => clearTimeout(timer)
+    }
+  }, [values, step, status.state])
+
+  // Auto-continue when step is completely valid (except for final submit step)
+  useEffect(() => {
+    if (step < steps.length - 1 && userHasModifiedCurrentStep.current) {
+      const currentErrors = validateStep(step, values)
+      if (Object.keys(currentErrors).length === 0) {
+        const timer = setTimeout(() => {
+          if (userHasModifiedCurrentStep.current) {
+            goForward()
+          }
+        }, 3000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [values, step])
 
   const updateValue = (event) => {
     const { name, value } = event.target
     setValues((current) => ({ ...current, [name]: value }))
-    setErrors((current) => ({ ...current, [name]: undefined }))
+    userHasModifiedCurrentStep.current = true
+    if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined }))
   }
 
   const goForward = () => {
     const nextErrors = validateStep(step, values)
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length === 0) setStep((current) => current + 1)
+    if (Object.keys(nextErrors).length === 0) {
+      setDirection(1)
+      userHasModifiedCurrentStep.current = false
+      setStep((current) => current + 1)
+    }
+  }
+
+  const goBack = () => {
+    setDirection(-1)
+    userHasModifiedCurrentStep.current = false
+    setStep((current) => current - 1)
   }
 
   const submit = async (event) => {
@@ -98,6 +197,7 @@ export function ApplicationForm() {
       const result = await api.submitApplication({ ...values, year: Number(values.year) })
       setSubmission(result)
       setStatus({ state: 'success', message: result.message })
+      localStorage.removeItem('aarna_apply_draft') // Clear on success
     } catch (error) {
       setErrors(error.fields || {})
       const isNetworkError = !error.status
@@ -134,115 +234,177 @@ export function ApplicationForm() {
     )
   }
 
+  // 3D Card Stack Variants
+  const cardVariants = {
+    enter: (dir) => ({
+      opacity: 0,
+      y: dir > 0 ? 30 : -30,
+      scale: 0.95,
+      rotateX: dir > 0 ? -10 : 10,
+      zIndex: 0,
+      position: 'relative'
+    }),
+    center: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      rotateY: 0,
+      zIndex: 1,
+      position: 'relative'
+    },
+    exit: (dir) => ({
+      opacity: 0,
+      y: dir > 0 ? 60 : -60,
+      scale: 0.9,
+      rotateX: dir > 0 ? 15 : -15,
+      rotateY: dir > 0 ? -8 : 8,
+      zIndex: 2,
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0
+    })
+  }
+
   return (
-    <form className="application-form" onSubmit={submit} noValidate>
+    <form className="application-form" onSubmit={submit} noValidate ref={formRef}>
       <ol className="form-progress" aria-label="Application progress">
-        {steps.map((label, index) => (
-          <li key={label} className={index === step ? 'is-current' : index < step ? 'is-complete' : ''}>
-            <span>{index < step ? '✓' : index + 1}</span>{label}
-          </li>
-        ))}
+        {steps.map((label, index) => {
+          const isComplete = index < step;
+          const isCurrent = index === step;
+          return (
+            <li key={label} className={isCurrent ? 'is-current' : isComplete ? 'is-complete' : ''}>
+              <span className="progress-marker">
+                {isComplete ? (
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", bounce: 0.4 }}
+                  >
+                    <CheckCircle2 size={16} strokeWidth={3} />
+                  </motion.div>
+                ) : (
+                  <span>{index + 1}</span>
+                )}
+                {isCurrent && !reduceMotion && (
+                  <motion.div
+                    className="progress-indicator-active"
+                    layoutId="active-step-indicator"
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  />
+                )}
+              </span>
+              {label}
+            </li>
+          )
+        })}
       </ol>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          className="form-step"
-          key={step}
-          initial={reduceMotion ? false : { opacity: 0, x: 12 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
-          transition={{ duration: 0.22 }}
-        >
-          {step === 0 && (
-            <>
-              <div className="step-heading">
-                <span className="section-kicker">Step 01</span>
-                <h2>Let’s begin with you.</h2>
-                <p>We use your email and phone only to make sure every student applies once.</p>
-              </div>
-              <div className="form-grid">
-                <FormField label="Full name" name="fullName" error={errors.fullName}>
-                  <input name="fullName" value={values.fullName} onChange={updateValue} autoComplete="name" />
-                </FormField>
-                <FormField label="College email" name="collegeEmail" error={errors.collegeEmail} hint="Use your official college address.">
-                  <input name="collegeEmail" type="email" value={values.collegeEmail} onChange={updateValue} autoComplete="email" />
-                </FormField>
-                <FormField label="Phone number" name="phone" error={errors.phone} hint="10-digit Indian mobile number">
-                  <input name="phone" type="tel" inputMode="numeric" value={values.phone} onChange={updateValue} autoComplete="tel" />
-                </FormField>
-              </div>
-            </>
-          )}
+      <motion.div layout className="form-steps-container" transition={{ duration: 0.4, ease: "easeOut" }}>
+        <AnimatePresence initial={false} custom={direction}>
+          <motion.div
+            className="form-step"
+            key={step}
+            custom={direction}
+            variants={reduceMotion ? {} : cardVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+            style={{ perspective: 1000 }}
+          >
+            {step === 0 && (
+              <>
+                <div className="step-heading">
+                  <span className="section-kicker">Step 01</span>
+                  <h2>Let’s begin with you.</h2>
+                  <p>We use your email and phone only to make sure every student applies once.</p>
+                </div>
+                <div className="form-grid">
+                  <FormField label="Full name" name="fullName" error={errors.fullName}>
+                    <input name="fullName" value={values.fullName} onChange={updateValue} autoComplete="name" />
+                  </FormField>
+                  <FormField label="College email" name="collegeEmail" error={errors.collegeEmail} hint="Use your official college address.">
+                    <input name="collegeEmail" type="email" value={values.collegeEmail} onChange={updateValue} autoComplete="email" />
+                  </FormField>
+                  <FormField label="Phone number" name="phone" error={errors.phone} hint="10-digit Indian mobile number">
+                    <input name="phone" type="tel" inputMode="numeric" value={values.phone} onChange={updateValue} autoComplete="tel" />
+                  </FormField>
+                </div>
+              </>
+            )}
 
-          {step === 1 && (
-            <>
-              <div className="step-heading">
-                <span className="section-kicker">Step 02</span>
-                <h2>Your college context.</h2>
-                <p>A little detail helps the club organise applications with care.</p>
-              </div>
-              <div className="form-grid">
-                <FormField label="Roll number" name="rollNumber" error={errors.rollNumber}>
-                  <input name="rollNumber" value={values.rollNumber} onChange={updateValue} />
-                </FormField>
-                <FormField label="Academic department" name="academicDepartment" error={errors.academicDepartment}>
-                  <input name="academicDepartment" value={values.academicDepartment} onChange={updateValue} placeholder="e.g. CSBS" />
-                </FormField>
-                <FormField label="Year" name="year" error={errors.year}>
-                  <select name="year" value={values.year} onChange={updateValue}>
-                    <option value="">Select your year</option>
-                    <option value="1">First year</option>
-                    <option value="2">Second year</option>
-                  </select>
-                </FormField>
-                <FormField label="Section (optional)" name="section" error={errors.section}>
-                  <input name="section" value={values.section} onChange={updateValue} placeholder="e.g. A" />
-                </FormField>
-              </div>
-            </>
-          )}
+            {step === 1 && (
+              <>
+                <div className="step-heading">
+                  <span className="section-kicker">Step 02</span>
+                  <h2>Your college context.</h2>
+                  <p>A little detail helps the club organise applications with care.</p>
+                </div>
+                <div className="form-grid">
+                  <FormField label="Roll number" name="rollNumber" error={errors.rollNumber}>
+                    <input name="rollNumber" value={values.rollNumber} onChange={updateValue} />
+                  </FormField>
+                  <FormField label="Academic department" name="academicDepartment" error={errors.academicDepartment}>
+                    <input name="academicDepartment" value={values.academicDepartment} onChange={updateValue} placeholder="e.g. CSBS" />
+                  </FormField>
+                  <FormField label="Year" name="year" error={errors.year}>
+                    <select name="year" value={values.year} onChange={updateValue}>
+                      <option value="">Select your year</option>
+                      <option value="1">First year</option>
+                      <option value="2">Second year</option>
+                    </select>
+                  </FormField>
+                  <FormField label="Section (optional)" name="section" error={errors.section}>
+                    <input name="section" value={values.section} onChange={updateValue} placeholder="e.g. A" />
+                  </FormField>
+                </div>
+              </>
+            )}
 
-          {step === 2 && (
-            <>
-              <div className="step-heading">
-                <span className="section-kicker">Step 03</span>
-                <h2>Where would you make your mark?</h2>
-                <p>Rank two distinct teams, then show us what you would bring to the room.</p>
-              </div>
-              <div className="form-grid">
-                <FormField label="First portfolio preference" name="primaryPortfolio" error={errors.primaryPortfolio}>
-                  <select name="primaryPortfolio" value={values.primaryPortfolio} onChange={updateValue}>
-                    <option value="">Choose your first preference</option>
-                    {portfolios.map((portfolio) => <option key={portfolio.name} value={portfolio.name}>{portfolio.name}</option>)}
-                  </select>
-                </FormField>
-                <FormField label="Second portfolio preference" name="secondaryPortfolio" error={errors.secondaryPortfolio}>
-                  <select name="secondaryPortfolio" value={values.secondaryPortfolio} onChange={updateValue}>
-                    <option value="">Choose your second preference</option>
-                    {portfolios.map((portfolio) => <option key={portfolio.name} value={portfolio.name}>{portfolio.name}</option>)}
-                  </select>
-                </FormField>
-                <FormField label="Skills" name="skills" error={errors.skills} hint="Tools, strengths, or interests are all welcome.">
-                  <input name="skills" value={values.skills} onChange={updateValue} placeholder="e.g. Figma, React, storytelling" />
-                </FormField>
-              </div>
-              <div className="form-grid form-grid-single">
-                <FormField label="Previous experience" name="experience" error={errors.experience}>
-                  <textarea name="experience" value={values.experience} onChange={updateValue} rows="4" placeholder="Share projects, volunteering, events, or experiences that shaped you." />
-                </FormField>
-                <FormField label="Why do you want to join AARNA?" name="motivation" error={errors.motivation}>
-                  <textarea name="motivation" value={values.motivation} onChange={updateValue} rows="5" placeholder="A few honest lines about what you would like to learn, make, or lead." />
-                </FormField>
-              </div>
-            </>
-          )}
-        </motion.div>
-      </AnimatePresence>
+            {step === 2 && (
+              <>
+                <div className="step-heading">
+                  <span className="section-kicker">Step 03</span>
+                  <h2>Where would you make your mark?</h2>
+                  <p>Rank two distinct teams, then show us what you would bring to the room.</p>
+                </div>
+                <div className="form-grid">
+                  <FormField label="First portfolio preference" name="primaryPortfolio" error={errors.primaryPortfolio}>
+                    <select name="primaryPortfolio" value={values.primaryPortfolio} onChange={updateValue}>
+                      <option value="">Choose your first preference</option>
+                      {portfolios.map((portfolio) => <option key={portfolio.name} value={portfolio.name}>{portfolio.name}</option>)}
+                    </select>
+                  </FormField>
+                  <FormField label="Second portfolio preference" name="secondaryPortfolio" error={errors.secondaryPortfolio}>
+                    <select name="secondaryPortfolio" value={values.secondaryPortfolio} onChange={updateValue}>
+                      <option value="">Choose your second preference</option>
+                      {portfolios.map((portfolio) => <option key={portfolio.name} value={portfolio.name}>{portfolio.name}</option>)}
+                    </select>
+                  </FormField>
+                  <FormField label="Skills" name="skills" error={errors.skills} hint="Tools, strengths, or interests are all welcome.">
+                    <input name="skills" value={values.skills} onChange={updateValue} placeholder="e.g. Figma, React, storytelling" />
+                  </FormField>
+                </div>
+                <div className="form-grid form-grid-single">
+                  <FormField label="Previous experience" name="experience" error={errors.experience}>
+                    <textarea name="experience" value={values.experience} onChange={updateValue} rows="4" placeholder="Share projects, volunteering, events, or experiences that shaped you." />
+                  </FormField>
+                  <FormField label="Why do you want to join AARNA?" name="motivation" error={errors.motivation}>
+                    <textarea name="motivation" value={values.motivation} onChange={updateValue} rows="5" placeholder="A few honest lines about what you would like to learn, make, or lead." />
+                  </FormField>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </motion.div>
 
       {status.state === 'error' && <p className="form-alert" role="alert">{status.message}</p>}
       <div className="form-actions">
         {step > 0 ? (
-          <button className="button button-quiet" type="button" onClick={() => setStep((current) => current - 1)}>
+          <button className="button button-quiet" type="button" onClick={goBack}>
             <ArrowLeft size={17} /> Back
           </button>
         ) : <span />}

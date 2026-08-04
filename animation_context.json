@@ -1,0 +1,517 @@
+{
+  "metadata": {
+    "description": "3D rendered street scene with dynamic digital glitch and chromatic aberration transitions.",
+    "duration": 13.0,
+    "units": {
+      "time": "seconds",
+      "position": "percentage",
+      "rotation": "degrees"
+    }
+  },
+  "style": {
+    "artStyle": "Stylized Realism to Cyberpunk Glitch Art",
+    "realism": "High (3D rendering with baked/calculated lighting)",
+    "abstraction": "High during glitches (wireframes, pure color overlays)",
+    "mood": "Energetic, erratic, technological",
+    "theme": "Urban futuristic festival",
+    "visualComplexity": "High",
+    "renderingStyle": "WebGL / 3D Render with Post-Processing"
+  },
+  "colors": {
+    "primary": {
+      "hex": "#D2A265",
+      "rgb": [210, 162, 101],
+      "hsl": [33, 58, 60]
+    },
+    "secondary": {
+      "hex": "#4A3B42",
+      "rgb": [74, 59, 66],
+      "hsl": [332, 11, 26]
+    },
+    "accentCyan": {
+      "hex": "#00FFFF",
+      "rgb": [0, 255, 255],
+      "hsl": [180, 100, 50]
+    },
+    "accentMagenta": {
+      "hex": "#FF00FF",
+      "rgb": [255, 0, 255],
+      "hsl": [300, 100, 50]
+    },
+    "accentGreen": {
+      "hex": "#00FF00",
+      "rgb": [0, 255, 0],
+      "hsl": [120, 100, 50]
+    },
+    "shadow": {
+      "hex": "#1A1518",
+      "rgb": [26, 21, 24],
+      "hsl": [324, 11, 9]
+    },
+    "highlight": {
+      "hex": "#FFFFFF",
+      "rgb": [255, 255, 255],
+      "hsl": [0, 0, 100]
+    }
+  },
+  "background": {
+    "type": "WebGL / 3D Render Sequence",
+    "description": "A continuous 3D street environment serving as a baseplate.",
+    "solidColor": false,
+    "gradients": false
+  },
+  "objects": [
+    {
+      "id": "glitch_displacement_blocks",
+      "type": "postProcessingEffect",
+      "shape": "rectangles",
+      "description": "Horizontal bands of displaced pixels causing a tearing effect.",
+      "position": {
+        "x": "50%",
+        "y": "50%"
+      },
+      "size": {
+        "width": "100%",
+        "height": "100%"
+      },
+      "opacity": 1.0,
+      "blendMode": "normal",
+      "layer": 1
+    },
+    {
+      "id": "chromatic_aberration",
+      "type": "postProcessingEffect",
+      "shape": "fullscreen",
+      "description": "RGB channel separation.",
+      "position": {
+        "x": "50%",
+        "y": "50%"
+      },
+      "size": {
+        "width": "100%",
+        "height": "100%"
+      },
+      "opacity": 1.0,
+      "blendMode": "screen",
+      "layer": 2
+    },
+    {
+      "id": "color_tint_flashes",
+      "type": "overlay",
+      "shape": "fullscreen",
+      "description": "Solid color flashes illuminating the scene.",
+      "position": {
+        "x": "50%",
+        "y": "50%"
+      },
+      "size": {
+        "width": "100%",
+        "height": "100%"
+      },
+      "opacity": 0.8,
+      "blendMode": "color",
+      "layer": 3
+    }
+  ],
+  "layers": [
+    {
+      "layer": 0,
+      "description": "Base 3D Scene",
+      "renderingOrder": 0,
+      "blendMode": "normal"
+    },
+    {
+      "layer": 1,
+      "description": "Pixel Displacement Glitch",
+      "renderingOrder": 1,
+      "blendMode": "normal"
+    },
+    {
+      "layer": 2,
+      "description": "Chromatic Aberration",
+      "renderingOrder": 2,
+      "blendMode": "screen"
+    },
+    {
+      "layer": 3,
+      "description": "Color Overlays",
+      "renderingOrder": 3,
+      "blendMode": "color"
+    }
+  ],
+  "camera": {
+    "type": "3D Perspective",
+    "zoom": false,
+    "pan": false,
+    "rotation": false,
+    "perspective": true,
+    "tilt": false,
+    "dolly": true,
+    "parallax": true,
+    "handheldMotion": false,
+    "movement": {
+      "direction": "Forward (Z-axis)",
+      "speed": {
+        "value": "0.5 units/s",
+        "confidence": 0.6,
+        "source": "estimated"
+      }
+    }
+  },
+  "lighting": {
+    "ambient": {
+      "intensity": {
+        "value": "0.6",
+        "confidence": 0.8,
+        "source": "estimated"
+      },
+      "color": "varies (warm to neon)"
+    },
+    "directional": {
+      "active": true,
+      "shadows": true
+    },
+    "bloom": {
+      "value": "High during glitches",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "glow": {
+      "value": "Medium",
+      "confidence": 0.8,
+      "source": "estimated"
+    },
+    "reflections": {
+      "value": "Low",
+      "confidence": 0.7,
+      "source": "estimated"
+    },
+    "emissiveIntensity": {
+      "value": "High",
+      "confidence": 0.9,
+      "source": "observed"
+    }
+  },
+  "particles": {
+    "exists": false,
+    "description": "No traditional particle systems observed."
+  },
+  "motion": {
+    "camera_dolly": {
+      "direction": "Forward",
+      "velocity": {
+        "value": "constant",
+        "confidence": 0.9,
+        "source": "observed"
+      },
+      "easing": "linear"
+    },
+    "glitch_displacement_blocks": {
+      "direction": "Horizontal",
+      "movementAmplitude": {
+        "value": "50px - 200px",
+        "confidence": 0.7,
+        "source": "estimated"
+      },
+      "randomness": {
+        "value": "High",
+        "confidence": 1.0,
+        "source": "observed"
+      },
+      "interpolation": "step"
+    }
+  },
+  "timeline": [
+    {
+      "time": 0.0,
+      "event": "Base street scene, slow forward dolly begins"
+    },
+    {
+      "time": 1.5,
+      "event": "Glitch 1: Neon wireframe style replacement"
+    },
+    {
+      "time": 2.2,
+      "event": "Glitch 2: Dark purple/magenta tint overlay"
+    },
+    {
+      "time": 3.0,
+      "event": "Glitch 3: Green matrix-like digital tint"
+    },
+    {
+      "time": 4.5,
+      "event": "Rapid randomized flashing of multiple color tints"
+    },
+    {
+      "time": 5.8,
+      "event": "Intense yellow/orange chromatic displacement"
+    },
+    {
+      "time": 7.1,
+      "event": "Pink/purple color shift"
+    },
+    {
+      "time": 9.2,
+      "event": "Red color overlay glitch with heavy chromatic aberration"
+    },
+    {
+      "time": 10.4,
+      "event": "Green color overlay glitch"
+    },
+    {
+      "time": 11.5,
+      "event": "Return to stable base scene"
+    },
+    {
+      "time": 13.0,
+      "event": "Video ends"
+    }
+  ],
+  "blur": {
+    "gaussian": {
+      "value": "0px",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "motionBlur": {
+      "value": "0px",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "lensBlur": {
+      "value": "2px",
+      "confidence": 0.6,
+      "source": "estimated"
+    },
+    "depthBlur": {
+      "value": "5px in deep background",
+      "confidence": 0.7,
+      "source": "estimated"
+    },
+    "glitchDirectionalBlur": {
+      "value": "20px horizontally during glitches",
+      "confidence": 0.8,
+      "source": "estimated"
+    }
+  },
+  "noise": {
+    "filmGrain": {
+      "value": "Low",
+      "confidence": 0.8,
+      "source": "estimated"
+    },
+    "proceduralNoise": {
+      "value": "High (driving the glitch block displacement)",
+      "confidence": 0.9,
+      "source": "inferred"
+    },
+    "textureOverlays": {
+      "value": "None",
+      "confidence": 0.8,
+      "source": "observed"
+    },
+    "dithering": {
+      "value": "None",
+      "confidence": 0.9,
+      "source": "observed"
+    }
+  },
+  "distortion": {
+    "wave": {
+      "value": "None",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "ripple": {
+      "value": "None",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "turbulence": {
+      "value": "None",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "displacement": {
+      "value": "High (Blocky horizontal UV displacement)",
+      "confidence": 0.95,
+      "source": "observed"
+    },
+    "heatDistortion": {
+      "value": "None",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "refraction": {
+      "value": "None",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "lensDistortion": {
+      "value": "Low",
+      "confidence": 0.7,
+      "source": "estimated"
+    },
+    "chromaticAberration": {
+      "value": "Very High during glitch states",
+      "confidence": 1.0,
+      "source": "observed"
+    }
+  },
+  "animationCurves": {
+    "cameraMovement": {
+      "value": "Linear",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "glitchIntensity": {
+      "value": "Step/Hold (instantaneous)",
+      "confidence": 0.9,
+      "source": "observed"
+    }
+  },
+  "loop": {
+    "quality": {
+      "value": "Not seamless",
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "seamless": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "reverse": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "pingPong": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "fadeReset": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "hardReset": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "visibleJump": {
+      "value": true,
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "duration": {
+      "value": "13s",
+      "confidence": 1.0,
+      "source": "observed"
+    }
+  },
+  "renderingHints": {
+    "css": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "inferred"
+    },
+    "svg": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "inferred"
+    },
+    "canvas": {
+      "value": false,
+      "confidence": 0.9,
+      "source": "inferred"
+    },
+    "webgl": {
+      "value": true,
+      "confidence": 0.95,
+      "source": "inferred"
+    },
+    "threejs": {
+      "value": true,
+      "confidence": 0.95,
+      "source": "inferred"
+    },
+    "pixijs": {
+      "value": false,
+      "confidence": 0.9,
+      "source": "inferred"
+    },
+    "framerMotion": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "inferred"
+    },
+    "gsap": {
+      "value": true,
+      "confidence": 0.9,
+      "source": "inferred"
+    },
+    "lottie": {
+      "value": false,
+      "confidence": 1.0,
+      "source": "inferred"
+    },
+    "glslShader": {
+      "value": true,
+      "confidence": 1.0,
+      "source": "inferred"
+    },
+    "reasoning": "The underlying scene is a complex 3D environment, necessitating Three.js or a pre-rendered video. The glitch effects (chromatic aberration, UV displacement) require GLSL fragment shaders for pixel-level manipulation. GSAP can be used to sequence the uniform variables controlling glitch intensity over time."
+  },
+  "recreationNotes": {
+    "blurRadius": {
+      "value": "0px base, up to 20px directional during glitch",
+      "confidence": 0.8,
+      "source": "estimated"
+    },
+    "opacity": {
+      "value": "1.0 for scene, variable for tint overlays",
+      "confidence": 0.9,
+      "source": "observed"
+    },
+    "glowRadius": {
+      "value": "Bloom threshold 0.8, strength 1.5 during glitches",
+      "confidence": 0.7,
+      "source": "estimated"
+    },
+    "animationDuration": {
+      "value": "13s total sequence",
+      "confidence": 1.0,
+      "source": "observed"
+    },
+    "movementAmplitudes": {
+      "value": "Camera dolly Z: 100 units",
+      "confidence": 0.5,
+      "source": "estimated"
+    },
+    "blendModes": {
+      "value": "Normal for base, Screen for chromatic aberration, Color/Multiply for tints",
+      "confidence": 0.8,
+      "source": "inferred"
+    },
+    "shaderParameters": {
+      "u_time": "float driving noise functions",
+      "u_glitchIntensity": "float 0.0 to 1.0",
+      "u_rgbOffset": "vec2 controlling chromatic aberration spread",
+      "u_tintColor": "vec3 for full screen flashes"
+    },
+    "recommendedImplementations": {
+      "webgl": "Use Three.js EffectComposer. Add a RenderPass for the 3D scene (or VideoTexture), followed by a custom ShaderPass implementing glitch displacement and RGB split.",
+      "glsl": "Sample texture with UVs distorted by step(noise(uv.y * scale), threshold). Offset r and b channels inversely by u_rgbOffset * intensity."
+    }
+  },
+  "confidence": {
+    "overall": 0.85,
+    "temporal": 0.95,
+    "spatial": 0.8,
+    "color": 0.9,
+    "shaderLogic": 0.9
+  }
+}
