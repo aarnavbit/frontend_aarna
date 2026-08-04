@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { portfolios } from '../data/clubContent'
 
 // Dummy members for placeholder
@@ -27,25 +27,33 @@ const dummyMembers = Array(8).fill(null).map((_, i) => ({
 
 export function PortfolioDeck() {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const isAnimatingRef = useRef(false)
   const [expandedPortfolio, setExpandedPortfolio] = useState(null)
   const [activeMemberIndex, setActiveMemberIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const reduceMotion = useReducedMotion()
 
   const move = useCallback((direction) => {
-    if (isAnimating) return
-    setIsAnimating(true)
+    console.log('move clicked, direction:', direction, 'isAnimating:', isAnimatingRef.current)
+    if (isAnimatingRef.current) return
+    isAnimatingRef.current = true
     setActiveIndex((current) => (current + direction + portfolios.length) % portfolios.length)
-    setTimeout(() => setIsAnimating(false), 550)
-  }, [isAnimating])
+    setTimeout(() => {
+      isAnimatingRef.current = false
+      console.log('move animation finished')
+    }, 550)
+  }, [])
 
   const handleTabClick = useCallback((index) => {
-    if (isAnimating || index === activeIndex) return
-    setIsAnimating(true)
+    console.log('tab clicked, index:', index, 'isAnimating:', isAnimatingRef.current)
+    if (isAnimatingRef.current || index === activeIndex) return
+    isAnimatingRef.current = true
     setActiveIndex(index)
-    setTimeout(() => setIsAnimating(false), 550)
-  }, [isAnimating, activeIndex])
+    setTimeout(() => {
+      isAnimatingRef.current = false
+      console.log('tab click animation finished')
+    }, 550)
+  }, [activeIndex])
 
   useEffect(() => {
     const handleKeyDown = (e) => {

@@ -9,8 +9,8 @@ export function HeroVideoBackground() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const videoRef = useRef(null)
 
-  const handleEnded = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % VIDEOS.length)
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % VIDEOS.length)
   }
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function HeroVideoBackground() {
         autoPlay
         muted
         playsInline
-        onEnded={handleEnded}
+        onEnded={handleNext}
       />
       <div className="hero-video-overlay" />
     </div>
