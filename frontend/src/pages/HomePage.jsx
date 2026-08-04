@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { PortfolioDeck } from '../components/PortfolioDeck'
 import { objectives } from '../data/clubContent'
 import { PageFlipSection } from '../components/PageFlipSection'
+import { HeroVideoBackground } from '../components/HeroVideoBackground'
 
 export function HomePage() {
   const reduceMotion = useReducedMotion()
@@ -15,6 +16,7 @@ export function HomePage() {
     <div className="home-page-container">
       <PageFlipSection zIndex={10}>
         <section className="hero-section section-wrap">
+          <HeroVideoBackground />
           <motion.div
             className="hero-copy"
             initial={reduceMotion ? false : { opacity: 0, y: 16 }}

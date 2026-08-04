@@ -97,7 +97,44 @@ a { color: inherit; text-decoration: none; }
 }
 .theme-toggle:hover { transform: translateY(-2px); border-color: var(--gold); }
 
-.hero-section { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.7fr); align-items: center; min-height: 620px; gap: 80px; padding-block: 84px; }
+.hero-section {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.7fr);
+  align-items: center;
+  min-height: 640px;
+  gap: 80px;
+  padding-block: 84px;
+}
+.hero-video-container {
+  position: absolute;
+  top: -82px; /* Extend behind site header if needed or align to top of section */
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 0 0 32px 32px;
+}
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.1) brightness(0.9);
+}
+.hero-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(180deg, color-mix(in srgb, var(--canvas), transparent 35%) 0%, color-mix(in srgb, var(--canvas), transparent 65%) 60%, var(--canvas) 100%),
+    radial-gradient(circle at center, transparent 30%, color-mix(in srgb, var(--violet-strong), transparent 85%) 100%);
+}
+.hero-copy, .hero-orbit {
+  position: relative;
+  z-index: 2;
+}
 .announcement, .section-kicker { display: inline-flex; align-items: center; gap: 7px; color: var(--violet-strong); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.115em; text-transform: uppercase; }
 .announcement { padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--gold), transparent 55%); border-radius: 999px; background: color-mix(in srgb, var(--gold), transparent 91%); letter-spacing: 0.035em; text-transform: none; }
 .hero-eyebrow { margin: 27px 0 9px; color: var(--coral); font-size: 0.89rem; font-weight: 700; letter-spacing: 0.095em; text-transform: uppercase; }
