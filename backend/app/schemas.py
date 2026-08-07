@@ -72,7 +72,7 @@ def validate_application_payload(data, allowed_email_domain):
     except (TypeError, ValueError):
         year = None
     if year not in YEARS:
-        fields["year"] = "Select either first year or second year."
+        fields["year"] = "Only second-year students can apply."
     else:
         clean["year"] = year
 

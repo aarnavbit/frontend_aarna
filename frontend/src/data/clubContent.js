@@ -32,9 +32,14 @@ export const portfolios = [
     description: 'Design thoughtful participant and guest experiences for every club moment.',
   },
   {
-    name: 'Marketing & Sponsorship team',
+    name: 'Marketing team',
     eyebrow: 'Connect',
-    description: 'Build relationships, find opportunities, and help AARNA’s work travel further.',
+    description: 'Shape campaigns, understand audiences, and help AARNA reach more students.',
+  },
+  {
+    name: 'Sponsorship team',
+    eyebrow: 'Partner',
+    description: 'Build relationships with partners and create opportunities that support AARNA projects.',
   },
 ]
 

@@ -7,10 +7,12 @@ PORTFOLIOS = (
     "Documentation team",
     "Social Media & Promotion team",
     "Hospitality team",
-    "Marketing & Sponsorship team",
+    "Marketing team",
+    "Sponsorship team",
 )
 
-YEARS = (1, 2)
+# OC recruitment is currently open only to second-year students.
+YEARS = (2,)
 
 SHEET_HEADERS = (
     "Application ID",

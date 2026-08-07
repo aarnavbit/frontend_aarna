@@ -39,7 +39,7 @@ function validateStep(step, values) {
     if (values.academicDepartment.trim().length < 2) {
       errors.academicDepartment = 'Enter your academic department.'
     }
-    if (!['1', '2'].includes(String(values.year))) errors.year = 'Choose your year.'
+    if (String(values.year) !== '2') errors.year = 'Only second-year students can apply.'
   }
   if (step === 2) {
     if (!values.primaryPortfolio) errors.primaryPortfolio = 'Choose your first preference.'
@@ -191,7 +191,6 @@ export function ApplicationForm() {
                 <FormField label="Year" name="year" error={errors.year}>
                   <select name="year" value={values.year} onChange={updateValue}>
                     <option value="">Select your year</option>
-                    <option value="1">First year</option>
                     <option value="2">Second year</option>
                   </select>
                 </FormField>

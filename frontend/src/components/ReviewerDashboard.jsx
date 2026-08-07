@@ -180,7 +180,6 @@ export function ReviewerDashboard() {
         </label>
         <select name="year" value={filters.year} onChange={changeFilter} aria-label="Filter by year">
           <option value="">All years</option>
-          <option value="1">First year</option>
           <option value="2">Second year</option>
         </select>
         <select name="portfolio" value={filters.portfolio} onChange={changeFilter} aria-label="Filter by portfolio">

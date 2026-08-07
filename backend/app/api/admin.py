@@ -47,7 +47,7 @@ def list_applications():
     portfolio = request.args.get("portfolio")
     sync_state = request.args.get("syncState")
     if year is not None and year not in YEARS:
-        raise ApiError("invalid_query", "year must be 1 or 2.")
+        raise ApiError("invalid_query", "year must be 2 because only second-year students are eligible.")
     if portfolio and portfolio not in PORTFOLIOS:
         raise ApiError("invalid_query", "portfolio is not valid.")
     if sync_state and sync_state not in ("pending", "synced"):

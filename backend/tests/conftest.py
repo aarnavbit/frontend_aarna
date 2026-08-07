@@ -38,7 +38,7 @@ def application_payload():
         "phone": "9876543210",
         "rollNumber": "CSBS-2026-001",
         "academicDepartment": "Computer Science and Business Systems",
-        "year": 1,
+        "year": 2,
         "section": "A",
         "primaryPortfolio": "Technical team",
         "secondaryPortfolio": "Documentation team",

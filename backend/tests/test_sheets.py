@@ -61,7 +61,7 @@ def _application():
         phone="9876543210",
         roll_number="CSBS-001",
         academic_department="CSBS",
-        year=1,
+        year=2,
         primary_portfolio="Technical team",
         secondary_portfolio="Documentation team",
         skills="Python and React",

@@ -39,7 +39,7 @@ All request and response bodies are JSON. Errors use the shape `{ "error": { "co
 | Method | Endpoint | Authentication | Purpose |
 |---|---|---|---|
 | GET | `/api/health` | None | Database health check. |
-| GET | `/api/application-options` | None | Returns the seven portfolios and supported years. |
+| GET | `/api/application-options` | None | Returns the eight portfolios and the eligible year (second year). |
 | POST | `/api/applications` | None | Validates and stores one application. |
 | POST | `/api/admin/session` | Password in JSON | Creates a reviewer bearer token. |
 | GET | `/api/admin/applications` | `Authorization: Bearer <token>` | Search/filter read-only applications. |
@@ -54,7 +54,7 @@ All request and response bodies are JSON. Errors use the shape `{ "error": { "co
   "phone": "9876543210",
   "rollNumber": "23CS001",
   "academicDepartment": "Computer Science",
-  "year": 1,
+  "year": 2,
   "section": "A",
   "primaryPortfolio": "Technical team",
   "secondaryPortfolio": "Designing team",
@@ -138,4 +138,4 @@ The sync command is safe to retry. Configure a Render Cron Job with command `fla
 
 ## Configuration checklist
 
-Required in deployment: `DATABASE_URL`, `ALLOWED_EMAIL_DOMAIN`, `ADMIN_PASSWORD`, `TOKEN_SECRET`, `CORS_ORIGIN`, `GOOGLE_SHEET_ID`, `GOOGLE_SHEET_TAB`, and `GOOGLE_SERVICE_ACCOUNT_JSON`. Keep secrets in Render environment settings, restrict `CORS_ORIGIN` to the deployed frontend, and do not expose reviewer endpoints without the bearer token.
+Required in deployment: `DATABASE_URL`, `ALLOWED_EMAIL_DOMAIN`, `ADMIN_PASSWORD`, `TOKEN_SECRET`, `CORS_ORIGIN`, `GOOGLE_SHEET_ID`, `GOOGLE_SHEET_TAB`, and `GOOGLE_SERVICE_ACCOUNT_JSON`. Keep secrets in Render environment settings, restrict `CORS_ORIGIN` to the deployed frontend, and do not expose reviewer endpoints without the bearer token. OC recruitment currently accepts second-year applications only.

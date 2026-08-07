@@ -40,7 +40,7 @@ frontend/
 | `/apply` | `ApplyPage` | Three-step application flow with inline validation and retry/wake-up feedback. |
 | `/dashboard` | `DashboardPage` | Password login, searchable/filterable reviewer table, sync status and detail drawer. |
 
-The seven portfolio choices are Technical team, Production team, Designing team, Documentation team, Social Media & Promotion team, Hospitality team, and Marketing & Sponsorship team. Primary and secondary choices are required to be different by the backend.
+The eight portfolio choices are Technical team, Production team, Designing team, Documentation team, Social Media & Promotion team, Hospitality team, Marketing team, and Sponsorship team. Primary and secondary choices are required to be different by the backend. OC recruitment currently accepts second-year students only.
 
 ## Component and function reference
 
