@@ -1,9 +1,11 @@
-import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
-import { useRef } from 'react'
+import { motion, useReducedMotion, useScroll, useSpring, useTransform, useMotionValueEvent } from 'framer-motion'
+import { useRef, useState } from 'react'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 export function PageFlipSection({ children, zIndex, isLast = false }) {
   const containerRef = useRef(null)
   const reduceMotion = useReducedMotion()
+  const isMobile = useIsMobile(768)
 
   // Exit animation (this page lifting and flipping away)
   const { scrollYProgress: exitProgress } = useScroll({
@@ -34,6 +36,12 @@ export function PageFlipSection({ children, zIndex, isLast = false }) {
   const exitOpacity = useTransform(smoothExit, [0.8, 1], [1, 0])
   const exitShadowOpacity = useTransform(smoothExit, [0, 1], [0, 0.6])
   
+  const [isExited, setIsExited] = useState(false)
+  useMotionValueEvent(smoothExit, 'change', (latest) => {
+    const exited = latest > 0.1
+    if (exited !== isExited) setIsExited(exited)
+  })
+  
   // Shadow box for the page lifting up
   const exitBoxShadow = useTransform(
     smoothExit,
@@ -50,12 +58,18 @@ export function PageFlipSection({ children, zIndex, isLast = false }) {
   const enterY = useTransform(smoothEnter, [0, 1], ['30px', '0px'])
   const enterScale = useTransform(smoothEnter, [0, 1], [0.98, 1])
 
-  // Fallback for reduced motion
-  if (reduceMotion) {
+  // Fallback for reduced motion or mobile viewports
+  if (reduceMotion || isMobile) {
     return (
-      <div style={{ position: 'relative', zIndex, background: 'var(--canvas)' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        style={{ position: 'relative', zIndex, background: 'var(--canvas)', width: '100%' }}
+      >
         {children}
-      </div>
+      </motion.div>
     )
   }
 
@@ -88,6 +102,7 @@ export function PageFlipSection({ children, zIndex, isLast = false }) {
             y: exitY,
             scale: exitScale,
             opacity: exitOpacity,
+            pointerEvents: isExited ? 'none' : 'auto',
             transformOrigin: '50% 0%', // Pivot from the top
             width: '100%',
             willChange: 'transform, opacity',

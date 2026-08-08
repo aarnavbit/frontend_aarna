@@ -1,12 +1,36 @@
-/** Editorial home page presenting AARNA's purpose before inviting an OC application. */
-
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { PortfolioDeck } from '../components/PortfolioDeck'
 import { objectives } from '../data/clubContent'
 import { PageFlipSection } from '../components/PageFlipSection'
 import { HeroVideoBackground } from '../components/HeroVideoBackground'
+import { useIsMobile } from '../hooks/useIsMobile'
+
+function ExpandableText({ children, maxLength = 120 }) {
+  const isMobile = useIsMobile(768)
+  const [expanded, setExpanded] = useState(false)
+
+  if (!isMobile || typeof children !== 'string' || children.length <= maxLength) {
+    return <>{children}</>
+  }
+
+  const displayText = expanded ? children : children.slice(0, maxLength) + '...'
+
+  return (
+    <span>
+      {displayText}{' '}
+      <button
+        type="button"
+        className="read-more-toggle"
+        onClick={() => setExpanded(!expanded)}
+      >
+        {expanded ? <>Less <ChevronUp size={14} /></> : <>Read more <ChevronDown size={14} /></>}
+      </button>
+    </span>
+  )
+}
 
 export function HomePage() {
   const reduceMotion = useReducedMotion()
@@ -57,10 +81,12 @@ export function HomePage() {
             <h2>A dynamic platform for skills, stories, and self-made possibilities.</h2>
           </motion.div>
           <motion.p {...reveal} className="story-copy">
-            We believe earning is a mindset: every talent can grow into an opportunity, and
-            every dream deserves the room to flourish. Whether you code, write, design, market,
-            organise, or are still finding your strength, AARNA helps you develop it alongside
-            your studies.
+            <ExpandableText maxLength={140}>
+              We believe earning is a mindset: every talent can grow into an opportunity, and
+              every dream deserves the room to flourish. Whether you code, write, design, market,
+              organise, or are still finding your strength, AARNA helps you develop it alongside
+              your studies.
+            </ExpandableText>
           </motion.p>
         </section>
       </PageFlipSection>

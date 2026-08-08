@@ -1,10 +1,9 @@
-/** Accessible three-step OC application form with premium motion, 3D card transitions, and auto-save. */
-
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../api/client'
 import { portfolios } from '../data/clubContent'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const initialValues = {
   fullName: '',
@@ -80,6 +79,7 @@ export function ApplicationForm() {
   const [status, setStatus] = useState({ state: 'idle', message: '' })
   const [submission, setSubmission] = useState(null)
   const reduceMotion = useReducedMotion()
+  const isMobile = useIsMobile(768)
   const isInitialMount = useRef(true)
   const formRef = useRef(null)
   const userHasModifiedCurrentStep = useRef(false)
@@ -234,9 +234,16 @@ export function ApplicationForm() {
     )
   }
 
-  // 3D Card Stack Variants
+  // Step Variants (Slide for mobile, 3D Card Stack for desktop)
   const cardVariants = {
-    enter: (dir) => ({
+    enter: (dir) => (isMobile ? {
+      opacity: 0,
+      x: dir > 0 ? 40 : -40,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      rotateY: 0,
+    } : {
       opacity: 0,
       y: dir > 0 ? 30 : -30,
       scale: 0.95,
@@ -246,6 +253,7 @@ export function ApplicationForm() {
     }),
     center: {
       opacity: 1,
+      x: 0,
       y: 0,
       scale: 1,
       rotateX: 0,
@@ -253,7 +261,14 @@ export function ApplicationForm() {
       zIndex: 1,
       position: 'relative'
     },
-    exit: (dir) => ({
+    exit: (dir) => (isMobile ? {
+      opacity: 0,
+      x: dir > 0 ? -40 : 40,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      rotateY: 0,
+    } : {
       opacity: 0,
       y: dir > 0 ? 60 : -60,
       scale: 0.9,
@@ -295,7 +310,7 @@ export function ApplicationForm() {
                   />
                 )}
               </span>
-              {label}
+              <span className="step-label-text">{label}</span>
             </li>
           )
         })}
@@ -311,8 +326,8 @@ export function ApplicationForm() {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ type: 'spring', stiffness: 280, damping: 26 }}
-            style={{ perspective: 1000 }}
+            transition={isMobile ? { duration: 0.25, ease: 'easeInOut' } : { type: 'spring', stiffness: 280, damping: 26 }}
+            style={{ perspective: isMobile ? 'none' : 1000 }}
           >
             {step === 0 && (
               <>

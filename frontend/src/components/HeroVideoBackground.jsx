@@ -1,8 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 
 const VIDEOS = [
-  '/videos/H9fkFctW301jHJzB59bGofFpn0.mp4',
-  '/videos/rVkyfXDsqZkXstqpf2snha897eY.mp4'
+  {
+    mp4: '/videos/H9fk_master.mp4',
+    poster: '/videos/poster1.webp'
+  },
+  {
+    mp4: '/videos/rVky_master.mp4',
+    poster: '/videos/poster2.webp'
+  }
 ]
 
 export function HeroVideoBackground() {
@@ -15,23 +21,29 @@ export function HeroVideoBackground() {
 
   useEffect(() => {
     if (videoRef.current) {
+      videoRef.current.load()
       videoRef.current.play().catch((err) => {
-        console.warn('Autoplay prevented or video playback error:', err)
+        console.warn('Autoplay prevented or video error:', err)
       })
     }
   }, [currentIndex])
+
+  const active = VIDEOS[currentIndex]
 
   return (
     <div className="hero-video-container" aria-hidden="true">
       <video
         ref={videoRef}
-        src={VIDEOS[currentIndex]}
+        poster={active.poster}
         className="hero-video"
         autoPlay
         muted
         playsInline
+        preload="metadata"
         onEnded={handleNext}
-      />
+      >
+        <source src={active.mp4} type="video/mp4" />
+      </video>
       <div className="hero-video-overlay" />
     </div>
   )
