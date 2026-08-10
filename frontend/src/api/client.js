@@ -33,4 +33,5 @@ export const api = {
   getApplications: (token, query) =>
     request(`/admin/applications?${new URLSearchParams(query)}`, { token }),
   getSyncStatus: (token) => request('/admin/sync-status', { token }),
+  wakeup: () => fetch(`${API_BASE_URL}/applications`, { method: 'OPTIONS' }).catch(() => null),
 }

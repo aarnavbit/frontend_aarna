@@ -1,6 +1,6 @@
 /** Read-only reviewer workspace; authentication stays in component memory by design. */
 
-import { LoaderCircle, LogOut, Search, ShieldCheck, X } from 'lucide-react'
+import { Filter, LoaderCircle, LogOut, Search, ShieldCheck, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { api } from '../api/client'
 import { portfolios } from '../data/clubContent'
@@ -125,6 +125,7 @@ export function ReviewerDashboard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [filters, setFilters] = useState({ q: '', year: '', portfolio: '', syncState: '' })
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   const load = useCallback(async (activeToken, activeFilters = filters) => {
     if (!activeToken) return
@@ -153,6 +154,7 @@ export function ReviewerDashboard() {
   const submitFilters = (event) => {
     event.preventDefault()
     setSelected(null)
+    setShowMobileFilters(false)
     load(token)
   }
 
@@ -172,8 +174,20 @@ export function ReviewerDashboard() {
         </div>
         <button className="button button-quiet" type="button" onClick={() => setToken('')}><LogOut size={16} /> Sign out</button>
       </div>
+
       <SyncSummary sync={sync} />
-      <form className="reviewer-filters" onSubmit={submitFilters}>
+
+      <div className="mobile-filter-bar">
+        <button
+          type="button"
+          className="button button-quiet mobile-filter-toggle"
+          onClick={() => setShowMobileFilters(!showMobileFilters)}
+        >
+          <Filter size={16} /> Filters {Object.values(filters).some(Boolean) ? '(Active)' : ''}
+        </button>
+      </div>
+
+      <form className={`reviewer-filters ${showMobileFilters ? 'is-open-mobile' : ''}`} onSubmit={submitFilters}>
         <label className="search-control">
           <Search size={17} aria-hidden="true" />
           <input name="q" value={filters.q} onChange={changeFilter} placeholder="Search name, email, or roll number" />
@@ -194,34 +208,83 @@ export function ReviewerDashboard() {
         </select>
         <button className="button button-primary" type="submit">Filter</button>
       </form>
+
       {error && <p className="form-alert" role="alert">{error}</p>}
+
       <div className="reviewer-table-wrap">
         {loading ? (
           <div className="dashboard-loading"><LoaderCircle className="spin" size={23} /> Loading applications</div>
         ) : applications.length === 0 ? (
           <div className="empty-dashboard">No applications match these filters yet.</div>
         ) : (
-          <table className="reviewer-table">
-            <thead>
-              <tr><th>Applicant</th><th>Year</th><th>Preferences</th><th>Submitted</th><th>Sheets</th></tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop Table View */}
+            <table className="reviewer-table desktop-only-table">
+              <thead>
+                <tr><th>Applicant</th><th>Year</th><th>Preferences</th><th>Submitted</th><th>Sheets</th></tr>
+              </thead>
+              <tbody>
+                {applications.map((application) => (
+                  <tr key={application.applicationId} onClick={() => setSelected(application)} tabIndex="0" onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') setSelected(application)
+                  }}>
+                    <td><strong>{application.fullName}</strong><span>{application.collegeEmail}</span></td>
+                    <td>{application.year === 1 ? 'First' : 'Second'}</td>
+                    <td>{application.primaryPortfolio}<span>{application.secondaryPortfolio}</span></td>
+                    <td>{formatDate(application.submittedAt)}</td>
+                    <td><span className={'sync-badge ' + application.syncStatus}>{application.syncStatus}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Mobile Card List View */}
+            <div className="reviewer-card-list mobile-only-cards">
               {applications.map((application) => (
-                <tr key={application.applicationId} onClick={() => setSelected(application)} tabIndex="0" onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') setSelected(application)
-                }}>
-                  <td><strong>{application.fullName}</strong><span>{application.collegeEmail}</span></td>
-                  <td>{application.year === 1 ? 'First' : 'Second'}</td>
-                  <td>{application.primaryPortfolio}<span>{application.secondaryPortfolio}</span></td>
-                  <td>{formatDate(application.submittedAt)}</td>
-                  <td><span className={'sync-badge ' + application.syncStatus}>{application.syncStatus}</span></td>
-                </tr>
+                <div
+                  key={application.applicationId}
+                  className="reviewer-applicant-card"
+                  onClick={() => setSelected(application)}
+                  tabIndex="0"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') setSelected(application)
+                  }}
+                >
+                  <div className="applicant-card-header">
+                    <div>
+                      <strong>{application.fullName}</strong>
+                      <span className="applicant-email">{application.collegeEmail}</span>
+                    </div>
+                    <span className={'sync-badge ' + application.syncStatus}>{application.syncStatus}</span>
+                  </div>
+
+                  <div className="applicant-card-details">
+                    <div className="card-detail-item">
+                      <span className="detail-label">Year</span>
+                      <span>{application.year === 1 ? '1st Year' : '2nd Year'}</span>
+                    </div>
+                    <div className="card-detail-item">
+                      <span className="detail-label">1st Choice</span>
+                      <span className="pref-tag">{application.primaryPortfolio}</span>
+                    </div>
+                    <div className="card-detail-item">
+                      <span className="detail-label">2nd Choice</span>
+                      <span className="pref-tag secondary">{application.secondaryPortfolio}</span>
+                    </div>
+                  </div>
+
+                  <div className="applicant-card-footer">
+                    <span>Submitted {formatDate(application.submittedAt)}</span>
+                    <span className="tap-hint">Tap for details →</span>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
       <ApplicationDrawer application={selected} onClose={() => setSelected(null)} />
     </div>
   )
 }
+
