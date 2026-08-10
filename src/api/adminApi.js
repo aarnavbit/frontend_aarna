@@ -1,4 +1,8 @@
-const API_BASE = import.meta.env.VITE_ADMIN_API_BASE_URL || 'http://127.0.0.1:5000/admin'
+const fallbackBase = import.meta.env.VITE_API_BASE_URL 
+  ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '').replace(/\/$/, '') + '/admin'
+  : 'http://127.0.0.1:5000/admin'
+
+const API_BASE = import.meta.env.VITE_ADMIN_API_BASE_URL || fallbackBase
 
 function getAuthHeaders() {
   const token = localStorage.getItem('aarna_admin_token')
