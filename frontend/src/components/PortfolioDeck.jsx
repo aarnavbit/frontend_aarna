@@ -14,7 +14,7 @@ const ModalPortal = ({ children }) => {
 }
 
 // Particle generator for cinematic background floating dust
-function CinematicParticles() {
+function CinematicParticles({ accentColor }) {
   const particles = Array.from({ length: 16 }).map((_, i) => ({
     id: i,
     left: `${(i * 6.25 + (i % 3) * 4) % 95}%`,
@@ -35,6 +35,8 @@ function CinematicParticles() {
             left: p.left,
             width: p.size,
             height: p.size,
+            background: `radial-gradient(circle, ${accentColor || '#ffd700'} 0%, rgba(255, 255, 255, 0.4) 60%, transparent 100%)`,
+            boxShadow: `0 0 8px ${accentColor || '#ffd700'}`,
             '--duration': p.duration,
             '--delay': p.delay,
             '--max-opacity': p.maxOpacity,
@@ -45,6 +47,91 @@ function CinematicParticles() {
     </div>
   )
 }
+
+// Distinct sports-style visual theme color palettes for each athlete
+const memberThemes = [
+  {
+    accent: '#ffd700',
+    secondary: '#ffae00',
+    bgGradient: 'linear-gradient(140deg, #1b1229 0%, #311c47 55%, #592d53 100%)',
+    glowColor: 'rgba(255, 215, 0, 0.55)',
+    badge: 'GOLD CAPTAIN',
+    badgeBg: 'rgba(255, 215, 0, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(255, 215, 0, 0.45) 0%, rgba(45, 20, 70, 0.95) 75%)',
+  },
+  {
+    accent: '#00f2fe',
+    secondary: '#4facfe',
+    bgGradient: 'linear-gradient(140deg, #09203f 0%, #1e3c72 55%, #0052d4 100%)',
+    glowColor: 'rgba(0, 242, 254, 0.55)',
+    badge: 'CYBER CREATIVE',
+    badgeBg: 'rgba(0, 242, 254, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(0, 242, 254, 0.45) 0%, rgba(10, 30, 60, 0.95) 75%)',
+  },
+  {
+    accent: '#00ff87',
+    secondary: '#60efff',
+    bgGradient: 'linear-gradient(140deg, #0d2818 0%, #054a29 55%, #137547 100%)',
+    glowColor: 'rgba(0, 255, 135, 0.55)',
+    badge: 'EMERALD PRO',
+    badgeBg: 'rgba(0, 255, 135, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(0, 255, 135, 0.45) 0%, rgba(10, 50, 30, 0.95) 75%)',
+  },
+  {
+    accent: '#ff0844',
+    secondary: '#ffb199',
+    bgGradient: 'linear-gradient(140deg, #2b0814 0%, #590d22 55%, #800f2f 100%)',
+    glowColor: 'rgba(255, 8, 68, 0.55)',
+    badge: 'CRIMSON ELITE',
+    badgeBg: 'rgba(255, 8, 68, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(255, 8, 68, 0.45) 0%, rgba(60, 10, 25, 0.95) 75%)',
+  },
+  {
+    accent: '#b820e6',
+    secondary: '#da4453',
+    bgGradient: 'linear-gradient(140deg, #20052b 0%, #4a0e4e 55%, #7a1c72 100%)',
+    glowColor: 'rgba(184, 32, 230, 0.55)',
+    badge: 'AMETHYST STAR',
+    badgeBg: 'rgba(184, 32, 230, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(184, 32, 230, 0.45) 0%, rgba(40, 10, 55, 0.95) 75%)',
+  },
+  {
+    accent: '#ff758c',
+    secondary: '#ff7eb3',
+    bgGradient: 'linear-gradient(140deg, #32101e 0%, #5d1a38 55%, #882552 100%)',
+    glowColor: 'rgba(255, 117, 140, 0.55)',
+    badge: 'ROSE TITANIUM',
+    badgeBg: 'rgba(255, 117, 140, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(255, 117, 140, 0.45) 0%, rgba(60, 20, 35, 0.95) 75%)',
+  },
+  {
+    accent: '#e0c3fc',
+    secondary: '#8ec5fc',
+    bgGradient: 'linear-gradient(140deg, #191b2a 0%, #2f354f 55%, #475276 100%)',
+    glowColor: 'rgba(224, 195, 252, 0.55)',
+    badge: 'PLATINUM CARD',
+    badgeBg: 'rgba(224, 195, 252, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(224, 195, 252, 0.45) 0%, rgba(30, 35, 55, 0.95) 75%)',
+  },
+  {
+    accent: '#f6d365',
+    secondary: '#fda085',
+    bgGradient: 'linear-gradient(140deg, #2c1d0d 0%, #523414 55%, #7a4c1c 100%)',
+    glowColor: 'rgba(246, 211, 101, 0.55)',
+    badge: 'BRONZE EXECUTIVE',
+    badgeBg: 'rgba(246, 211, 101, 0.18)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(246, 211, 101, 0.45) 0%, rgba(50, 30, 15, 0.95) 75%)',
+  },
+  {
+    accent: '#ffd700',
+    secondary: '#ff8c00',
+    bgGradient: 'linear-gradient(140deg, #090510 0%, #1c0d2b 55%, #38124d 100%)',
+    glowColor: 'rgba(255, 215, 0, 0.65)',
+    badge: 'SHADOW ATHLETE',
+    badgeBg: 'rgba(255, 215, 0, 0.22)',
+    emblemGradient: 'radial-gradient(circle at 35% 35%, rgba(255, 215, 0, 0.55) 0%, rgba(15, 5, 25, 0.98) 75%)',
+  }
+]
 
 // Dummy team members formatted as professional club introduction cards
 const memberNames = [
@@ -61,6 +148,7 @@ const baseMembers = Array(8).fill(null).map((_, i) => ({
   name: memberNames[i % memberNames.length],
   title: memberTitles[i % memberTitles.length],
   team: 'AARNA EXECUTIVE',
+  theme: memberThemes[i % memberThemes.length],
   photoOnly: false,
   about: 'Passionate student leader driving innovation, team collaboration, and impactful campus initiatives at AARNA. Experienced in leading multidisciplinary projects from vision to execution.',
   competencies: [
@@ -91,6 +179,7 @@ const dummyMembers = [
     name: 'The Sentinel',
     title: 'Shadow Athlete (Photo Only)',
     team: 'AARNA EXECUTIVE',
+    theme: memberThemes[8],
     photoOnly: true,
     about: '',
     competencies: [],
@@ -102,6 +191,7 @@ const dummyMembers = [
 ]
 
 function MemberCardTilt({ member, introStage, isSwitching, photoOnly }) {
+  const theme = member.theme || memberThemes[member.id % memberThemes.length]
   const cardRef = useRef(null)
   const [rotateX, setRotateX] = useState(0)
   const [rotateY, setRotateY] = useState(0)
@@ -146,9 +236,9 @@ function MemberCardTilt({ member, introStage, isSwitching, photoOnly }) {
                 rotateY: [rotateY + 3, rotateY - 3, rotateY + 3],
                 scale: [1.02, 1.05, 1.02],
                 boxShadow: [
-                  '0 25px 60px rgba(0, 0, 0, 0.55), 0 0 30px rgba(255, 215, 0, 0.3)',
-                  '0 30px 80px rgba(0, 0, 0, 0.75), 0 0 60px rgba(255, 215, 0, 0.6)',
-                  '0 25px 60px rgba(0, 0, 0, 0.55), 0 0 30px rgba(255, 215, 0, 0.3)'
+                  `0 25px 60px rgba(0, 0, 0, 0.55), 0 0 30px ${theme.glowColor}`,
+                  `0 30px 80px rgba(0, 0, 0, 0.75), 0 0 65px ${theme.glowColor}`,
+                  `0 25px 60px rgba(0, 0, 0, 0.55), 0 0 30px ${theme.glowColor}`
                 ]
               }
             : { rotateX, rotateY }
@@ -158,24 +248,45 @@ function MemberCardTilt({ member, introStage, isSwitching, photoOnly }) {
             ? { duration: 4, repeat: Infinity, ease: 'easeInOut' }
             : { type: 'spring', stiffness: 280, damping: 22 }
         }
-        style={{ transformStyle: 'preserve-3d' }}
+        style={{
+          transformStyle: 'preserve-3d',
+          background: theme.bgGradient,
+          borderColor: theme.accent,
+          boxShadow: `0 25px 60px rgba(0, 0, 0, 0.55), 0 0 35px ${theme.glowColor}`
+        }}
       >
         {/* Rim Light */}
-        <div className="member-rim-light" />
+        <div
+          className="member-rim-light"
+          style={{
+            boxShadow: `0 0 40px ${theme.glowColor}, inset 0 0 20px ${theme.glowColor}`
+          }}
+        />
 
         {/* Dynamic ambient glass glare */}
         <div
           className="intro-card-glare"
           style={{
-            background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, 0.6) 0%, rgba(212, 175, 55, 0.25) 35%, transparent 75%)`,
+            background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, 0.6) 0%, ${theme.glowColor} 35%, transparent 75%)`,
             opacity: glarePos.opacity,
           }}
         />
 
         {/* Card Header: Club Tag + Status */}
         <div className="intro-card-header">
-          <span className="intro-card-club-tag">AARNA CLUB</span>
-          <span className="intro-card-status-badge">MEMBER CARD</span>
+          <span className="intro-card-club-tag" style={{ color: theme.accent }}>
+            AARNA CLUB
+          </span>
+          <span
+            className="intro-card-status-badge"
+            style={{
+              color: theme.accent,
+              borderColor: `${theme.accent}66`,
+              background: theme.badgeBg
+            }}
+          >
+            {theme.badge}
+          </span>
         </div>
 
         {/* Portrait Container - Scene 2 Character Rise & Quick Switch */}
@@ -197,9 +308,22 @@ function MemberCardTilt({ member, introStage, isSwitching, photoOnly }) {
                 : { type: 'spring', stiffness: 140, damping: 14, mass: 1.1 }
             }
           >
-            <div className="intro-portrait-placeholder">
+            <div
+              className="intro-portrait-placeholder"
+              style={{
+                background: theme.emblemGradient,
+                borderColor: `${theme.accent}aa`,
+                boxShadow: `inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 35px ${theme.glowColor}`
+              }}
+            >
               {/* Silhouette / Athletic Icon Emblem */}
-              <div className="portrait-athlete-emblem">
+              <div
+                className="portrait-athlete-emblem"
+                style={{
+                  color: theme.accent,
+                  textShadow: `0 0 20px ${theme.glowColor}, 0 4px 12px rgba(0, 0, 0, 0.9)`
+                }}
+              >
                 <span>{member.name.split(' ').map(n => n[0]).join('')}</span>
               </div>
             </div>
@@ -213,8 +337,15 @@ function MemberCardTilt({ member, introStage, isSwitching, photoOnly }) {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <h2 className="intro-member-name">{member.name}</h2>
-          <div className="intro-card-divider" />
-          <p className="intro-member-title">{member.title}</p>
+          <div
+            className="intro-card-divider"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${theme.accent}, transparent)`
+            }}
+          />
+          <p className="intro-member-title" style={{ color: theme.accent }}>
+            {member.title}
+          </p>
         </motion.div>
       </motion.div>
     </div>
@@ -233,6 +364,9 @@ export function PortfolioDeck() {
   // Cinematic Intro Stages
   const [introStage, setIntroStage] = useState(0)
   const [isSwitching, setIsSwitching] = useState(false)
+
+  const activeMember = dummyMembers[activeMemberIndex]
+  const activeTheme = activeMember?.theme || memberThemes[activeMemberIndex % memberThemes.length]
 
   const move = useCallback((direction) => {
     if (isAnimatingRef.current) return
@@ -578,23 +712,28 @@ export function PortfolioDeck() {
               exit={{ opacity: 0 }}
               onClick={() => setExpandedPortfolio(null)}
             >
-              {/* Faint Bottom Spotlight Ray */}
-              <div className="cinematic-spotlight-ray" />
+              {/* Dynamic Theme Bottom Spotlight Ray */}
+              <div
+                className="cinematic-spotlight-ray"
+                style={{
+                  background: `radial-gradient(ellipse at bottom, ${activeTheme.glowColor} 0%, rgba(139, 89, 99, 0.08) 45%, transparent 75%)`
+                }}
+              />
 
-              {/* Floating Dust Particles */}
-              <CinematicParticles />
+              {/* Dynamic Theme Dust Particles */}
+              <CinematicParticles accentColor={activeTheme.accent} />
 
               {/* Cinematic Vignette */}
               <div className="cinematic-vignette" />
 
               <motion.div
                 className={`portfolio-expanded-card stage-${introStage} ${
-                  dummyMembers[activeMemberIndex]?.photoOnly ? 'is-photo-only-layout' : ''
+                  activeMember?.photoOnly ? 'is-photo-only-layout' : ''
                 }`}
                 onClick={(e) => e.stopPropagation()}
                 initial={{ scale: 0.92, opacity: 0, y: 30 }}
                 animate={{
-                  scale: introStage >= 2 && dummyMembers[activeMemberIndex]?.photoOnly ? 1.05 : 1,
+                  scale: introStage >= 2 && activeMember?.photoOnly ? 1.05 : 1,
                   opacity: 1,
                   y: 0
                 }}
@@ -605,7 +744,7 @@ export function PortfolioDeck() {
                 <motion.div
                   className="member-left-col"
                   animate={
-                    dummyMembers[activeMemberIndex]?.photoOnly
+                    activeMember?.photoOnly
                       ? { width: '100%', margin: '0 auto' }
                       : introStage >= 3
                       ? { width: isMobile ? '100%' : '38%', padding: isMobile ? '24px' : '40px' }
@@ -614,15 +753,15 @@ export function PortfolioDeck() {
                   transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <MemberCardTilt
-                    member={dummyMembers[activeMemberIndex]}
+                    member={activeMember}
                     introStage={introStage}
                     isSwitching={isSwitching}
-                    photoOnly={dummyMembers[activeMemberIndex]?.photoOnly}
+                    photoOnly={activeMember?.photoOnly}
                   />
                 </motion.div>
 
                 {/* Right Details Panel - Scene 4 & 5 */}
-                {!dummyMembers[activeMemberIndex]?.photoOnly && (
+                {!activeMember?.photoOnly && (
                   <motion.div
                     className="member-right-col"
                     animate={
@@ -647,8 +786,8 @@ export function PortfolioDeck() {
                           animate={introStage >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
                           transition={{ delay: 0.05 }}
                         >
-                          <h4>Member Bio</h4>
-                          <p>{dummyMembers[activeMemberIndex].about}</p>
+                          <h4 style={{ color: activeTheme.accent }}>Member Bio</h4>
+                          <p>{activeMember.about}</p>
                         </motion.div>
 
                         <motion.div
@@ -657,9 +796,9 @@ export function PortfolioDeck() {
                           animate={introStage >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
                           transition={{ delay: 0.15 }}
                         >
-                          <h4>Core Competencies & Expertise</h4>
+                          <h4 style={{ color: activeTheme.accent }}>Core Competencies & Expertise</h4>
                           <div className="competency-grid">
-                            {dummyMembers[activeMemberIndex].competencies.map((comp, idx) => (
+                            {activeMember.competencies.map((comp, idx) => (
                               <motion.div
                                 key={comp.name}
                                 className="competency-item"
@@ -669,7 +808,9 @@ export function PortfolioDeck() {
                               >
                                 <div className="competency-header">
                                   <span className="competency-name">{comp.name}</span>
-                                  <span className="competency-level">{comp.level}%</span>
+                                  <span className="competency-level" style={{ color: activeTheme.accent }}>
+                                    {comp.level}%
+                                  </span>
                                 </div>
                                 <div className="competency-bar-track">
                                   <motion.div
@@ -677,6 +818,9 @@ export function PortfolioDeck() {
                                     initial={{ width: '0%' }}
                                     animate={introStage >= 4 ? { width: `${comp.level}%` } : { width: '0%' }}
                                     transition={{ duration: 1, delay: 0.3 + idx * 0.08, ease: 'easeOut' }}
+                                    style={{
+                                      background: `linear-gradient(90deg, ${activeTheme.accent}, ${activeTheme.secondary})`
+                                    }}
                                   />
                                 </div>
                               </motion.div>
@@ -690,15 +834,17 @@ export function PortfolioDeck() {
                           animate={introStage >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
                           transition={{ delay: 0.35 }}
                         >
-                          <h4>Experience</h4>
+                          <h4 style={{ color: activeTheme.accent }}>Experience</h4>
                           <div className="member-experience-list">
-                            {dummyMembers[activeMemberIndex].experience.map((exp, i) => (
+                            {activeMember.experience.map((exp, i) => (
                               <div key={i} className="experience-item">
                                 <div className="exp-header">
                                   <span className="exp-title">{exp.title}</span>
                                   <span className="exp-date">{exp.date}</span>
                                 </div>
-                                <div className="exp-company">{exp.company}</div>
+                                <div className="exp-company" style={{ color: activeTheme.accent }}>
+                                  {exp.company}
+                                </div>
                                 <p className="exp-desc">{exp.description}</p>
                               </div>
                             ))}
@@ -711,9 +857,9 @@ export function PortfolioDeck() {
                           animate={introStage >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
                           transition={{ delay: 0.45 }}
                         >
-                          <h4>Featured Projects</h4>
+                          <h4 style={{ color: activeTheme.accent }}>Featured Projects</h4>
                           <div className="member-projects-carousel">
-                            {dummyMembers[activeMemberIndex].projects.map((proj, i) => (
+                            {activeMember.projects.map((proj, i) => (
                               <div key={i} className="project-card">
                                 <div className="project-thumbnail" />
                                 <div className="project-details">
@@ -721,7 +867,9 @@ export function PortfolioDeck() {
                                   <p className="project-desc">{proj.description}</p>
                                   <div className="project-tags">
                                     {proj.tags.map(tag => (
-                                      <span key={tag} className="project-tag">{tag}</span>
+                                      <span key={tag} className="project-tag" style={{ color: activeTheme.accent, borderColor: `${activeTheme.accent}44` }}>
+                                        {tag}
+                                      </span>
                                     ))}
                                   </div>
                                 </div>
@@ -736,8 +884,8 @@ export function PortfolioDeck() {
                           animate={introStage >= 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
                           transition={{ delay: 0.55 }}
                         >
-                          <h4>Contact & Socials</h4>
-                          <p>{dummyMembers[activeMemberIndex].contact}</p>
+                          <h4 style={{ color: activeTheme.accent }}>Contact & Socials</h4>
+                          <p>{activeMember.contact}</p>
                         </motion.div>
                       </motion.div>
                     </AnimatePresence>
@@ -757,7 +905,7 @@ export function PortfolioDeck() {
                 </button>
                 
                 <div className="member-nav-bar">
-                  <div className="member-indicator">
+                  <div className="member-indicator" style={{ color: activeTheme.accent }}>
                     0{activeMemberIndex + 1} / 0{dummyMembers.length}
                   </div>
                   <div className="member-arrows">

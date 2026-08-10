@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PortfolioDeck } from '../components/PortfolioDeck'
 import { objectives } from '../data/clubContent'
 import { PageFlipSection } from '../components/PageFlipSection'
@@ -33,6 +33,7 @@ function ExpandableText({ children, maxLength = 120 }) {
 }
 
 export function HomePage() {
+  const navigate = useNavigate()
   const reduceMotion = useReducedMotion()
   const reveal = reduceMotion ? {} : { initial: { opacity: 0, y: 18 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true } }
 
@@ -69,7 +70,9 @@ export function HomePage() {
             <span>CREATE</span>
             <span>CONNECT</span>
             <span>GROW</span>
-            <strong>A</strong>
+            <strong className="hero-logo-wrapper">
+              <img src="/Logo.png" alt="AARNA Logo" className="hero-logo-img" />
+            </strong>
           </motion.div>
         </section>
       </PageFlipSection>
@@ -135,14 +138,26 @@ export function HomePage() {
         </section>
       </PageFlipSection>
 
-      <PageFlipSection zIndex={5} isLast={true}>
+      <PageFlipSection zIndex={20} isLast={true}>
         <div style={{ paddingBottom: '1px' }}>
-          <section className="cta-section section-wrap">
+          <section
+            className="cta-section section-wrap"
+            onClick={() => navigate('/apply')}
+            style={{ cursor: 'pointer' }}
+          >
             <div>
               <span className="section-kicker">Your next chapter</span>
               <h2>Bring your energy. We’ll make space for it.</h2>
             </div>
-            <Link className="button button-primary" to="/apply">Start your application <ArrowRight size={18} /></Link>
+            <Link
+              className="button button-primary"
+              to="/apply"
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
+              Start your application <ArrowRight size={18} />
+            </Link>
           </section>
           <p className="coordinator-note">Faculty Coordinator · K. Keerthana, Assistant Professor · CSBS</p>
         </div>
