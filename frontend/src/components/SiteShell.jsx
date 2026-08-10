@@ -44,7 +44,7 @@ export function SiteShell({ children, theme, setTheme }) {
     <div className="site-shell">
       <header className="site-header">
         <NavLink className="brand" to="/" aria-label="AARNA Club home">
-          <span className="brand-mark" style={{ background: '#513369', borderRadius: '50%' }}></span>
+          <img src="/Logo.png" alt="AARNA Logo" className="brand-logo-img" style={{ width: 32, height: 32, objectFit: 'contain' }} />
           <span>
             <strong>AARNA</strong>
             <small>Freelancing Club</small>
@@ -56,7 +56,6 @@ export function SiteShell({ children, theme, setTheme }) {
           <NavLink end to="/">Home</NavLink>
           <NavLink to="/#portfolios">Portfolios</NavLink>
           <NavLink to="/apply">Apply</NavLink>
-          <NavLink to="/dashboard">Dashboard</NavLink>
         </nav>
 
         <div className="header-actions">
@@ -116,7 +115,6 @@ export function SiteShell({ children, theme, setTheme }) {
                 <NavLink end to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</NavLink>
                 <NavLink to="/#portfolios" onClick={() => setIsMobileMenuOpen(false)}>Portfolios</NavLink>
                 <NavLink to="/apply" onClick={() => setIsMobileMenuOpen(false)}>Apply</NavLink>
-                <NavLink to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</NavLink>
               </div>
 
               <div className="mobile-drawer-footer">

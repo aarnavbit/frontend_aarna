@@ -2,6 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 
 const VIDEOS = [
   {
+    mp4: '/videos/vbithyd_opt.mp4',
+    poster: '/videos/vbithyd_poster.webp'
+  },
+  {
     mp4: '/videos/H9fk_master.mp4',
     poster: '/videos/poster1.webp'
   },
