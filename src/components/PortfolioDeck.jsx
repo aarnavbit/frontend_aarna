@@ -566,7 +566,7 @@ export function PortfolioDeck() {
                     move(-1)
                   }
                 }}
-                onClick={() => {
+                onTap={() => {
                   setExpandedPortfolio(portfolio)
                   setActiveMemberIndex(0)
                 }}

@@ -80,10 +80,9 @@ export function PageFlipSection({ children, zIndex, isLast = false }) {
         position: 'relative',
         width: '100%',
         zIndex,
-        // The magic trick: padding bottom creates scroll space for the animation,
-        // negative margin pulls the next section up so it scrolls *underneath* this one.
         paddingBottom: isLast ? '0' : '100vh',
         marginBottom: isLast ? '0' : '-100vh',
+        pointerEvents: 'none',
       }}
     >
       {/* Sticky container that holds the pinned section during the extra scroll space */}
@@ -93,6 +92,7 @@ export function PageFlipSection({ children, zIndex, isLast = false }) {
           bottom: 0,
           width: '100%',
           perspective: '1500px',
+          pointerEvents: isExited ? 'none' : 'auto',
         }}
       >
         {/* The Exit Wrapper (handles the lift and flip out) */}

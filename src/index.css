@@ -27,22 +27,22 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --canvas: #17111c;
-  --surface: #21172a;
-  --surface-raised: #281d32;
-  --ink: #f8f0e5;
-  --ink-muted: #c8bbcc;
-  --ink-soft: #9e90a3;
-  --violet: #f0b33a;
-  --violet-strong: #f8cc6f;
-  --violet-wash: #312238;
-  --gold: #ffba36;
-  --gold-bright: #ffd16f;
-  --coral: #ff9473;
-  --border: #413149;
-  --success: #73d2a4;
-  --danger: #ff9f96;
-  --shadow: 0 18px 55px rgba(0, 0, 0, 0.26);
+  --canvas: #100b14;
+  --surface: #1b1023;
+  --surface-raised: #261432;
+  --ink: #fff4df;
+  --ink-muted: #c9b7c9;
+  --ink-soft: #927e95;
+  --violet: #b84cff;
+  --violet-strong: #d86cff;
+  --violet-wash: #32143f;
+  --gold: #ffb52e;
+  --gold-bright: #ffd45c;
+  --coral: #ff6b4a;
+  --border: #482452;
+  --success: #55d6a0;
+  --danger: #ff766b;
+  --shadow: 0 18px 55px rgba(0, 0, 0, 0.38);
 }
 
 * { box-sizing: border-box; }
@@ -73,6 +73,8 @@ a { color: inherit; text-decoration: none; }
   margin: 0 auto;
   padding-top: max(0px, env(safe-area-inset-top));
   border-bottom: 1px solid color-mix(in srgb, var(--border), transparent 28%);
+  position: relative;
+  z-index: 100;
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; width: max-content; }
 .brand-mark {
@@ -222,13 +224,13 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.1) brightness(0.9);
+  filter: saturate(1.1) brightness(1);
 }
 .hero-video-overlay {
   position: absolute;
   inset: 0;
   background: 
-    linear-gradient(180deg, color-mix(in srgb, var(--canvas), transparent 35%) 0%, color-mix(in srgb, var(--canvas), transparent 65%) 60%, var(--canvas) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--canvas), transparent 60%) 0%, color-mix(in srgb, var(--canvas), transparent 80%) 60%, var(--canvas) 100%),
     radial-gradient(circle at center, transparent 30%, color-mix(in srgb, var(--violet-strong), transparent 85%) 100%);
 }
 .hero-video-controls {
@@ -932,16 +934,15 @@ h1 em { color: var(--gold); font-style: normal; }
     object-fit: cover;
     width: 100%;
     height: 100%;
-    filter: saturate(1.15) brightness(0.85);
+    filter: saturate(1.15) brightness(1);
   }
   .hero-video-overlay {
     background: 
-      linear-gradient(180deg, color-mix(in srgb, var(--canvas), transparent 25%) 0%, color-mix(in srgb, var(--canvas), transparent 50%) 50%, var(--canvas) 100%),
+      linear-gradient(180deg, color-mix(in srgb, var(--canvas), transparent 50%) 0%, color-mix(in srgb, var(--canvas), transparent 70%) 50%, var(--canvas) 100%),
       radial-gradient(circle at center, transparent 15%, color-mix(in srgb, var(--violet-strong), transparent 80%) 100%);
   }
   .hero-orbit {
-    width: min(280px, 75vw);
-    margin: 12px auto 0;
+    display: none !important;
   }
   
   /* Story section */
@@ -988,6 +989,37 @@ h1 em { color: var(--gold); font-style: normal; }
   }
   .portfolio-background-rings {
     display: none !important;
+  }
+  
+  /* Mobile Football Card Resizing */
+  .player-card-3d-wrapper {
+    padding: 0;
+  }
+  .member-intro-card {
+    max-width: 270px;
+    height: 400px;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .intro-member-name {
+    font-size: 1.6rem;
+  }
+  .intro-member-title {
+    font-size: 0.8rem;
+  }
+  .intro-card-club-tag {
+    font-size: 0.65rem;
+  }
+  .intro-card-status-badge {
+    font-size: 0.6rem;
+    padding: 2px 7px;
+  }
+  .intro-portrait-placeholder {
+    width: 120px;
+    height: 120px;
+  }
+  .portrait-athlete-emblem {
+    font-size: 3.5rem;
   }
   .deck-controls {
     justify-content: center;
@@ -1226,8 +1258,6 @@ h1 em { color: var(--gold); font-style: normal; }
   display: flex;
   gap: 24px;
   width: max-content;
-  will-change: transform;
-  animation: marquee 75s linear infinite;
 }
 
 .marquee-container:hover .marquee-track,
@@ -1285,6 +1315,7 @@ h1 em { color: var(--gold); font-style: normal; }
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .marquee-card:hover .marquee-card-hover-overlay {

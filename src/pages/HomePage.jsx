@@ -139,11 +139,11 @@ export function HomePage() {
         </section>
       </PageFlipSection>
 
-      <PageFlipSection zIndex={5.5}>
+      <PageFlipSection zIndex={5}>
         <PreviousWork />
       </PageFlipSection>
 
-      <PageFlipSection zIndex={20} isLast={true}>
+      <PageFlipSection zIndex={4} isLast={true}>
         <div style={{ paddingBottom: '1px' }}>
           <section
             className="cta-section section-wrap"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
 
@@ -9,43 +10,123 @@ const imageList = Array.from({ length: TOTAL_IMAGES }, (_, i) => `/images/previo
 export function PreviousWork() {
   const reduceMotion = useReducedMotion()
   const [selectedIndex, setSelectedIndex] = useState(null)
-  const marqueeContainerRef = useRef(null)
+  const [isMounted, setIsMounted] = useState(false)
+  const containerRef = useRef(null)
+  const isPausedRef = useRef(false)
+  const manualTimeoutRef = useRef(null)
+  const metricsRef = useRef({ loopWidth: 0, cardWidth: 380 })
 
   const reveal = reduceMotion
     ? {}
     : { initial: { opacity: 0, y: 18 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true } }
 
-  // Open preview modal
-  const handleCardClick = (index) => {
+  const updateMetrics = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return
+    const track = container.querySelector('.marquee-track')
+    if (!track || track.children.length <= TOTAL_IMAGES) {
+      metricsRef.current = { loopWidth: container.scrollWidth / 2, cardWidth: 380 }
+      return
+    }
+    // loopWidth is the exact distance from the start of the 1st card to the start of the 21st card
+    const loopWidth = track.children[TOTAL_IMAGES].offsetLeft - track.children[0].offsetLeft
+    // cardWidth is the distance from the 1st card to the 2nd card (includes 1 gap)
+    const cardWidth = track.children[1] ? track.children[1].offsetLeft - track.children[0].offsetLeft : 380
+    metricsRef.current = { loopWidth, cardWidth }
+  }, [])
+
+  useEffect(() => {
+    setIsMounted(true)
+    updateMetrics()
+    window.addEventListener('resize', updateMetrics)
+    return () => window.removeEventListener('resize', updateMetrics)
+  }, [updateMetrics])
+
+  // Auto-scroll loop using requestAnimationFrame
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || reduceMotion) return
+
+    let animId
+
+    const autoScroll = () => {
+      if (container && !isPausedRef.current) {
+        container.scrollLeft += 0.8
+        const { loopWidth } = metricsRef.current
+        if (loopWidth > 0 && container.scrollLeft >= loopWidth) {
+          container.scrollLeft -= loopWidth
+        }
+      }
+      animId = requestAnimationFrame(autoScroll)
+    }
+
+    animId = requestAnimationFrame(autoScroll)
+
+    const pauseScroll = () => {
+      isPausedRef.current = true
+    }
+    const resumeScroll = () => {
+      isPausedRef.current = false
+    }
+
+    container.addEventListener('mouseenter', pauseScroll)
+    container.addEventListener('mouseleave', resumeScroll)
+    container.addEventListener('mousemove', pauseScroll)
+    container.addEventListener('pointerover', pauseScroll)
+    container.addEventListener('pointerdown', pauseScroll)
+    container.addEventListener('touchstart', pauseScroll, { passive: true })
+    container.addEventListener('touchend', resumeScroll, { passive: true })
+
+    return () => {
+      cancelAnimationFrame(animId)
+      if (container) {
+        container.removeEventListener('mouseenter', pauseScroll)
+        container.removeEventListener('mouseleave', resumeScroll)
+        container.removeEventListener('mousemove', pauseScroll)
+        container.removeEventListener('pointerover', pauseScroll)
+        container.removeEventListener('pointerdown', pauseScroll)
+        container.removeEventListener('touchstart', pauseScroll)
+        container.removeEventListener('touchend', resumeScroll)
+      }
+    }
+  }, [reduceMotion])
+
+  // Open Lightbox preview
+  const handleCardClick = (index, e) => {
+    if (e) e.stopPropagation()
+    isPausedRef.current = true
     setSelectedIndex(index % TOTAL_IMAGES)
   }
 
-  // Close preview modal
-  const handleClose = () => {
+  // Close Lightbox preview
+  const handleClose = (e) => {
+    if (e) e.stopPropagation()
     setSelectedIndex(null)
+    isPausedRef.current = false
   }
 
-  // Navigate lightbox images
-  const handlePrev = useCallback(() => {
-    setSelectedIndex((prev) => (prev === 0 ? TOTAL_IMAGES - 1 : prev - 1))
+  // Next / Prev Lightbox image
+  const handlePrev = useCallback((e) => {
+    if (e) e.stopPropagation()
+    setSelectedIndex((prev) => (prev === null || prev === 0 ? TOTAL_IMAGES - 1 : prev - 1))
   }, [])
 
-  const handleNext = useCallback(() => {
-    setSelectedIndex((prev) => (prev === TOTAL_IMAGES - 1 ? 0 : prev + 1))
+  const handleNext = useCallback((e) => {
+    if (e) e.stopPropagation()
+    setSelectedIndex((prev) => (prev === null || prev === TOTAL_IMAGES - 1 ? 0 : prev + 1))
   }, [])
 
-  // Keyboard navigation for Lightbox
+  // Keyboard controls for Lightbox
   useEffect(() => {
     if (selectedIndex === null) return
 
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') handleClose()
-      if (e.key === 'ArrowLeft') handlePrev()
-      if (e.key === 'ArrowRight') handleNext()
+      if (e.key === 'Escape') handleClose(e)
+      if (e.key === 'ArrowLeft') handlePrev(e)
+      if (e.key === 'ArrowRight') handleNext(e)
     }
 
     window.addEventListener('keydown', handleKeyDown)
-    // Prevent background scrolling when modal is open
     document.body.style.overflow = 'hidden'
 
     return () => {
@@ -54,17 +135,37 @@ export function PreviousWork() {
     }
   }, [selectedIndex, handlePrev, handleNext])
 
-  // Manual scroll controls for the marquee container
-  const scrollMarquee = (direction) => {
-    if (!marqueeContainerRef.current) return
-    const scrollAmount = 400
-    marqueeContainerRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    })
+  // Seamless Manual scroll Left / Right
+  const handleManualScroll = (direction, e) => {
+    if (e) e.stopPropagation()
+    const container = containerRef.current
+    if (!container) return
+
+    isPausedRef.current = true
+    if (manualTimeoutRef.current) clearTimeout(manualTimeoutRef.current)
+
+    const { loopWidth, cardWidth } = metricsRef.current
+    const halfWidth = loopWidth || (container.scrollWidth / 2)
+    const scrollDistance = cardWidth || 380
+
+    if (direction === 'left') {
+      if (container.scrollLeft < scrollDistance) {
+        container.scrollLeft += halfWidth
+      }
+      container.scrollBy({ left: -scrollDistance, behavior: 'smooth' })
+    } else {
+      if (container.scrollLeft >= halfWidth) {
+        container.scrollLeft -= halfWidth
+      }
+      container.scrollBy({ left: scrollDistance, behavior: 'smooth' })
+    }
+
+    manualTimeoutRef.current = setTimeout(() => {
+      isPausedRef.current = false
+    }, 750)
   }
 
-  // Duplicate image list for seamless infinite looping
+  // Duplicate list to support continuous infinite loop
   const marqueeItems = [...imageList, ...imageList]
 
   return (
@@ -76,33 +177,33 @@ export function PreviousWork() {
           <p>A glimpse into the projects, events, and creative moments brought to life by AARNA.</p>
         </div>
 
-        {/* Manual Left/Right Navigation Controls */}
+        {/* Manual Left/Right Navigation Buttons */}
         <div className="marquee-nav-buttons">
           <button
             type="button"
             className="marquee-nav-btn"
-            onClick={() => scrollMarquee('left')}
+            onClick={(e) => handleManualScroll('left', e)}
             aria-label="Scroll left"
             title="Scroll left"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={22} />
           </button>
           <button
             type="button"
             className="marquee-nav-btn"
-            onClick={() => scrollMarquee('right')}
+            onClick={(e) => handleManualScroll('right', e)}
             aria-label="Scroll right"
             title="Scroll right"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={22} />
           </button>
         </div>
       </motion.div>
 
-      {/* Marquee Container */}
+      {/* Marquee Scroll Container */}
       <div
         className="marquee-container"
-        ref={marqueeContainerRef}
+        ref={containerRef}
         aria-label="Previous work gallery marquee"
         tabIndex={0}
       >
@@ -113,13 +214,16 @@ export function PreviousWork() {
               <div
                 className="marquee-card"
                 key={`${src}-${index}`}
-                onClick={() => handleCardClick(actualIndex)}
+                onPointerDown={() => {
+                  isPausedRef.current = true
+                }}
+                onClick={(e) => handleCardClick(actualIndex, e)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
-                    handleCardClick(actualIndex)
+                    handleCardClick(actualIndex, e)
                   }
                 }}
               >
@@ -136,7 +240,7 @@ export function PreviousWork() {
                   />
                   <div className="marquee-card-hover-overlay">
                     <span className="zoom-hint">
-                      <ZoomIn size={22} /> Click to Preview
+                      <ZoomIn size={20} /> Click to Preview
                     </span>
                   </div>
                 </div>
@@ -146,73 +250,79 @@ export function PreviousWork() {
         </div>
       </div>
 
-      {/* Lightbox / Preview Modal */}
-      <AnimatePresence>
-        {selectedIndex !== null && (
-          <motion.div
-            className="lightbox-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-          >
-            <motion.div
-              className="lightbox-content"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                type="button"
-                className="lightbox-close-btn"
+      {/* Portal Lightbox Modal directly to document.body */}
+      {isMounted &&
+        createPortal(
+          <AnimatePresence>
+            {selectedIndex !== null && (
+              <motion.div
+                key="lightbox-modal-backdrop"
+                className="lightbox-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 onClick={handleClose}
-                aria-label="Close preview"
               >
-                <X size={24} />
-              </button>
+                <motion.div
+                  key="lightbox-modal-box"
+                  className="lightbox-content"
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button */}
+                  <button
+                    type="button"
+                    className="lightbox-close-btn"
+                    onClick={handleClose}
+                    aria-label="Close preview"
+                  >
+                    <X size={24} />
+                  </button>
 
-              {/* Prev Button */}
-              <button
-                type="button"
-                className="lightbox-arrow lightbox-arrow-left"
-                onClick={handlePrev}
-                aria-label="Previous image"
-              >
-                <ChevronLeft size={28} />
-              </button>
+                  {/* Previous Image Button */}
+                  <button
+                    type="button"
+                    className="lightbox-arrow lightbox-arrow-left"
+                    onClick={handlePrev}
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
 
-              {/* Preview Image */}
-              <div className="lightbox-image-wrapper">
-                <img
-                  src={imageList[selectedIndex]}
-                  alt={`Previous Work Preview ${selectedIndex + 1}`}
-                  className="lightbox-image"
-                />
-              </div>
+                  {/* Preview Image */}
+                  <div className="lightbox-image-wrapper">
+                    <img
+                      src={imageList[selectedIndex]}
+                      alt={`Previous Work Preview ${selectedIndex + 1}`}
+                      className="lightbox-image"
+                    />
+                  </div>
 
-              {/* Next Button */}
-              <button
-                type="button"
-                className="lightbox-arrow lightbox-arrow-right"
-                onClick={handleNext}
-                aria-label="Next image"
-              >
-                <ChevronRight size={28} />
-              </button>
+                  {/* Next Image Button */}
+                  <button
+                    type="button"
+                    className="lightbox-arrow lightbox-arrow-right"
+                    onClick={handleNext}
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={28} />
+                  </button>
 
-              {/* Image Counter */}
-              <div className="lightbox-caption">
-                <span>
-                  {selectedIndex + 1} / {TOTAL_IMAGES}
-                </span>
-              </div>
-            </motion.div>
-          </motion.div>
+                  {/* Image Counter */}
+                  <div className="lightbox-caption">
+                    <span>
+                      {selectedIndex + 1} / {TOTAL_IMAGES}
+                    </span>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </section>
   )
 }
