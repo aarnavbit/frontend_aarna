@@ -71,7 +71,7 @@ function FormField({ label, error, hint, children }) {
   )
 }
 
-export function ApplicationForm() {
+export function ApplicationForm({ onSuccess, onReset }) {
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(1)
   const [values, setValues] = useState(initialValues)
@@ -198,6 +198,7 @@ export function ApplicationForm() {
       setSubmission(result)
       setStatus({ state: 'success', message: result.message })
       localStorage.removeItem('aarna_apply_draft') // Clear on success
+      if (onSuccess) onSuccess()
     } catch (error) {
       setErrors(error.fields || {})
       const isNetworkError = !error.status
@@ -227,6 +228,7 @@ export function ApplicationForm() {
           setStatus({ state: 'idle', message: '' })
           setStep(0)
           setValues(initialValues)
+          if (onReset) onReset()
         }}>
           Submit another application
         </button>

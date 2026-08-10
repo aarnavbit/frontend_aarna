@@ -4,8 +4,11 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { SiteShell } from './components/SiteShell'
 import { useTheme } from './hooks/useTheme'
 import { ApplyPage } from './pages/ApplyPage'
-import { DashboardPage } from './pages/DashboardPage'
 import { HomePage } from './pages/HomePage'
+import { AdminLogin } from './pages/admin/AdminLogin'
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
+
+import { api } from './api/client'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -18,6 +21,14 @@ function ScrollToTop() {
 function App() {
   const { theme, setTheme } = useTheme()
 
+  // Wake up backend silently as soon as user lands on the website
+  useEffect(() => {
+    if (!sessionStorage.getItem('aarna_warmup')) {
+      api.wakeup()
+      sessionStorage.setItem('aarna_warmup', 'true')
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -25,7 +36,9 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/apply" element={<ApplyPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </SiteShell>

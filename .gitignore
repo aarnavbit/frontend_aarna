@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary raw images
+temp_raw_images/
+
+# Subagent logs
+.agents/
+
+

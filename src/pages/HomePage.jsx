@@ -7,6 +7,7 @@ import { objectives } from '../data/clubContent'
 import { PageFlipSection } from '../components/PageFlipSection'
 import { HeroVideoBackground } from '../components/HeroVideoBackground'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { PreviousWork } from '../components/PreviousWork'
 
 function ExpandableText({ children, maxLength = 120 }) {
   const isMobile = useIsMobile(768)
@@ -136,6 +137,10 @@ export function HomePage() {
             ))}
           </ul>
         </section>
+      </PageFlipSection>
+
+      <PageFlipSection zIndex={5.5}>
+        <PreviousWork />
       </PageFlipSection>
 
       <PageFlipSection zIndex={20} isLast={true}>
