@@ -20,12 +20,6 @@ export function ApplyPage() {
         onSuccess={() => setIsSubmitted(true)} 
         onReset={() => setIsSubmitted(false)} 
       />
-      {!isSubmitted && (
-        <aside className="application-note">
-          <strong>A note on your data</strong>
-          <p>One application is allowed per college email and phone number. AARNA reviewers receive new applications in their Google Sheet within 15 minutes.</p>
-        </aside>
-      )}
     </section>
   )
 }

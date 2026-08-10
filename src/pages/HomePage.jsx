@@ -41,39 +41,28 @@ export function HomePage() {
   return (
     <div className="home-page-container">
       <PageFlipSection zIndex={10}>
-        <section className="hero-section section-wrap">
+        <section className="hero-section">
           <HeroVideoBackground />
           <motion.div
-            className="hero-copy"
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: 'easeOut' }}
+            className="hero-logo-display"
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.92, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="announcement"><Sparkles size={15} /> OC Recruitment 2026 · Now open</span>
-            <p className="hero-eyebrow">A place for student ambition</p>
-            <h1>Make your <em>passion</em> your next opportunity.</h1>
-            <p className="hero-intro">
-              AARNA is a student freelancing club for people ready to sharpen their craft,
-              find their voice, and turn meaningful work into momentum.
-            </p>
+            <img
+              src="/aarna_brand.png"
+              alt="AARNA - Freelancing Club"
+              className="hero-brand-logo-img"
+            />
+            <p className="hero-tagline">Turning Passions into Profits</p>
             <div className="hero-actions">
-              <Link className="button button-primary" to="/apply">Apply for OC <ArrowRight size={18} /></Link>
-              <a className="button button-quiet" href="#portfolios">Explore teams</a>
+              <Link className="button button-primary" to="/apply">
+                Apply for OC <ArrowRight size={18} />
+              </Link>
+              <a className="button button-quiet" href="#portfolios">
+                Explore teams
+              </a>
             </div>
-          </motion.div>
-          <motion.div
-            className="hero-orbit"
-            aria-hidden="true"
-            initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.65 }}
-          >
-            <span>CREATE</span>
-            <span>CONNECT</span>
-            <span>GROW</span>
-            <strong className="hero-logo-wrapper">
-              <img src="/Logo.png" alt="AARNA Logo" className="hero-logo-img" />
-            </strong>
           </motion.div>
         </section>
       </PageFlipSection>

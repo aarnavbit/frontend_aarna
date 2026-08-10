@@ -35,10 +35,9 @@ function validateStep(step, values) {
   }
   if (step === 1) {
     if (values.rollNumber.trim().length < 2) errors.rollNumber = 'Enter your college roll number.'
-    if (values.academicDepartment.trim().length < 2) {
-      errors.academicDepartment = 'Enter your academic department.'
-    }
+    if (!values.academicDepartment) errors.academicDepartment = 'Select your department.'
     if (!['2', '3'].includes(String(values.year))) errors.year = 'Choose your year.'
+    if (!values.section) errors.section = 'Select your section.'
   }
   if (step === 2) {
     if (!values.primaryPortfolio) errors.primaryPortfolio = 'Choose your first preference.'
@@ -364,7 +363,19 @@ export function ApplicationForm({ onSuccess, onReset }) {
                     <input name="rollNumber" value={values.rollNumber} onChange={updateValue} />
                   </FormField>
                   <FormField label="Academic department" name="academicDepartment" error={errors.academicDepartment}>
-                    <input name="academicDepartment" value={values.academicDepartment} onChange={updateValue} placeholder="e.g. CSBS" />
+                    <select name="academicDepartment" value={values.academicDepartment} onChange={updateValue}>
+                      <option value="">Select department</option>
+                      <option value="CSE">CSE</option>
+                      <option value="CSM">CSM</option>
+                      <option value="CSC">CSC</option>
+                      <option value="CSD">CSD</option>
+                      <option value="CSB">CSB</option>
+                      <option value="IT">IT</option>
+                      <option value="ECE">ECE</option>
+                      <option value="EEE">EEE</option>
+                      <option value="CIVIL">CIVIL</option>
+                      <option value="MECH">MECH</option>
+                    </select>
                   </FormField>
                   <FormField label="Year" name="year" error={errors.year}>
                     <select name="year" value={values.year} onChange={updateValue}>
@@ -373,8 +384,16 @@ export function ApplicationForm({ onSuccess, onReset }) {
                       <option value="3">Third year</option>
                     </select>
                   </FormField>
-                  <FormField label="Section (optional)" name="section" error={errors.section}>
-                    <input name="section" value={values.section} onChange={updateValue} placeholder="e.g. A" />
+                  <FormField label="Section" name="section" error={errors.section}>
+                    <select name="section" value={values.section} onChange={updateValue}>
+                      <option value="">Select section</option>
+                      <option value="A">Section A</option>
+                      <option value="B">Section B</option>
+                      <option value="C">Section C</option>
+                      <option value="D">Section D</option>
+                      <option value="E">Section E</option>
+                      <option value="F">Section F</option>
+                    </select>
                   </FormField>
                 </div>
               </>

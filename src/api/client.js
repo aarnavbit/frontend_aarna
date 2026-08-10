@@ -1,6 +1,4 @@
-/** JSON API client shared by the application form and private reviewer dashboard. */
-
-const configuredUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000/api'
+const configuredUrl = import.meta.env.VITE_API_BASE_URL || '/api'
 const API_BASE_URL = configuredUrl.replace(/\/$/, '')
 
 const LOCAL_STORAGE_KEY = 'aarana_mock_applications'
