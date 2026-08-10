@@ -88,7 +88,7 @@ function ApplicationDrawer({ application, onClose }) {
     ['Phone', application.phone],
     ['Roll number', application.rollNumber],
     ['Department', application.academicDepartment],
-    ['Year', application.year === 1 ? 'First year' : 'Second year'],
+    ['Year', application.year === 2 ? 'Second year' : application.year === 3 ? 'Third year' : application.year === 1 ? 'First year' : `${application.year}th year`],
     ['Section', application.section || '—'],
     ['First preference', application.primaryPortfolio],
     ['Second preference', application.secondaryPortfolio],
@@ -194,8 +194,8 @@ export function ReviewerDashboard() {
         </label>
         <select name="year" value={filters.year} onChange={changeFilter} aria-label="Filter by year">
           <option value="">All years</option>
-          <option value="1">First year</option>
           <option value="2">Second year</option>
+          <option value="3">Third year</option>
         </select>
         <select name="portfolio" value={filters.portfolio} onChange={changeFilter} aria-label="Filter by portfolio">
           <option value="">All portfolios</option>
@@ -229,7 +229,7 @@ export function ReviewerDashboard() {
                     if (event.key === 'Enter' || event.key === ' ') setSelected(application)
                   }}>
                     <td><strong>{application.fullName}</strong><span>{application.collegeEmail}</span></td>
-                    <td>{application.year === 1 ? 'First' : 'Second'}</td>
+                    <td>{application.year === 2 ? 'Second' : application.year === 3 ? 'Third' : application.year === 1 ? 'First' : `Year ${application.year}`}</td>
                     <td>{application.primaryPortfolio}<span>{application.secondaryPortfolio}</span></td>
                     <td>{formatDate(application.submittedAt)}</td>
                     <td><span className={'sync-badge ' + application.syncStatus}>{application.syncStatus}</span></td>
@@ -261,7 +261,7 @@ export function ReviewerDashboard() {
                   <div className="applicant-card-details">
                     <div className="card-detail-item">
                       <span className="detail-label">Year</span>
-                      <span>{application.year === 1 ? '1st Year' : '2nd Year'}</span>
+                      <span>{application.year === 2 ? '2nd Year' : application.year === 3 ? '3rd Year' : application.year === 1 ? '1st Year' : `${application.year}th Year`}</span>
                     </div>
                     <div className="card-detail-item">
                       <span className="detail-label">1st Choice</span>
