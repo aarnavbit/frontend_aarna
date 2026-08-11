@@ -1,8 +1,8 @@
 import { motion, useReducedMotion, useScroll, useSpring, useTransform, useMotionValueEvent } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { useRef, useState, memo } from 'react'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-export function PageFlipSection({ children, zIndex, isLast = false }) {
+function PageFlipSectionComponent({ children, zIndex, isLast = false }) {
   const containerRef = useRef(null)
   const reduceMotion = useReducedMotion()
   const isMobile = useIsMobile(768)
@@ -139,3 +139,6 @@ export function PageFlipSection({ children, zIndex, isLast = false }) {
     </div>
   )
 }
+
+export const PageFlipSection = memo(PageFlipSectionComponent)
+

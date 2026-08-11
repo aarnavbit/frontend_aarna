@@ -12,15 +12,11 @@
   "dependencies": {
     "@fontsource/dm-sans": "^5.2.8",
     "@fontsource/fraunces": "^5.2.8",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.7.0",
     "framer-motion": "^12.36.0",
-    "html2canvas": "^1.4.1",
     "lucide-react": "^0.577.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router-dom": "^7.13.1",
-    "three": "^0.185.1"
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@emnapi/core": "^2.0.0-alpha.3",

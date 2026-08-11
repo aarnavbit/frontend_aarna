@@ -7,12 +7,13 @@ import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
 const TOTAL_IMAGES = 20
 const imageList = Array.from({ length: TOTAL_IMAGES }, (_, i) => `/images/previous-work/work_${i + 1}.webp`)
 
-export function PreviousWork() {
+function PreviousWorkComponent() {
   const reduceMotion = useReducedMotion()
   const [selectedIndex, setSelectedIndex] = useState(null)
-  const [isMounted, setIsMounted] = useState(false)
+  const isMounted = typeof document !== 'undefined'
   const containerRef = useRef(null)
   const isPausedRef = useRef(false)
+  const isVisibleRef = useRef(true)
   const manualTimeoutRef = useRef(null)
   const metricsRef = useRef({ loopWidth: 0, cardWidth: 380 })
 
@@ -28,21 +29,44 @@ export function PreviousWork() {
       metricsRef.current = { loopWidth: container.scrollWidth / 2, cardWidth: 380 }
       return
     }
-    // loopWidth is the exact distance from the start of the 1st card to the start of the 21st card
     const loopWidth = track.children[TOTAL_IMAGES].offsetLeft - track.children[0].offsetLeft
-    // cardWidth is the distance from the 1st card to the 2nd card (includes 1 gap)
     const cardWidth = track.children[1] ? track.children[1].offsetLeft - track.children[0].offsetLeft : 380
     metricsRef.current = { loopWidth, cardWidth }
   }, [])
 
   useEffect(() => {
-    setIsMounted(true)
     updateMetrics()
-    window.addEventListener('resize', updateMetrics)
-    return () => window.removeEventListener('resize', updateMetrics)
+
+    let resizeTimer
+    const handleResize = () => {
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(updateMetrics, 150)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      clearTimeout(resizeTimer)
+      window.removeEventListener('resize', handleResize)
+    }
   }, [updateMetrics])
 
-  // Auto-scroll loop using requestAnimationFrame
+  // IntersectionObserver to pause requestAnimationFrame when marquee is not in viewport
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || typeof IntersectionObserver === 'undefined') return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting
+      },
+      { threshold: 0.05 }
+    )
+
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
+
+  // Auto-scroll loop using requestAnimationFrame (only active when visible)
   useEffect(() => {
     const container = containerRef.current
     if (!container || reduceMotion) return
@@ -50,7 +74,7 @@ export function PreviousWork() {
     let animId
 
     const autoScroll = () => {
-      if (container && !isPausedRef.current) {
+      if (container && !isPausedRef.current && isVisibleRef.current) {
         container.scrollLeft += 0.8
         const { loopWidth } = metricsRef.current
         if (loopWidth > 0 && container.scrollLeft >= loopWidth) {
@@ -326,3 +350,6 @@ export function PreviousWork() {
     </section>
   )
 }
+
+export const PreviousWork = React.memo(PreviousWorkComponent)
+

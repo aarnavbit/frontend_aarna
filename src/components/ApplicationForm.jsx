@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '../api/client'
 import { portfolios } from '../data/clubContent'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -70,10 +70,20 @@ function FormField({ label, error, hint, children }) {
   )
 }
 
+function getSavedDraft() {
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = localStorage.getItem('aarna_apply_draft')
+    return saved ? JSON.parse(saved) : null
+  } catch {
+    return null
+  }
+}
+
 export function ApplicationForm({ onSuccess, onReset }) {
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(() => getSavedDraft()?.step ?? 0)
   const [direction, setDirection] = useState(1)
-  const [values, setValues] = useState(initialValues)
+  const [values, setValues] = useState(() => getSavedDraft()?.values || initialValues)
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState({ state: 'idle', message: '' })
   const [submission, setSubmission] = useState(null)
@@ -121,18 +131,6 @@ export function ApplicationForm({ onSuccess, onReset }) {
     }
   }, [])
 
-  // Restore draft
-  useEffect(() => {
-    const saved = localStorage.getItem('aarna_apply_draft')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.values) setValues(parsed.values)
-        if (parsed.step !== undefined) setStep(parsed.step)
-      } catch (e) {}
-    }
-  }, [])
-
   // Auto-save draft
   useEffect(() => {
     if (isInitialMount.current) {
@@ -147,6 +145,16 @@ export function ApplicationForm({ onSuccess, onReset }) {
     }
   }, [values, step, status.state])
 
+  const goForward = useCallback(() => {
+    const nextErrors = validateStep(step, values)
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length === 0) {
+      setDirection(1)
+      userHasModifiedCurrentStep.current = false
+      setStep((current) => current + 1)
+    }
+  }, [step, values])
+
   // Auto-continue when step is completely valid (except for final submit step)
   useEffect(() => {
     if (step < steps.length - 1 && userHasModifiedCurrentStep.current) {
@@ -160,23 +168,13 @@ export function ApplicationForm({ onSuccess, onReset }) {
         return () => clearTimeout(timer)
       }
     }
-  }, [values, step])
+  }, [values, step, goForward])
 
   const updateValue = (event) => {
     const { name, value } = event.target
     setValues((current) => ({ ...current, [name]: value }))
     userHasModifiedCurrentStep.current = true
     if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined }))
-  }
-
-  const goForward = () => {
-    const nextErrors = validateStep(step, values)
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length === 0) {
-      setDirection(1)
-      userHasModifiedCurrentStep.current = false
-      setStep((current) => current + 1)
-    }
   }
 
   const goBack = () => {

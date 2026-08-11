@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { useIsMobile } from '../hooks/useIsMobile'
 
 const VIDEOS = [
@@ -22,7 +22,7 @@ const VIDEOS = [
   }
 ]
 
-export function HeroVideoBackground() {
+function HeroVideoBackgroundComponent() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const videoRef = useRef(null)
   const isMobile = useIsMobile(768)
@@ -65,3 +65,6 @@ export function HeroVideoBackground() {
     </div>
   )
 }
+
+export const HeroVideoBackground = memo(HeroVideoBackgroundComponent)
+

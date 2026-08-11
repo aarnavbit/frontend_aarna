@@ -1,14 +1,23 @@
 /** Root routing and theme setup for the AARNA recruitment experience. */
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { SiteShell } from './components/SiteShell'
 import { useTheme } from './hooks/useTheme'
-import { ApplyPage } from './pages/ApplyPage'
 import { HomePage } from './pages/HomePage'
-import { AdminLogin } from './pages/admin/AdminLogin'
-import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
-
 import { api } from './api/client'
+
+// Lazy-loaded routes for code-splitting
+const ApplyPage = lazy(() => import('./pages/ApplyPage').then((m) => ({ default: m.ApplyPage })))
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })))
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })))
+
+function PageLoader() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-subtle)' }}>
+      <div className="pulse-loader" style={{ fontSize: '0.9rem', letterSpacing: '0.05em' }}>Loading...</div>
+    </div>
+  )
+}
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -33,14 +42,16 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <SiteShell theme={theme} setTheme={setTheme}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/apply" element={<ApplyPage />} />
-          <Route path="/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="*" element={<HomePage />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/apply" element={<ApplyPage />} />
+            <Route path="/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="*" element={<HomePage />} />
+          </Routes>
+        </Suspense>
       </SiteShell>
     </BrowserRouter>
   )

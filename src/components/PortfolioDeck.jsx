@@ -2,11 +2,11 @@
 
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { portfolios } from '../data/clubContent'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-export function PortfolioDeck() {
+function PortfolioDeckComponent() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const reduceMotion = useReducedMotion()
@@ -160,10 +160,10 @@ export function PortfolioDeck() {
                       }
                 }
               >
-                {/* Dynamic Background Rings */}
+                {/* Dynamic Background Rings - only animate continuous spin for active visible card */}
                 <motion.div
                   className="portfolio-background-rings"
-                  animate={isMobile ? false : { rotate: 360 }}
+                  animate={isMobile || !isCurrent ? false : { rotate: 360 }}
                   transition={{ duration: 75, repeat: Infinity, ease: 'linear' }}
                 >
                   <motion.div
@@ -257,3 +257,6 @@ export function PortfolioDeck() {
     </div>
   )
 }
+
+export const PortfolioDeck = memo(PortfolioDeckComponent)
+

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   Users, UserPlus, LogOut, Search, Filter, Shield, 
   X, CheckCircle, AlertCircle, LoaderCircle, Eye, Star,
-  GraduationCap, Briefcase
+  GraduationCap
 } from 'lucide-react'
 import { adminApi } from '../../api/adminApi'
 
@@ -34,11 +34,7 @@ export function AdminDashboardPage() {
 
   const navigate = useNavigate()
 
-  useEffect(() => {
-    fetchInitialData()
-  }, [])
-
-  const fetchInitialData = async () => {
+  const fetchInitialData = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -64,7 +60,12 @@ export function AdminDashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [navigate])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchInitialData()
+  }, [fetchInitialData])
 
   const handleLogout = () => {
     adminApi.logout()

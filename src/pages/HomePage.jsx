@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PortfolioDeck } from '../components/PortfolioDeck'
 import { objectives } from '../data/clubContent'
