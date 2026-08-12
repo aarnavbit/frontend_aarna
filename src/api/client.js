@@ -1,4 +1,4 @@
-const configuredUrl = import.meta.env.VITE_API_BASE_URL || '/api'
+const configuredUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 const API_BASE_URL = configuredUrl.replace(/\/$/, '')
 
 const LOCAL_STORAGE_KEY = 'aarana_mock_applications'
