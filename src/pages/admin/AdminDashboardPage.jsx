@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef, useDeferredValue, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   Users, UserPlus, LogOut, Search, Filter, Shield, 
@@ -39,6 +39,14 @@ export function AdminDashboardPage() {
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('')
+  const deferredSearchTerm = useDeferredValue(searchTerm)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900)
+  useLayoutEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 900)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const [deptFilter, setDeptFilter] = useState('')
   const [sectionFilter, setSectionFilter] = useState('')
   const [yearFilter, setYearFilter] = useState('')
@@ -108,6 +116,7 @@ export function AdminDashboardPage() {
   }, [navigate])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchInitialData()
   }, [fetchInitialData])
 
@@ -145,7 +154,7 @@ export function AdminDashboardPage() {
   // Filter applicants
   const filteredApplicants = useMemo(() => {
     return applicants.filter(app => {
-      const term = searchTerm.trim().toLowerCase()
+      const term = deferredSearchTerm.trim().toLowerCase()
       const matchesSearch = !term || 
         (app.fullname && app.fullname.toLowerCase().includes(term)) ||
         (app.rollnumber && app.rollnumber.toLowerCase().includes(term)) ||
@@ -167,6 +176,7 @@ export function AdminDashboardPage() {
 
   // Reset to page 1 whenever filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1)
   }, [searchTerm, deptFilter, sectionFilter, yearFilter, portfolioFilter])
 
@@ -188,12 +198,44 @@ export function AdminDashboardPage() {
     })
   }, [filteredApplicants, sortKey, sortOrder])
 
-  // Pagination calculation
-  const totalPages = Math.max(1, Math.ceil(sortedApplicants.length / ITEMS_PER_PAGE))
-  const paginatedApplicants = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    return sortedApplicants.slice(startIndex, startIndex + ITEMS_PER_PAGE)
-  }, [sortedApplicants, currentPage])
+  // Virtualization state
+  const tableContainerRef = useRef(null)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [containerHeight, setContainerHeight] = useState(600)
+  
+  useLayoutEffect(() => {
+    const el = tableContainerRef.current
+    if (!el) return
+    const onScroll = () => setScrollTop(el.scrollTop)
+    const observer = new ResizeObserver(entries => {
+      setContainerHeight(entries[0].contentRect.height)
+    })
+    observer.observe(el)
+    el.addEventListener('scroll', onScroll, { passive: true })
+    setContainerHeight(el.clientHeight)
+    return () => {
+      observer.disconnect()
+      el.removeEventListener('scroll', onScroll)
+    }
+  }, [])
+
+  const ROW_HEIGHT = isMobile ? 190 : 65
+  const OVERSCAN = 10
+  const totalItems = sortedApplicants.length
+  const totalHeight = totalItems * ROW_HEIGHT
+  
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN)
+  const endIndex = Math.min(totalItems - 1, Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + OVERSCAN)
+  
+  const virtualRows = []
+  for (let i = startIndex; i <= endIndex; i++) {
+    if (i >= 0 && i < totalItems) {
+      virtualRows.push(i)
+    }
+  }
+  
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0] * ROW_HEIGHT : 0
+  const paddingBottom = virtualRows.length > 0 ? totalHeight - (virtualRows[virtualRows.length - 1] + 1) * ROW_HEIGHT : 0
 
   // Unique options for filter dropdowns
   const uniqueDepts = useMemo(() => Array.from(new Set(applicants.map(a => a.department))).filter(Boolean).sort(), [applicants])
@@ -864,16 +906,22 @@ export function AdminDashboardPage() {
           </div>
 
           {/* Table Container - Shows ALL database columns with sorting */}
-          <div style={{
+          <div 
+            ref={tableContainerRef}
+            style={{
             background: 'rgba(15, 23, 42, 0.65)',
             borderRadius: '12px',
             border: '1px solid rgba(255, 255, 255, 0.08)',
             overflowX: 'auto',
+            overflowY: 'auto',
+            maxHeight: 'calc(100vh - 350px)',
+            minHeight: '400px',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
           }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-              <thead>
-                <tr style={{ background: 'rgba(30, 41, 59, 0.9)', color: '#94a3b8', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <table className="desktop-only-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+
+                <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(30, 41, 59, 1)' }}>
+                <tr style={{ color: '#94a3b8', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
                   <th onClick={() => handleSort('fullname')} style={{ padding: '12px 14px', cursor: 'pointer', userSelect: 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <span>Full Name</span> {renderSortIcon('fullname')}
@@ -943,17 +991,22 @@ export function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedApplicants.length === 0 ? (
+                {sortedApplicants.length === 0 ? (
                   <tr>
                     <td colSpan="14" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                       No applicants found matching your criteria.
                     </td>
                   </tr>
                 ) : (
-                  paginatedApplicants.map((app) => (
+                  <>
+                    {paddingTop > 0 && <tr><td colSpan={14} style={{ height: paddingTop, padding: 0, border: 0 }}></td></tr>}
+                    {virtualRows.map((index) => {
+                      const app = sortedApplicants[index];
+                      return (
                     <tr
                       key={app.id}
                       style={{
+                        height: `${ROW_HEIGHT}px`,
                         borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
                         transition: 'background 0.15s'
                       }}
@@ -1049,20 +1102,66 @@ export function AdminDashboardPage() {
                         </button>
                       </td>
                     </tr>
-                  ))
+                      )
+                    })}
+                    {paddingBottom > 0 && <tr><td colSpan={14} style={{ height: paddingBottom, padding: 0, border: 0 }}></td></tr>}
+                  </>
                 )}
               </tbody>
             </table>
+            {/* Mobile Card List View */}
+            <div className="reviewer-card-list mobile-only-cards" style={{ display: 'flex', flexDirection: 'column', padding: '16px', boxSizing: 'border-box' }}>
+              {sortedApplicants.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                  No applicants found matching your criteria.
+                </div>
+              ) : (
+                <>
+                  {paddingTop > 0 && <div style={{ height: paddingTop, flexShrink: 0 }} />}
+                  {virtualRows.map((index) => {
+                    const app = sortedApplicants[index];
+                    return (
+                      <div
+                        key={app.id}
+                        className="reviewer-applicant-card"
+                        onClick={() => setSelectedApplicant(app)}
+                        style={{ height: `${ROW_HEIGHT - 16}px`, marginBottom: '16px', boxSizing: 'border-box' }}
+                      >
+                        <div className="applicant-card-header">
+                          <div>
+                            <strong>{app.fullname}</strong>
+                            <span className="applicant-email">{app.emailaddress}</span>
+                          </div>
+                          <span style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', fontWeight: '600' }}>
+                            {app.portfolio}
+                          </span>
+                        </div>
+                        <div className="applicant-card-details" style={{ marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                          <div><span style={{ color: '#94a3b8' }}>Roll:</span> {app.rollnumber}</div>
+                          <div><span style={{ color: '#94a3b8' }}>Mobile:</span> {app.mobilenumber}</div>
+                          <div><span style={{ color: '#94a3b8' }}>Dept/Sec:</span> {app.department} - {app.section}</div>
+                          <div><span style={{ color: '#94a3b8' }}>Year:</span> {app.year}</div>
+                        </div>
+                        <div className="applicant-card-footer" style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: '#64748b' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontWeight: '600' }}><Star size={12} fill="#f59e0b" /> {app.leadershiprating}/10</span>
+                          <span style={{ color: '#6366f1' }}>Tap for details →</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {paddingBottom > 0 && <div style={{ height: paddingBottom, flexShrink: 0 }} />}
+                </>
+              )}
+            </div>
+
           </div>
 
-          {/* Pagination Controls */}
+          {/* List Info Controls */}
           {sortedApplicants.length > 0 && (
             <div style={{
               display: 'flex',
-              flexWrap: 'wrap',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '1rem',
               marginTop: '1.25rem',
               padding: '0.75rem 1rem',
               background: 'rgba(15, 23, 42, 0.4)',
@@ -1070,82 +1169,7 @@ export function AdminDashboardPage() {
               border: '1px solid rgba(255, 255, 255, 0.06)'
             }}>
               <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                Showing <strong style={{ color: '#fff' }}>{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, sortedApplicants.length)}</strong> to <strong style={{ color: '#fff' }}>{Math.min(currentPage * ITEMS_PER_PAGE, sortedApplicants.length)}</strong> of <strong style={{ color: '#fff' }}>{sortedApplicants.length}</strong> applicants
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '6px',
-                    background: currentPage === 1 ? 'rgba(30, 41, 59, 0.4)' : 'rgba(30, 41, 59, 0.9)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: currentPage === 1 ? '#475569' : '#fff',
-                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNum) => {
-                  if (
-                    pageNum === 1 || 
-                    pageNum === totalPages || 
-                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        style={{
-                          minWidth: '32px',
-                          height: '32px',
-                          padding: '0 6px',
-                          borderRadius: '6px',
-                          background: currentPage === pageNum ? '#6366f1' : 'rgba(30, 41, 59, 0.8)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
-                          color: '#fff',
-                          fontWeight: currentPage === pageNum ? '700' : '400',
-                          fontSize: '0.85rem',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {pageNum}
-                      </button>
-                    )
-                  } else if (
-                    (pageNum === 2 && currentPage > 3) ||
-                    (pageNum === totalPages - 1 && currentPage < totalPages - 2)
-                  ) {
-                    return <span key={pageNum} style={{ color: '#64748b', fontSize: '0.85rem' }}>...</span>
-                  }
-                  return null
-                })}
-
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '6px',
-                    background: currentPage === totalPages ? 'rgba(30, 41, 59, 0.4)' : 'rgba(30, 41, 59, 0.9)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: currentPage === totalPages ? '#475569' : '#fff',
-                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  <ChevronRight size={16} />
-                </button>
+                Showing <strong style={{ color: '#fff' }}>{sortedApplicants.length}</strong> virtualized applicants
               </div>
             </div>
           )}

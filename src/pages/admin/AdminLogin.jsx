@@ -78,26 +78,6 @@ export function AdminLogin() {
               <strong style={{ color: '#fff', display: 'block' }}>Default Super Admin Credentials:</strong>
               <span>Roll: <code style={{ color: '#a5b4fc', background: 'rgba(0,0,0,0.3)', padding: '1px 4px', borderRadius: '4px' }}>ADMIN001</code> | Pass: <code style={{ color: '#a5b4fc', background: 'rgba(0,0,0,0.3)', padding: '1px 4px', borderRadius: '4px' }}>adminpassword123</code></span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setRollnumber('ADMIN001')
-                setPassword('adminpassword123')
-              }}
-              style={{
-                padding: '4px 8px',
-                borderRadius: '4px',
-                background: '#6366f1',
-                border: 'none',
-                color: '#fff',
-                fontWeight: '600',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              Fill Defaults
-            </button>
           </div>
         </div>
 
