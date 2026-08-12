@@ -1,6 +1,6 @@
 const fallbackBase = import.meta.env.VITE_API_BASE_URL 
   ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '').replace(/\/$/, '') + '/admin'
-  : '/admin'
+  : 'http://localhost:5000/admin'
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_BASE_URL || fallbackBase
 
