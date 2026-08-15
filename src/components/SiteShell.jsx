@@ -56,7 +56,20 @@ export function SiteShell({ children, theme, setTheme }) {
           {/* Desktop Navigation */}
           <nav className="site-nav desktop-nav" aria-label="Main navigation">
             <NavLink end to="/">Home</NavLink>
-            <NavLink to="/#portfolios">Portfolios</NavLink>
+            <NavLink
+              to="/#events"
+              onClick={(e) => {
+                if (location.pathname === '/') {
+                  const el = document.getElementById('events')
+                  if (el) {
+                    e.preventDefault()
+                    el.scrollIntoView({ behavior: 'smooth' })
+                  }
+                }
+              }}
+            >
+              Events
+            </NavLink>
             <NavLink to="/apply">Updates</NavLink>
           </nav>
 
@@ -116,8 +129,22 @@ export function SiteShell({ children, theme, setTheme }) {
 
               <div className="mobile-drawer-links">
                 <NavLink end to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</NavLink>
-                <NavLink to="/#portfolios" onClick={() => setIsMobileMenuOpen(false)}>Portfolios</NavLink>
-                <NavLink to="/apply" onClick={() => setIsMobileMenuOpen(false)}>Apply</NavLink>
+                <NavLink
+                  to="/#events"
+                  onClick={(e) => {
+                    setIsMobileMenuOpen(false)
+                    if (location.pathname === '/') {
+                      const el = document.getElementById('events')
+                      if (el) {
+                        e.preventDefault()
+                        el.scrollIntoView({ behavior: 'smooth' })
+                      }
+                    }
+                  }}
+                >
+                  Events
+                </NavLink>
+                <NavLink to="/apply" onClick={() => setIsMobileMenuOpen(false)}>Updates</NavLink>
               </div>
 
               <div className="mobile-drawer-footer">

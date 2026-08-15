@@ -193,7 +193,7 @@ function PreviousWorkComponent() {
   const marqueeItems = [...imageList, ...imageList]
 
   return (
-    <section className="previous-work-section section-wrap" id="previous-work">
+    <section className="previous-work-section section-wrap" id="events">
       <motion.div {...reveal} className="previous-work-header">
         <div className="section-heading">
           <span className="section-kicker">Proof of Craft</span>

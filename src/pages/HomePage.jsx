@@ -59,8 +59,18 @@ export function HomePage() {
               <Link className="button button-primary" to="/apply">
                 New Updates <ArrowRight size={18} />
               </Link>
-              <a className="button button-quiet" href="#portfolios">
-                Explore teams
+              <a
+                className="button button-quiet"
+                href="#events"
+                onClick={(e) => {
+                  const el = document.getElementById('events')
+                  if (el) {
+                    e.preventDefault()
+                    el.scrollIntoView({ behavior: 'smooth' })
+                  }
+                }}
+              >
+                Events
               </a>
             </div>
           </motion.div>
