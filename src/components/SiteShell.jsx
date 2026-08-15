@@ -57,7 +57,7 @@ export function SiteShell({ children, theme, setTheme }) {
           <nav className="site-nav desktop-nav" aria-label="Main navigation">
             <NavLink end to="/">Home</NavLink>
             <NavLink to="/#portfolios">Portfolios</NavLink>
-            <NavLink to="/apply">Apply</NavLink>
+            <NavLink to="/apply">Updates</NavLink>
           </nav>
 
           <div className="header-actions">

@@ -57,7 +57,7 @@ export function HomePage() {
             <p className="hero-tagline">Turning Passions into Profits</p>
             <div className="hero-actions">
               <Link className="button button-primary" to="/apply">
-                Apply for OC <ArrowRight size={18} />
+                New Updates <ArrowRight size={18} />
               </Link>
               <a className="button button-quiet" href="#portfolios">
                 Explore teams
