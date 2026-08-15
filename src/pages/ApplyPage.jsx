@@ -81,9 +81,17 @@
 // If that file is ever moved/renamed, update AARNA_LOGO_SRC below.
 // ============================================================
 
-import { useState } from 'react'
-
 const AARNA_LOGO_SRC = '/images/previous-work/raw/02_web_app_design.png'
+
+// ============================================================
+// GLOBAL TASK LINKS CONFIGURATION
+// Paste your links here. If left empty (''), clicking the button
+// will not perform any action.
+// ============================================================
+const TASK_LINKS = {
+  VIEW_YOUR_TASK: '',   // Paste 'View your task' URL here (e.g. 'https://...')
+  SUBMIT_YOUR_TASK: '', // Paste 'Submit your task' URL here (e.g. 'https://forms.gle/...')
+}
 
 const TIMELINE = [
   {
@@ -109,11 +117,22 @@ const TIMELINE = [
   },
 ]
 
-export function ApplyPage() {
-  const [theme, setTheme] = useState('light')
+function handleTaskAction(url) {
+  const targetUrl = (typeof url === 'string' ? url : '').trim()
+  if (!targetUrl || targetUrl === '#') {
+    // If links are empty, do not perform any task
+    return
+  }
+  if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+    window.open(targetUrl, '_blank', 'noopener,noreferrer')
+  } else {
+    window.location.href = targetUrl
+  }
+}
 
+export function ApplyPage() {
   return (
-    <section className="apply-closed-page" data-theme={theme}>
+    <section className="apply-closed-page">
       <style>{`
         .apply-closed-page {
           /* ---- LIGHT THEME (default) ---- */
@@ -124,8 +143,6 @@ export function ApplyPage() {
           --page-bg-a: #f4795b;
           --page-bg-b: #c9aef0;
           --card-shadow: rgba(0, 0, 0, 0.08);
-          --toggle-bg: #fbeee0;
-          --toggle-fg: #3b2412;
 
           height: 100dvh;
           width: 100%;
@@ -134,7 +151,7 @@ export function ApplyPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: clamp(8px, 2vh, 24px) clamp(10px, 3vw, 20px);
+          padding: clamp(6px, 1.8vh, 20px) clamp(10px, 3vw, 20px);
 
           background-image:
             linear-gradient(45deg, var(--page-bg-b) 25%, transparent 25%, transparent 75%, var(--page-bg-b) 75%),
@@ -145,7 +162,8 @@ export function ApplyPage() {
           transition: background-color 0.25s ease;
         }
 
-        .apply-closed-page[data-theme='dark'] {
+        :root[data-theme='dark'] .apply-closed-page,
+        [data-theme='dark'] .apply-closed-page {
           --purple: #6b4fa0;
           --orange: #a8452f;
           --cream: #211307;
@@ -153,8 +171,6 @@ export function ApplyPage() {
           --page-bg-a: #1a0f08;
           --page-bg-b: #2a1a3d;
           --card-shadow: rgba(0, 0, 0, 0.5);
-          --toggle-bg: #211307;
-          --toggle-fg: #f3e3d3;
         }
 
         .apply-closed-page * { box-sizing: border-box; }
@@ -168,10 +184,10 @@ export function ApplyPage() {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          gap: clamp(6px, 1.6vh, 16px);
+          gap: clamp(6px, 1.3vh, 14px);
           background: var(--cream);
-          border-radius: clamp(18px, 3vh, 40px);
-          padding: clamp(16px, 3vh, 40px) clamp(16px, 4vw, 44px);
+          border-radius: clamp(16px, 2.6vh, 36px);
+          padding: clamp(14px, 2.4vh, 32px) clamp(14px, 3.5vw, 38px);
           box-shadow: 0 12px 0 var(--card-shadow);
           font-family: 'Quicksand', 'Poppins', system-ui, sans-serif;
           color: var(--brown);
@@ -187,37 +203,20 @@ export function ApplyPage() {
         }
 
         .apply-closed-title {
-          font-size: clamp(1.5rem, 4.4vh, 2.6rem);
+          font-size: clamp(1.35rem, 3.8vh, 2.3rem);
           font-weight: 800;
           text-align: center;
           margin: 0;
           letter-spacing: -0.02em;
         }
 
-        .theme-toggle {
-          position: absolute;
-          right: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          border: none;
-          cursor: pointer;
-          background: var(--toggle-bg);
-          color: var(--toggle-fg);
-          font-weight: 700;
-          font-size: clamp(0.65rem, 1.6vh, 0.8rem);
-          letter-spacing: 0.03em;
-          border-radius: 999px;
-          padding: clamp(6px, 1.2vh, 10px) clamp(10px, 2vw, 16px);
-          box-shadow: 2px 2px 0 var(--brown);
-        }
-
         .apply-closed-block {
           display: flex;
           align-items: stretch;
-          gap: clamp(10px, 2vw, 20px);
+          gap: clamp(8px, 1.6vw, 16px);
           background: var(--purple);
-          border-radius: clamp(14px, 2vh, 26px);
-          padding: clamp(10px, 1.8vh, 22px);
+          border-radius: clamp(12px, 1.6vh, 22px);
+          padding: clamp(8px, 1.4vh, 16px);
           box-shadow: 5px 5px 0 var(--brown);
           transition: background-color 0.25s ease;
         }
@@ -229,22 +228,22 @@ export function ApplyPage() {
           align-items: center;
           justify-content: center;
           background: var(--cream);
-          border-radius: clamp(10px, 1.6vh, 20px);
-          padding: clamp(6px, 1.2vh, 16px) clamp(10px, 2vw, 20px);
-          min-width: clamp(78px, 12vw, 108px);
+          border-radius: clamp(9px, 1.3vh, 16px);
+          padding: clamp(4px, 1vh, 12px) clamp(8px, 1.6vw, 16px);
+          min-width: clamp(70px, 11vw, 100px);
           text-align: center;
           transition: background-color 0.25s ease;
         }
 
         .apply-closed-day {
           font-weight: 800;
-          font-size: clamp(0.65rem, 1.6vh, 0.95rem);
+          font-size: clamp(0.62rem, 1.4vh, 0.9rem);
           letter-spacing: 0.06em;
         }
 
         .apply-closed-datenum {
           font-weight: 800;
-          font-size: clamp(1.1rem, 3.2vh, 2rem);
+          font-size: clamp(1rem, 2.6vh, 1.75rem);
           line-height: 1.1;
           margin: 1px 0;
           white-space: nowrap;
@@ -252,7 +251,7 @@ export function ApplyPage() {
 
         .apply-closed-time {
           font-weight: 700;
-          font-size: clamp(0.6rem, 1.4vh, 0.85rem);
+          font-size: clamp(0.58rem, 1.2vh, 0.8rem);
         }
 
         .apply-closed-info {
@@ -263,25 +262,78 @@ export function ApplyPage() {
         }
 
         .apply-closed-info h2 {
-          margin: 0 0 4px;
-          font-size: clamp(0.85rem, 2.2vh, 1.3rem);
+          margin: 0 0 3px;
+          font-size: clamp(0.78rem, 1.8vh, 1.15rem);
           font-weight: 800;
           line-height: 1.15;
         }
 
         .apply-closed-tag {
           margin: 0;
-          font-size: clamp(0.6rem, 1.4vh, 0.82rem);
+          font-size: clamp(0.55rem, 1.2vh, 0.78rem);
           font-weight: 700;
           letter-spacing: 0.04em;
           text-transform: uppercase;
           opacity: 0.85;
         }
 
+        .apply-closed-actions {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: clamp(8px, 1.8vw, 16px);
+          width: 100%;
+        }
+
+        .apply-action-btn {
+          flex: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          font-family: inherit;
+          font-weight: 800;
+          font-size: clamp(0.72rem, 1.6vh, 0.95rem);
+          letter-spacing: 0.02em;
+          padding: clamp(7px, 1.3vh, 12px) clamp(10px, 2vw, 16px);
+          border-radius: clamp(10px, 1.6vh, 18px);
+          border: 2px solid var(--brown);
+          cursor: pointer;
+          text-decoration: none;
+          transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.25s ease, color 0.25s ease;
+          box-shadow: 4px 4px 0 var(--brown);
+          user-select: none;
+        }
+
+        .apply-action-btn:hover {
+          transform: translate(-1px, -1px);
+          box-shadow: 5px 5px 0 var(--brown);
+        }
+
+        .apply-action-btn:active {
+          transform: translate(2px, 2px);
+          box-shadow: 2px 2px 0 var(--brown);
+        }
+
+        .view-task-btn {
+          background: var(--purple);
+          color: var(--brown);
+        }
+
+        .submit-task-btn {
+          background: var(--orange);
+          color: var(--cream);
+        }
+
+        :root[data-theme='dark'] .submit-task-btn,
+        [data-theme='dark'] .submit-task-btn {
+          color: var(--brown);
+        }
+
         .apply-closed-motto {
           text-align: center;
           font-weight: 800;
-          font-size: clamp(0.6rem, 1.6vh, 0.9rem);
+          font-size: clamp(0.58rem, 1.3vh, 0.82rem);
           letter-spacing: 0.03em;
           margin: 0;
         }
@@ -295,32 +347,26 @@ export function ApplyPage() {
 
         .apply-closed-team {
           font-weight: 800;
-          font-size: clamp(0.9rem, 2.8vh, 1.5rem);
+          font-size: clamp(0.82rem, 2.2vh, 1.3rem);
           letter-spacing: -0.01em;
         }
 
         .apply-closed-logo {
-          width: clamp(36px, 7vh, 60px);
-          height: clamp(36px, 7vh, 60px);
+          width: clamp(30px, 5.5vh, 50px);
+          height: clamp(30px, 5.5vh, 50px);
           object-fit: contain;
           flex-shrink: 0;
         }
 
         @media (max-width: 420px) {
-          .apply-closed-info h2 { font-size: clamp(0.78rem, 2vh, 1.1rem); }
+          .apply-closed-info h2 { font-size: clamp(0.72rem, 1.7vh, 1rem); }
+          .apply-action-btn { font-size: clamp(0.68rem, 1.4vh, 0.85rem); padding: 7px 8px; }
         }
       `}</style>
 
       <div className="apply-closed-card">
         <div className="apply-closed-topbar">
           <h1 className="apply-closed-title">Recruitments</h1>
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
-          >
-            {theme === 'light' ? '🌙 DARK' : '☀️ LIGHT'}
-          </button>
         </div>
 
         {TIMELINE.map((item) => (
@@ -336,6 +382,23 @@ export function ApplyPage() {
             </div>
           </div>
         ))}
+
+        <div className="apply-closed-actions">
+          <button
+            type="button"
+            className="apply-action-btn view-task-btn"
+            onClick={() => handleTaskAction(TASK_LINKS.VIEW_YOUR_TASK)}
+          >
+            View your task
+          </button>
+          <button
+            type="button"
+            className="apply-action-btn submit-task-btn"
+            onClick={() => handleTaskAction(TASK_LINKS.SUBMIT_YOUR_TASK)}
+          >
+            Submit your task
+          </button>
+        </div>
 
         <p className="apply-closed-motto">TURNING PASSIONS INTO PROFITS</p>
 
