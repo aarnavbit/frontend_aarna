@@ -91,6 +91,7 @@ const AARNA_LOGO_SRC = '/images/previous-work/raw/02_web_app_design.png'
 const TASK_LINKS = {
   VIEW_YOUR_TASK: '/docs/Aarna_OC_tasks.pdf',   // 'View your task' PDF path or URL
   SUBMIT_YOUR_TASK: '', // Paste 'Submit your task' URL here (e.g. 'https://forms.gle/...')
+  OUR_SOCIALS: 'https://www.instagram.com/aarna.vbit/', // Official Instagram URL
 }
 
 const TIMELINE = [
@@ -296,13 +297,14 @@ export function ApplyPage() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
+          gap: clamp(5px, 1vw, 8px);
           text-align: center;
           font-family: inherit;
           font-weight: 800;
           font-size: clamp(0.72rem, 1.6vh, 0.95rem);
           letter-spacing: 0.02em;
           min-height: 44px;
-          padding: clamp(7px, 1.3vh, 12px) clamp(10px, 2vw, 16px);
+          padding: clamp(7px, 1.3vh, 12px) clamp(8px, 1.8vw, 16px);
           border-radius: clamp(10px, 1.6vh, 18px);
           border: 2px solid var(--brown);
           cursor: pointer;
@@ -331,14 +333,24 @@ export function ApplyPage() {
           background: linear-gradient(135deg, var(--orange) 0%, var(--purple) 100%);
         }
 
-        .submit-task-btn {
+        .follow-socials-btn {
           background: linear-gradient(135deg, var(--orange) 0%, var(--purple) 100%);
-          color: var(--cream);
+          color: var(--brown);
         }
 
-        :root[data-theme='dark'] .submit-task-btn,
-        [data-theme='dark'] .submit-task-btn {
+        .follow-socials-btn:hover {
+          background: linear-gradient(135deg, var(--purple) 0%, var(--orange) 100%);
+        }
+
+        :root[data-theme='dark'] .follow-socials-btn,
+        [data-theme='dark'] .follow-socials-btn {
           color: var(--brown);
+        }
+
+        .social-svg-icon {
+          width: clamp(14px, 2.2vh, 18px);
+          height: clamp(14px, 2.2vh, 18px);
+          flex-shrink: 0;
         }
 
         .apply-closed-motto {
@@ -415,13 +427,28 @@ export function ApplyPage() {
           >
             View your task
           </button>
-          {/* <button
-            type="button"
-            className="apply-action-btn submit-task-btn"
-            onClick={() => handleTaskAction(TASK_LINKS.SUBMIT_YOUR_TASK)}
+          <a
+            href={TASK_LINKS.OUR_SOCIALS || 'https://www.instagram.com/aarna.vbit/'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="apply-action-btn follow-socials-btn"
           >
-            Submit your task
-          </button> */}
+            <svg
+              className="social-svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+            </svg>
+            <span>Follow our socials</span>
+          </a>
         </div>
 
         <p className="apply-closed-motto">TURNING PASSIONS INTO PROFITS</p>

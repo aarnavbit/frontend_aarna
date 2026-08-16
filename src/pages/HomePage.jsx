@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, ChevronUp, Instagram, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { PortfolioDeck } from '../components/PortfolioDeck'
 import { objectives } from '../data/clubContent'
@@ -169,6 +169,15 @@ export function HomePage() {
                 }}
               >
                 Events
+              </a>
+              <a
+                className="button button-quiet hero-socials-btn"
+                href={SOCIAL_PAGES_URL || 'https://www.instagram.com/aarna.vbit/'}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Instagram size={18} />
+                Our Socials
               </a>
             </div>
           </motion.div>
