@@ -26,7 +26,7 @@ export function AdminLogin() {
 
   return (
     <div style={{
-      minHeight: '80vh',
+      minHeight: '100dvh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -37,7 +37,7 @@ export function AdminLogin() {
         backdropFilter: 'blur(16px)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: '16px',
-        padding: '2.5rem',
+        padding: 'clamp(20px, 5vw, 40px)',
         maxWidth: '440px',
         width: '100%',
         boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)'
@@ -109,15 +109,19 @@ export function AdminLogin() {
               value={rollnumber}
               onChange={(e) => setRollnumber(e.target.value)}
               placeholder="e.g. ADMIN001"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck="false"
               required
               style={{
                 width: '100%',
                 padding: '10px 14px',
+                minHeight: '44px',
                 borderRadius: '8px',
                 border: '1px solid rgba(255, 255, 255, 0.15)',
                 background: 'rgba(30, 41, 59, 0.6)',
                 color: '#fff',
-                fontSize: '0.95rem',
+                fontSize: '16px',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -133,15 +137,19 @@ export function AdminLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
               required
               style={{
                 width: '100%',
                 padding: '10px 14px',
+                minHeight: '44px',
                 borderRadius: '8px',
                 border: '1px solid rgba(255, 255, 255, 0.15)',
                 background: 'rgba(30, 41, 59, 0.6)',
                 color: '#fff',
-                fontSize: '0.95rem',
+                fontSize: '16px',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -154,12 +162,13 @@ export function AdminLogin() {
             style={{
               marginTop: '0.5rem',
               padding: '12px',
+              minHeight: '44px',
               borderRadius: '8px',
               border: 'none',
               background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
               color: '#fff',
               fontWeight: '600',
-              fontSize: '0.95rem',
+              fontSize: '16px',
               cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -191,7 +200,9 @@ export function AdminLogin() {
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
+              minHeight: '44px',
+              padding: '8px 12px'
             }}
           >
             <ArrowLeft size={16} /> Back to main site

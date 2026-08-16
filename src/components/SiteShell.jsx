@@ -29,15 +29,25 @@ export function SiteShell({ children, theme, setTheme }) {
     setIsMobileMenuOpen(false)
   }, [location])
 
-  // Prevent background scroll when mobile drawer is open
+  // Prevent background scroll when mobile drawer is open and listen for Escape key
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
     }
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false)
+    }
+
+    if (isMobileMenuOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+
     return () => {
       document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [isMobileMenuOpen])
 
@@ -46,7 +56,7 @@ export function SiteShell({ children, theme, setTheme }) {
       <div className="site-header-wrapper">
         <header className="site-header">
           <NavLink className="brand" to="/" aria-label="AARNA Club home">
-            <img src="/Logo.png" alt="AARNA Logo" className="brand-logo-img" style={{ width: 34, height: 34, objectFit: 'contain' }} />
+            <img src="/Logo.png" alt="AARNA Logo" className="brand-logo-img" />
             <span>
               <strong>AARNA</strong>
               <small>Freelancing Club</small>
@@ -104,6 +114,8 @@ export function SiteShell({ children, theme, setTheme }) {
             <motion.nav
               className="mobile-drawer"
               aria-label="Mobile navigation"
+              role="dialog"
+              aria-modal="true"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -111,7 +123,7 @@ export function SiteShell({ children, theme, setTheme }) {
             >
               <div className="mobile-drawer-header">
                 <div className="brand">
-                  <span className="brand-mark" style={{ background: '#513369', borderRadius: '50%' }}></span>
+                  <img src="/Logo.png" alt="AARNA Logo" className="brand-logo-img" />
                   <span>
                     <strong>AARNA</strong>
                     <small>Menu</small>

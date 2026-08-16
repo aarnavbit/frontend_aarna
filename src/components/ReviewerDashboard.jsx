@@ -1,7 +1,7 @@
 /** Read-only reviewer workspace; authentication stays in component memory by design. */
 
 import { Filter, LoaderCircle, LogOut, Search, ShieldCheck, X } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { api } from '../api/client'
 import { portfolios } from '../data/clubContent'
 
@@ -82,6 +82,22 @@ function SyncSummary({ sync }) {
 }
 
 function ApplicationDrawer({ application, onClose }) {
+  useEffect(() => {
+    if (!application) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [application, onClose])
+
   if (!application) return null
   const rows = [
     ['Email', application.collegeEmail],

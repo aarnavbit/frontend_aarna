@@ -41,18 +41,28 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <SiteShell theme={theme} setTheme={setTheme}>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/apply" element={<ApplyPage />} />
-            <Route path="/dashboard" element={<AdminDashboardPage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-            <Route path="*" element={<HomePage />} />
-          </Routes>
-        </Suspense>
-      </SiteShell>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Admin Standalone Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/dashboard" element={<AdminDashboardPage />} />
+
+          {/* Public Site Routes Wrapped in SiteShell */}
+          <Route
+            path="/*"
+            element={
+              <SiteShell theme={theme} setTheme={setTheme}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/apply" element={<ApplyPage />} />
+                  <Route path="*" element={<HomePage />} />
+                </Routes>
+              </SiteShell>
+            }
+          />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

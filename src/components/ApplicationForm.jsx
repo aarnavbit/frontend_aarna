@@ -337,13 +337,13 @@ export function ApplicationForm({ onSuccess, onReset }) {
                 </div>
                 <div className="form-grid">
                   <FormField label="Full name" name="fullName" error={errors.fullName}>
-                    <input name="fullName" value={values.fullName} onChange={updateValue} autoComplete="name" />
+                    <input name="fullName" value={values.fullName} onChange={updateValue} autoComplete="name" autoCapitalize="words" autoCorrect="off" />
                   </FormField>
                   <FormField label="College email" name="collegeEmail" error={errors.collegeEmail} hint="Use your official college address.">
-                    <input name="collegeEmail" type="email" value={values.collegeEmail} onChange={updateValue} autoComplete="email" />
+                    <input name="collegeEmail" type="email" value={values.collegeEmail} onChange={updateValue} autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck="false" />
                   </FormField>
                   <FormField label="Phone number" name="phone" error={errors.phone} hint="10-digit Indian mobile number">
-                    <input name="phone" type="tel" inputMode="numeric" value={values.phone} onChange={updateValue} autoComplete="tel" />
+                    <input name="phone" type="tel" inputMode="numeric" pattern="[0-9]*" value={values.phone} onChange={updateValue} autoComplete="tel" />
                   </FormField>
                 </div>
               </>
@@ -358,7 +358,7 @@ export function ApplicationForm({ onSuccess, onReset }) {
                 </div>
                 <div className="form-grid">
                   <FormField label="Roll number" name="rollNumber" error={errors.rollNumber}>
-                    <input name="rollNumber" value={values.rollNumber} onChange={updateValue} />
+                    <input name="rollNumber" value={values.rollNumber} onChange={updateValue} autoCapitalize="characters" autoCorrect="off" spellCheck="false" />
                   </FormField>
                   <FormField label="Academic department" name="academicDepartment" error={errors.academicDepartment}>
                     <select name="academicDepartment" value={values.academicDepartment} onChange={updateValue}>

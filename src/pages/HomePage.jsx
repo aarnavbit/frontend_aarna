@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, ChevronDown, ChevronUp, X } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { PortfolioDeck } from '../components/PortfolioDeck'
 import { objectives } from '../data/clubContent'
 import { PageFlipSection } from '../components/PageFlipSection'
@@ -14,7 +14,7 @@ import { PreviousWork } from '../components/PreviousWork'
 // Paste your social page link (e.g. Instagram, LinkedIn, Linktree) below.
 // If empty (''), clicking will default to '#' or perform no navigation.
 // ============================================================
-const SOCIAL_PAGES_URL = 'https://www.instagram.com/aarna_club/'
+const SOCIAL_PAGES_URL = 'https://www.instagram.com/aarna.vbit/'
 
 function ExpandableText({ children, maxLength = 120 }) {
   const isMobile = useIsMobile(768)
@@ -41,10 +41,26 @@ function ExpandableText({ children, maxLength = 120 }) {
 }
 
 export function HomePage() {
-  const navigate = useNavigate()
   const reduceMotion = useReducedMotion()
   const [showNotice, setShowNotice] = useState(true)
   const reveal = reduceMotion ? {} : { initial: { opacity: 0, y: 18 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true } }
+
+  // Prevent background scroll and dismiss on Escape key when notice modal is visible
+  useEffect(() => {
+    if (!showNotice) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowNotice(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showNotice])
 
   const handleExplorePreviousWork = () => {
     setShowNotice(false)

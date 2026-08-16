@@ -89,7 +89,7 @@ const AARNA_LOGO_SRC = '/images/previous-work/raw/02_web_app_design.png'
 // will not perform any action.
 // ============================================================
 const TASK_LINKS = {
-  VIEW_YOUR_TASK: '',   // Paste 'View your task' URL here (e.g. 'https://...')
+  VIEW_YOUR_TASK: '/docs/Aarna_OC_tasks.pdf',   // 'View your task' PDF path or URL
   SUBMIT_YOUR_TASK: '', // Paste 'Submit your task' URL here (e.g. 'https://forms.gle/...')
 }
 
@@ -119,11 +119,17 @@ const TIMELINE = [
 
 function handleTaskAction(url) {
   const targetUrl = (typeof url === 'string' ? url : '').trim()
+
   if (!targetUrl || targetUrl === '#') {
-    // If links are empty, do not perform any task
     return
   }
-  if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+
+  if (targetUrl === 'Aarna_OC_tasks' || targetUrl === '/docs/Aarna_OC_tasks.pdf') {
+    window.open('/docs/Aarna_OC_tasks.pdf', '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://') || targetUrl.startsWith('/') || targetUrl.endsWith('.pdf')) {
     window.open(targetUrl, '_blank', 'noopener,noreferrer')
   } else {
     window.location.href = targetUrl
@@ -295,6 +301,7 @@ export function ApplyPage() {
           font-weight: 800;
           font-size: clamp(0.72rem, 1.6vh, 0.95rem);
           letter-spacing: 0.02em;
+          min-height: 44px;
           padding: clamp(7px, 1.3vh, 12px) clamp(10px, 2vw, 16px);
           border-radius: clamp(10px, 1.6vh, 18px);
           border: 2px solid var(--brown);
@@ -316,12 +323,16 @@ export function ApplyPage() {
         }
 
         .view-task-btn {
-          background: var(--purple);
+          background: linear-gradient(135deg, var(--purple) 0%, var(--orange) 100%);
           color: var(--brown);
         }
 
+        .view-task-btn:hover {
+          background: linear-gradient(135deg, var(--orange) 0%, var(--purple) 100%);
+        }
+
         .submit-task-btn {
-          background: var(--orange);
+          background: linear-gradient(135deg, var(--orange) 0%, var(--purple) 100%);
           color: var(--cream);
         }
 
@@ -360,7 +371,20 @@ export function ApplyPage() {
 
         @media (max-width: 420px) {
           .apply-closed-info h2 { font-size: clamp(0.72rem, 1.7vh, 1rem); }
-          .apply-action-btn { font-size: clamp(0.68rem, 1.4vh, 0.85rem); padding: 7px 8px; }
+          .apply-action-btn { font-size: clamp(0.68rem, 1.4vh, 0.85rem); padding: 7px 8px; min-height: 44px; }
+        }
+
+        @media (max-height: 480px) {
+          .apply-closed-page {
+            height: auto;
+            min-height: 100dvh;
+            overflow-y: auto;
+            padding: 20px 10px;
+          }
+          .apply-closed-card {
+            height: auto;
+            max-height: none;
+          }
         }
       `}</style>
 
@@ -391,13 +415,13 @@ export function ApplyPage() {
           >
             View your task
           </button>
-          <button
+          {/* <button
             type="button"
             className="apply-action-btn submit-task-btn"
             onClick={() => handleTaskAction(TASK_LINKS.SUBMIT_YOUR_TASK)}
           >
             Submit your task
-          </button>
+          </button> */}
         </div>
 
         <p className="apply-closed-motto">TURNING PASSIONS INTO PROFITS</p>

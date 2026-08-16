@@ -10,7 +10,7 @@ function PortfolioDeckComponent() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile(768)
+  const isMobile = useIsMobile(1024)
 
   const move = useCallback(
     (direction) => {
@@ -114,17 +114,22 @@ function PortfolioDeckComponent() {
                 key={portfolio.name}
                 layoutId={`card-${portfolio.name}`}
                 className={`portfolio-card ${isCurrent ? 'is-active' : ''}`}
-                drag={isCurrent ? 'x' : false}
+                drag={!isMobile && isCurrent ? 'x' : false}
+                dragDirectionLock={true}
+                dragMomentum={false}
                 dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.2}
+                dragElastic={0.15}
                 onDragEnd={(e, { offset: dragOffset, velocity }) => {
-                  if (dragOffset.x < -60 || velocity.x < -300) {
+                  if (dragOffset.x < -50 || velocity.x < -250) {
                     move(1)
-                  } else if (dragOffset.x > 60 || velocity.x > 300) {
+                  } else if (dragOffset.x > 50 || velocity.x > 250) {
                     move(-1)
                   }
                 }}
-                style={{ touchAction: isCurrent ? 'pan-y' : 'auto' }}
+                style={{
+                  touchAction: isCurrent ? 'pan-y' : 'auto',
+                  pointerEvents: isCurrent ? 'auto' : 'none'
+                }}
                 initial={false}
                 animate={
                   reduceMotion
@@ -146,7 +151,7 @@ function PortfolioDeckComponent() {
                         scale: Math.max(0.88, 1 - offset * 0.025),
                         opacity: Math.max(0, 1 - offset * 0.15),
                         zIndex: portfolios.length - offset,
-                        pointerEvents: 'auto',
+                        pointerEvents: isCurrent ? 'auto' : 'none',
                       }
                 }
                 transition={
@@ -194,12 +199,8 @@ function PortfolioDeckComponent() {
                 </motion.span>
 
                 <motion.h3
-                  animate={
-                    isCurrent
-                      ? { opacity: 1, y: 0, filter: 'blur(0px)' }
-                      : { opacity: 0, y: 22, filter: 'blur(8px)' }
-                  }
-                  transition={{ duration: 0.5, delay: isCurrent ? 0.18 : 0, ease: [0.215, 0.61, 0.355, 1] }}
+                  animate={isCurrent ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+                  transition={{ duration: 0.45, delay: isCurrent ? 0.15 : 0, ease: [0.215, 0.61, 0.355, 1] }}
                 >
                   {portfolio.name}
                 </motion.h3>

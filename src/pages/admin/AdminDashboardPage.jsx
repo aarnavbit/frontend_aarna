@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { 
   Users, UserPlus, LogOut, Search, Filter, Shield, 
   X, CheckCircle, AlertCircle, LoaderCircle, Eye, Star,
-  GraduationCap, Download, ChevronLeft, ChevronRight,
+  GraduationCap, Download,
   ArrowUpDown, ArrowUp, ArrowDown, Briefcase, ChevronDown,
   FileSpreadsheet, FileText, RefreshCw, Sparkles
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { adminApi } from '../../api/adminApi'
-
-const ITEMS_PER_PAGE = 10
 
 const RAW_DB_EXPORT_COLUMNS = [
   'fullname',
@@ -56,9 +54,6 @@ export function AdminDashboardPage() {
   const [sortKey, setSortKey] = useState('id')
   const [sortOrder, setSortOrder] = useState('desc') // 'asc' | 'desc'
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-
   // Export dropdown state
   const [exportOpen, setExportOpen] = useState(false)
   const exportRef = useRef(null)
@@ -86,6 +81,23 @@ export function AdminDashboardPage() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Prevent background scroll and dismiss on Escape key when applicant drawer is open
+  useEffect(() => {
+    if (!selectedApplicant) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setSelectedApplicant(null)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedApplicant])
 
   const fetchInitialData = useCallback(async () => {
     setLoading(true)
@@ -172,13 +184,7 @@ export function AdminDashboardPage() {
 
       return matchesSearch && matchesDept && matchesSec && matchesYear && matchesPortfolio
     })
-  }, [applicants, searchTerm, deptFilter, sectionFilter, yearFilter, portfolioFilter])
-
-  // Reset to page 1 whenever filters change
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentPage(1)
-  }, [searchTerm, deptFilter, sectionFilter, yearFilter, portfolioFilter])
+  }, [applicants, deferredSearchTerm, deptFilter, sectionFilter, yearFilter, portfolioFilter])
 
   // Sort applicants
   const sortedApplicants = useMemo(() => {
@@ -1178,7 +1184,7 @@ export function AdminDashboardPage() {
 
       {/* TAB 2: Manage Sub-Admins (Super Admin Only) */}
       {activeTab === 'subadmins' && admin?.role === 'superadmin' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '2rem' }}>
           {/* Create Form */}
           <div style={{
             background: 'rgba(15, 23, 42, 0.65)',
@@ -1219,6 +1225,8 @@ export function AdminDashboardPage() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
+                    minHeight: '44px',
+                    fontSize: '16px',
                     borderRadius: '6px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     background: 'rgba(30, 41, 59, 0.8)',
@@ -1241,6 +1249,8 @@ export function AdminDashboardPage() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
+                    minHeight: '44px',
+                    fontSize: '16px',
                     borderRadius: '6px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     background: 'rgba(30, 41, 59, 0.8)',
@@ -1262,6 +1272,8 @@ export function AdminDashboardPage() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
+                    minHeight: '44px',
+                    fontSize: '16px',
                     borderRadius: '6px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     background: 'rgba(30, 41, 59, 0.8)',
@@ -1283,6 +1295,8 @@ export function AdminDashboardPage() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
+                    minHeight: '44px',
+                    fontSize: '16px',
                     borderRadius: '6px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     background: 'rgba(30, 41, 59, 0.8)',
@@ -1298,6 +1312,7 @@ export function AdminDashboardPage() {
                 style={{
                   marginTop: '0.5rem',
                   padding: '10px',
+                  minHeight: '44px',
                   borderRadius: '6px',
                   border: 'none',
                   background: '#6366f1',
@@ -1369,31 +1384,38 @@ export function AdminDashboardPage() {
 
       {/* Applicant Detail Drawer Modal */}
       {selectedApplicant && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          zIndex: 1000
-        }}>
-          <div style={{
-            maxWidth: '540px',
-            width: '100%',
-            height: '100%',
-            background: '#0f172a',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-            padding: '2rem',
-            overflowY: 'auto',
-            position: 'relative',
-            boxSizing: 'border-box'
-          }}>
+        <div
+          onClick={() => setSelectedApplicant(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            zIndex: 1000
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '540px',
+              width: '100%',
+              height: '100%',
+              background: '#0f172a',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '2rem',
+              overflowY: 'auto',
+              position: 'relative',
+              boxSizing: 'border-box'
+            }}
+          >
             <button
               onClick={() => setSelectedApplicant(null)}
+              aria-label="Close applicant details"
               style={{
                 position: 'absolute',
                 top: '1.5rem',
@@ -1402,8 +1424,10 @@ export function AdminDashboardPage() {
                 border: 'none',
                 color: '#fff',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                width: '44px',
+                height: '44px',
+                minWidth: '44px',
+                minHeight: '44px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

@@ -10,10 +10,12 @@ const imageList = Array.from({ length: TOTAL_IMAGES }, (_, i) => `/images/previo
 function PreviousWorkComponent() {
   const reduceMotion = useReducedMotion()
   const [selectedIndex, setSelectedIndex] = useState(null)
+  const [isInView, setIsInView] = useState(true)
   const isMounted = typeof document !== 'undefined'
   const containerRef = useRef(null)
   const isPausedRef = useRef(false)
   const isVisibleRef = useRef(true)
+  const dragStartPos = useRef({ x: 0, y: 0 })
   const manualTimeoutRef = useRef(null)
   const metricsRef = useRef({ loopWidth: 0, cardWidth: 380 })
 
@@ -58,6 +60,7 @@ function PreviousWorkComponent() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisibleRef.current = entry.isIntersecting
+        setIsInView(entry.isIntersecting)
       },
       { threshold: 0.05 }
     )
@@ -69,7 +72,7 @@ function PreviousWorkComponent() {
   // Auto-scroll loop using requestAnimationFrame (only active when visible)
   useEffect(() => {
     const container = containerRef.current
-    if (!container || reduceMotion) return
+    if (!container || reduceMotion || !isInView) return
 
     let animId
 
@@ -81,7 +84,9 @@ function PreviousWorkComponent() {
           container.scrollLeft -= loopWidth
         }
       }
-      animId = requestAnimationFrame(autoScroll)
+      if (isVisibleRef.current) {
+        animId = requestAnimationFrame(autoScroll)
+      }
     }
 
     animId = requestAnimationFrame(autoScroll)
@@ -102,7 +107,7 @@ function PreviousWorkComponent() {
     container.addEventListener('touchend', resumeScroll, { passive: true })
 
     return () => {
-      cancelAnimationFrame(animId)
+      if (animId) cancelAnimationFrame(animId)
       if (container) {
         container.removeEventListener('mouseenter', pauseScroll)
         container.removeEventListener('mouseleave', resumeScroll)
@@ -113,11 +118,23 @@ function PreviousWorkComponent() {
         container.removeEventListener('touchend', resumeScroll)
       }
     }
-  }, [reduceMotion])
+  }, [reduceMotion, isInView])
 
-  // Open Lightbox preview
+  // Pointer down to record start position for drag disambiguation
+  const handleCardPointerDown = (e) => {
+    isPausedRef.current = true
+    dragStartPos.current = { x: e.clientX, y: e.clientY }
+  }
+
+  // Open Lightbox preview only if user was not dragging/swiping
   const handleCardClick = (index, e) => {
-    if (e) e.stopPropagation()
+    if (e) {
+      e.stopPropagation()
+      if (e.clientX !== undefined && e.clientY !== undefined) {
+        const dist = Math.hypot(e.clientX - dragStartPos.current.x, e.clientY - dragStartPos.current.y)
+        if (dist > 8) return // Ignore click if user was dragging marquee
+      }
+    }
     isPausedRef.current = true
     setSelectedIndex(index % TOTAL_IMAGES)
   }
@@ -238,9 +255,7 @@ function PreviousWorkComponent() {
               <div
                 className="marquee-card"
                 key={`${src}-${index}`}
-                onPointerDown={() => {
-                  isPausedRef.current = true
-                }}
+                onPointerDown={handleCardPointerDown}
                 onClick={(e) => handleCardClick(actualIndex, e)}
                 role="button"
                 tabIndex={0}
@@ -257,6 +272,7 @@ function PreviousWorkComponent() {
                     src={src}
                     alt={`Previous Work sample ${actualIndex + 1}`}
                     loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       const card = e.currentTarget.closest('.marquee-card')
                       if (card) card.style.display = 'none'
@@ -294,6 +310,17 @@ function PreviousWorkComponent() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={(e, { offset: dragOffset, velocity }) => {
+                    if (dragOffset.x < -50 || velocity.x < -250) handleNext(e)
+                    else if (dragOffset.x > 50 || velocity.x > 250) handlePrev(e)
+                  }}
+                  style={{ touchAction: 'pan-y' }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Previous work preview lightbox"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Close Button */}
@@ -322,6 +349,7 @@ function PreviousWorkComponent() {
                       src={imageList[selectedIndex]}
                       alt={`Previous Work Preview ${selectedIndex + 1}`}
                       className="lightbox-image"
+                      decoding="async"
                     />
                   </div>
 

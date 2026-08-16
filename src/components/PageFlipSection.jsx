@@ -5,7 +5,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 function PageFlipSectionComponent({ children, zIndex, isLast = false }) {
   const containerRef = useRef(null)
   const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile(768)
+  const isMobile = useIsMobile(1024)
 
   // Exit animation (this page lifting and flipping away)
   const { scrollYProgress: exitProgress } = useScroll({
@@ -80,8 +80,8 @@ function PageFlipSectionComponent({ children, zIndex, isLast = false }) {
         position: 'relative',
         width: '100%',
         zIndex,
-        paddingBottom: isLast ? '0' : '100vh',
-        marginBottom: isLast ? '0' : '-100vh',
+        paddingBottom: isLast ? '0' : '100dvh',
+        marginBottom: isLast ? '0' : '-100dvh',
         pointerEvents: 'none',
       }}
     >
