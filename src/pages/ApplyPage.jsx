@@ -95,21 +95,21 @@ const TASK_LINKS = {
 
 const TIMELINE = [
   {
-    day: 'WED',
+    day: 'SAT',
     date: '15/08',
     time: '9:00 PM',
     title: 'Last Date to Register for Recruitments',
     tag: 'WEBSITE',
   },
   {
-    day: 'WED',
+    day: 'MON',
     date: '17/08',
     time: '12:00PM',
     title: 'Last Date to submit their tasks',
     tag: 'GOOGLE FORMS',
   },
   {
-    day: 'WED',
+    day: 'TUE-WED',
     date: '18-19',
     time: 'AUG',
     title: 'Online interviews',
