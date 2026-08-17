@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentGameState = { status: 'waiting', roundNumber: 0, startTime: null };
   let isPlayerWaitingInLobby = false;
 
+  const startForm = document.getElementById('start-form');
+  const nameInput = document.getElementById('player-name-input');
+
   // Initialize Socket.io
   const socket = (typeof io !== 'undefined') ? ((GameConfig.api.baseUrl && GameConfig.api.baseUrl.startsWith('http')) ? io(GameConfig.api.baseUrl) : io()) : null;
 
@@ -29,25 +32,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('game_state', (state) => {
+      if (!state) return;
       currentGameState = state;
       UI.updateLobbyStatus(state);
     });
 
     socket.on('game_started', (state) => {
+      if (!state) return;
       console.log('[Socket] Live Game Started:', state);
       currentGameState = state;
       UI.updateLobbyStatus(state);
       UI.hideGameEndedAlert();
-      UI.showToast(`🚀 ROUND #${state.roundNumber || 1} HAS STARTED!`, 'success', 3500);
+      const roundNum = state.roundNumber || state.round_number || 1;
+      UI.showToast(`🚀 ROUND #${roundNum} HAS STARTED!`, 'success', 3500);
 
       // Auto-launch for players waiting in lobby with their name
-      const rawName = nameInput.value.trim();
+      const rawName = nameInput ? nameInput.value.trim() : '';
       if (AppState.currentScreen === 'start' && (isPlayerWaitingInLobby || rawName)) {
         handleStartGame();
       }
     });
 
     socket.on('game_ended', (state) => {
+      if (!state) return;
       console.log('[Socket] Live Game Ended:', state);
       currentGameState = state;
       UI.updateLobbyStatus(state);
@@ -71,13 +78,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Fetch initial game status on load
-  Api.request('/api/game/status').then(res => {
-    if (res && res.gameState) {
-      currentGameState = res.gameState;
-      UI.updateLobbyStatus(res.gameState);
+  // Periodic Status Polling Backup
+  function refreshStatus() {
+    Api.request('/api/game/status').then(res => {
+      const state = res.gameState || res;
+      if (state && state.status) {
+        const prevStatus = currentGameState.status;
+        currentGameState = state;
+        UI.updateLobbyStatus(state);
+
+        // Auto-launch if transitioned to playing
+        if (prevStatus === 'waiting' && state.status === 'playing' && AppState.currentScreen === 'start') {
+          const rawName = nameInput ? nameInput.value.trim() : '';
+          if (isPlayerWaitingInLobby || rawName) {
+            handleStartGame();
+          }
+        }
+      }
+    }).catch(() => {});
+  }
+
+  refreshStatus();
+  setInterval(() => {
+    if (AppState.currentScreen === 'start') {
+      refreshStatus();
     }
-  }).catch(() => {});
+  }, 3000);
 
   // Bind State to UI Renderer
   AppState.subscribe((state, event, data) => {
@@ -107,14 +133,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------------------
   // 1. Start Game Flow
   // ------------------------------------------------------------------------
-  const startForm = document.getElementById('start-form');
-  const nameInput = document.getElementById('player-name-input');
-
   async function handleStartGame() {
-    const rawName = nameInput.value.trim();
+    const rawName = nameInput ? nameInput.value.trim() : '';
     if (!rawName) {
       UI.showToast('Please enter your name to play!', 'warning');
-      nameInput.focus();
+      if (nameInput) nameInput.focus();
       return;
     }
 
@@ -139,8 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let sessionId = 'local_' + Math.random().toString(36).substring(2, 9);
     try {
       const serverSession = await Api.startGame(rawName);
-      if (serverSession && serverSession.sessionId) {
-        sessionId = serverSession.sessionId;
+      const sId = serverSession.sessionId || serverSession.session_id;
+      if (sId) {
+        sessionId = sId;
         if (serverSession.config) {
           GameConfig.hydrate(serverSession.config);
         }
@@ -151,8 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
     } catch (err) {
-      console.warn('[Network] Offline session started:', err.message);
-      UI.showToast('Starting offline mode. Score will sync later!', 'warning', 2500);
+      console.warn('[Network] Session started:', err.message);
     }
 
     // Initialize App State
@@ -163,10 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
     startRound(1);
   }
 
-  startForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    handleStartGame();
-  });
+  if (startForm) {
+    startForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleStartGame();
+    });
+  }
 
   // ------------------------------------------------------------------------
   // 2. Round Gameplay Management
@@ -226,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let serverResult = null;
     try {
       serverResult = await Api.submitScore(submissionPayload);
-      if (serverResult.roundEnded) {
+      if (serverResult && serverResult.roundEnded) {
         UI.syncStatusMsg.innerHTML = '<span class="sync-dot" style="background:#ef4444;"></span> Round ended by host. Score not ranked.';
         UI.showToast('Round ended before submission. Score not ranked.', 'warning', 4000);
       } else {
@@ -250,50 +275,31 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.leaderboardList.innerHTML = '<div class="loading-spinner">Fetching live rankings...</div>';
 
     try {
-      const data = await Api.getLeaderboard(20);
-      ScoreQueue.cacheLeaderboard(data);
-      UI.renderLeaderboard(data, AppState.sessionId, false);
+      const entries = await Api.getLeaderboard(50);
+      UI.renderLeaderboard(entries || []);
     } catch (err) {
-      console.warn('[Leaderboard] Network error, using cached copy:', err.message);
-      const cached = ScoreQueue.getCachedLeaderboard();
-      if (cached && cached.data) {
-        UI.renderLeaderboard(cached.data, AppState.sessionId, true);
-      } else {
-        UI.renderLeaderboard({ topPlayers: [] }, AppState.sessionId, true);
-      }
-      UI.showToast('Using offline leaderboard data', 'warning', 2500);
+      console.warn('[Leaderboard] Network error fetching rankings:', err.message);
+      UI.renderLeaderboard([]);
     }
   }
 
   // ------------------------------------------------------------------------
-  // 5. Button Listeners & Navigation
+  // 5. Global Button Navigation Listeners
   // ------------------------------------------------------------------------
-  document.getElementById('btn-view-leaderboard').addEventListener('click', loadLeaderboard);
-  document.getElementById('btn-result-leaderboard').addEventListener('click', loadLeaderboard);
-  document.getElementById('btn-refresh-leaderboard').addEventListener('click', loadLeaderboard);
-
-  document.getElementById('btn-back-from-leaderboard').addEventListener('click', () => {
-    if (AppState.gameEndTime > 0) {
-      AppState.setScreen('result');
-    } else {
-      AppState.setScreen('start');
-    }
-  });
-
-  document.getElementById('btn-play-again').addEventListener('click', () => {
+  document.getElementById('btn-view-leaderboard')?.addEventListener('click', loadLeaderboard);
+  document.getElementById('btn-result-leaderboard')?.addEventListener('click', loadLeaderboard);
+  document.getElementById('btn-back-to-menu')?.addEventListener('click', () => {
     AppState.setScreen('start');
-    nameInput.focus();
+    refreshStatus();
   });
-
-  document.getElementById('btn-leaderboard-play').addEventListener('click', () => {
+  document.getElementById('btn-play-again')?.addEventListener('click', () => {
     AppState.setScreen('start');
-    nameInput.focus();
+    refreshStatus();
   });
 
-  // Sound Toggle
-  document.getElementById('btn-toggle-sound').addEventListener('click', () => {
-    const isAudioOn = Sound.toggleMute();
-    UI.updateSoundIcon(!isAudioOn);
-    UI.showToast(isAudioOn ? 'Sound On 🔊' : 'Sound Muted 🔇', 'info', 1500);
+  // Sound Toggle Button
+  document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
+    const isMuted = Sound.toggleMute();
+    UI.updateSoundIcon(isMuted);
   });
 });
