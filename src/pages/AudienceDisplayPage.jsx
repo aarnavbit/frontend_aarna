@@ -33,6 +33,7 @@ export function AudienceDisplayPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('')
   const [lastSyncTime, setLastSyncTime] = useState(null)
   const [showGrandChampionModal, setShowGrandChampionModal] = useState(false)
+  const [sortBy, setSortBy] = useState('score') // 'score' | 'time' | 'matches' | 'rounds'
 
   const socketRef = useRef(null)
   const countdownTimerRef = useRef(null)
