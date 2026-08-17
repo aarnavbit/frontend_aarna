@@ -52,6 +52,17 @@ class UIRenderer {
     this.toastContainer = document.getElementById('toast-container');
     this.confettiCanvas = document.getElementById('confetti-canvas');
 
+    // Thank You Overlay
+    this.thankYouOverlay = document.getElementById('thank-you-overlay');
+    this.btnCloseOverlay = document.getElementById('btn-close-overlay');
+    if (this.btnCloseOverlay) {
+      this.btnCloseOverlay.addEventListener('click', () => {
+        if (this.thankYouOverlay) {
+          this.thankYouOverlay.classList.remove('show');
+        }
+      });
+    }
+
     this.timerInterval = null;
   }
 
@@ -67,6 +78,11 @@ class UIRenderer {
         el.classList.add('screen-hidden');
       }
     });
+
+    // Hide thank you overlay when changing screens (e.g. back to start or game)
+    if (screenName !== 'result' && this.thankYouOverlay) {
+      this.thankYouOverlay.classList.remove('show');
+    }
   }
 
   // Update Live Lobby Status
@@ -329,6 +345,15 @@ class UIRenderer {
 
     // Trigger Confetti Celebration
     this.launchConfetti();
+
+    // Show Thank You Overlay after a brief delay if all rounds are completed
+    if (state.round >= state.totalRounds) {
+      setTimeout(() => {
+        if (this.thankYouOverlay) {
+          this.thankYouOverlay.classList.add('show');
+        }
+      }, 2000);
+    }
   }
 
   animateScoreRoll(element, targetValue) {
