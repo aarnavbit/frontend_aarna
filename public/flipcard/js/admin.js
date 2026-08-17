@@ -1,10 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('admin-login-form');
   const passwordInput = document.getElementById('admin-password');
+  const backendUrlInput = document.getElementById('admin-backend-url');
   const errorMsg = document.getElementById('login-error');
   
   const screenLogin = document.getElementById('screen-admin-login');
   const screenDashboard = document.getElementById('screen-admin-dashboard');
+  const currentBackendDisplay = document.getElementById('current-backend-display');
 
   const btnPlayGame = document.getElementById('btn-play-game');
   const btnLogout = document.getElementById('btn-logout');
@@ -27,38 +29,56 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentGameState = { status: 'waiting', roundNumber: 0, startTime: null };
 
   const getBaseUrl = () => {
-    return (typeof GameConfig !== 'undefined' && GameConfig.api && GameConfig.api.baseUrl) ? GameConfig.api.baseUrl : '';
+    const stored = sessionStorage.getItem('GAME_API_URL') || localStorage.getItem('GAME_API_URL');
+    if (stored) return stored.replace(/\/+$/, '');
+    if (typeof GameConfig !== 'undefined' && GameConfig.api && GameConfig.api.baseUrl) {
+      return GameConfig.api.baseUrl.replace(/\/+$/, '');
+    }
+    return window.location.origin || 'http://localhost:3000';
   };
 
-  // Initialize Socket.io
-  const baseUrl = getBaseUrl();
-  const socket = (typeof io !== 'undefined') ? (baseUrl.startsWith('http') ? io(baseUrl) : io()) : null;
-
-  if (socket) {
-    socket.on('connected_clients', (data) => {
-      if (connectedCountEl && data) {
-        connectedCountEl.textContent = data.count || 0;
-      }
-    });
-
-    socket.on('game_state', (state) => {
-      handleGameStateUpdate(state);
-    });
-
-    socket.on('game_started', (state) => {
-      handleGameStateUpdate(state);
-    });
-
-    socket.on('game_ended', (state) => {
-      handleGameStateUpdate(state);
-    });
-
-    socket.on('leaderboard_update', () => {
-      if (sessionStorage.getItem('adminToken')) {
-        loadDashboardData();
-      }
-    });
+  // Prefill backend URL input if available
+  if (backendUrlInput) {
+    backendUrlInput.value = sessionStorage.getItem('GAME_API_URL') || localStorage.getItem('GAME_API_URL') || '';
   }
+
+  // Initialize Socket.io
+  let socket = null;
+  function initSocket() {
+    const baseUrl = getBaseUrl();
+    if (typeof io !== 'undefined') {
+      try {
+        socket = baseUrl.startsWith('http') ? io(baseUrl) : io();
+        socket.on('connected_clients', (data) => {
+          if (connectedCountEl && data) {
+            connectedCountEl.textContent = data.count || 0;
+          }
+        });
+
+        socket.on('game_state', (state) => {
+          handleGameStateUpdate(state);
+        });
+
+        socket.on('game_started', (state) => {
+          handleGameStateUpdate(state);
+        });
+
+        socket.on('game_ended', (state) => {
+          handleGameStateUpdate(state);
+        });
+
+        socket.on('leaderboard_update', () => {
+          if (sessionStorage.getItem('adminToken')) {
+            loadDashboardData();
+          }
+        });
+      } catch (err) {
+        console.warn('[Socket Init Warning]:', err);
+      }
+    }
+  }
+
+  initSocket();
 
   // Check if already logged in via sessionStorage
   const token = sessionStorage.getItem('adminToken');
@@ -69,10 +89,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const password = passwordInput.value;
+    const password = passwordInput.value.trim();
+    const customBackend = backendUrlInput ? backendUrlInput.value.trim() : '';
+
+    if (customBackend) {
+      const cleanUrl = customBackend.replace(/\/+$/, '');
+      sessionStorage.setItem('GAME_API_URL', cleanUrl);
+      localStorage.setItem('GAME_API_URL', cleanUrl);
+      if (typeof GameConfig !== 'undefined' && GameConfig.api) {
+        GameConfig.api.baseUrl = cleanUrl;
+      }
+      initSocket();
+    }
+
+    const apiUrl = getBaseUrl();
+    errorMsg.classList.add('hidden');
     
     try {
-      const res = await fetch(`${getBaseUrl()}/api/admin/login`, {
+      const res = await fetch(`${apiUrl}/api/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -80,6 +114,11 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ password })
       });
       
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Server at ${apiUrl} did not return JSON. Is your Game Server running at this URL?`);
+      }
+
       const data = await res.json();
       if (res.ok && data.success) {
         sessionStorage.setItem('adminToken', password);
@@ -94,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorMsg.classList.remove('hidden');
       }
     } catch (err) {
-      errorMsg.textContent = 'Network error. Please try again.';
+      errorMsg.textContent = err.message || 'Network error connecting to Backend. Please verify Backend API URL.';
       errorMsg.classList.remove('hidden');
     }
   });
@@ -292,6 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
     screenDashboard.classList.remove('screen-hidden');
     screenDashboard.classList.add('screen-active');
     
+    if (currentBackendDisplay) {
+      currentBackendDisplay.textContent = getBaseUrl();
+    }
+
     clearInterval(pollingInterval);
     pollingInterval = setInterval(loadDashboardData, 10000);
   }
