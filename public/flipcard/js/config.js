@@ -27,13 +27,8 @@ function resolveApiBaseUrl() {
     // Storage access fallback
   }
 
-  // 3. Current host origin (production deployment)
-  if (window.location.origin && !window.location.origin.includes('localhost') && !window.location.origin.includes('127.0.0.1')) {
-    return window.location.origin;
-  }
-
-  // 4. Local development default
-  return 'http://localhost:3000';
+  // 3. Production backend default
+  return 'https://backend-aarna.onrender.com';
 }
 
 const GameConfig = {
