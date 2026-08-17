@@ -75,11 +75,15 @@ export const liveGameApi = {
     return res.json()
   },
 
-  startGame: async (adminPassword) => {
+  startGame: async (adminPassword, roundNumber = null) => {
     const base = getLiveBackendBase()
     const res = await fetch(`${base}/api/admin/game/start`, {
       method: 'POST',
-      headers: { 'x-admin-password': adminPassword }
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': adminPassword
+      },
+      body: JSON.stringify(roundNumber ? { roundNumber: Number(roundNumber), round_number: Number(roundNumber) } : {})
     })
     if (!res.ok) throw new Error('Failed to start round')
     return res.json()

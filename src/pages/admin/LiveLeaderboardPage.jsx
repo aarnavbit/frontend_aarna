@@ -136,11 +136,13 @@ export function LiveLeaderboardPage() {
     }
   }
 
-  const handleStartRound = async () => {
-    setActionLoading('start')
+  const handleStartRound = async (targetRound = null) => {
+    setActionLoading(`start_${targetRound || 'next'}`)
     try {
-      await liveGameApi.startGame(adminPassword)
-      showToast('🚀 Game round launched!')
+      const roundToStart = targetRound || (gameState.roundNumber ? ((Number(gameState.roundNumber) % 3) + 1) : 1)
+      await liveGameApi.startGame(adminPassword, roundToStart)
+      const stageName = roundToStart === 1 ? 'Cards' : (roundToStart === 2 ? 'Jigsaw' : 'Slider')
+      showToast(`🚀 Stage ${roundToStart} (${stageName}) launched!`)
       fetchScores()
     } catch (err) {
       showToast(`❌ Error: ${err.message}`)
@@ -346,26 +348,73 @@ export function LiveLeaderboardPage() {
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 {!isPlaying ? (
-                  <button
-                    onClick={handleStartRound}
-                    disabled={actionLoading === 'start'}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '9px 18px',
-                      borderRadius: '12px',
-                      backgroundColor: '#16a34a',
-                      border: '2.5px solid var(--aud-border)',
-                      boxShadow: '3px 3px 0px var(--aud-border)',
-                      color: '#ffffff',
-                      fontWeight: 900,
-                      fontSize: '0.88rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Play size={16} /> Start Round
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleStartRound(1)}
+                      disabled={!!actionLoading}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '9px 14px',
+                        borderRadius: '12px',
+                        backgroundColor: '#16a34a',
+                        border: '2.5px solid var(--aud-border)',
+                        boxShadow: '3px 3px 0px var(--aud-border)',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer'
+                      }}
+                      title="Broadcast Stage 1: Card Flip Matching to all players"
+                    >
+                      <Play size={14} /> R1: CARDS
+                    </button>
+
+                    <button
+                      onClick={() => handleStartRound(2)}
+                      disabled={!!actionLoading}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '9px 14px',
+                        borderRadius: '12px',
+                        backgroundColor: '#0284c7',
+                        border: '2.5px solid var(--aud-border)',
+                        boxShadow: '3px 3px 0px var(--aud-border)',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer'
+                      }}
+                      title="Broadcast Stage 2: 12-Piece Jigsaw Puzzle to all players"
+                    >
+                      <Play size={14} /> R2: JIGSAW
+                    </button>
+
+                    <button
+                      onClick={() => handleStartRound(3)}
+                      disabled={!!actionLoading}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '9px 14px',
+                        borderRadius: '12px',
+                        backgroundColor: '#7c3aed',
+                        border: '2.5px solid var(--aud-border)',
+                        boxShadow: '3px 3px 0px var(--aud-border)',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer'
+                      }}
+                      title="Broadcast Stage 3: 15-Puzzle Slider to all players"
+                    >
+                      <Play size={14} /> R3: SLIDER
+                    </button>
+                  </>
                 ) : (
                   <button
                     onClick={handleStopRound}
@@ -385,7 +434,7 @@ export function LiveLeaderboardPage() {
                       cursor: 'pointer'
                     }}
                   >
-                    <Square size={16} /> Stop Round
+                    <Square size={16} /> Stop Round #{roundNum}
                   </button>
                 )}
 

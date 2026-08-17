@@ -1,6 +1,7 @@
 /**
  * Main Application Orchestrator
  * Connects UI, Game Engine, State, Audio, API, Offline Queue, and WebSockets.
+ * Implements Host-Controlled 3-Stage Multi-Game Event System with Live Intermissions.
  */
 document.addEventListener('DOMContentLoaded', () => {
   const engine = new GameEngine(GameConfig);
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Global Synchronized State
   let currentGameState = { status: 'waiting', roundNumber: 0, startTime: null };
   let isPlayerWaitingInLobby = false;
+  let screenBeforeLeaderboard = 'start';
 
   const startForm = document.getElementById('start-form');
   const nameInput = document.getElementById('player-name-input');
@@ -46,13 +48,23 @@ document.addEventListener('DOMContentLoaded', () => {
       currentGameState = state;
       UI.updateLobbyStatus(state);
       UI.hideGameEndedAlert();
-      const roundNum = state.roundNumber || state.round_number || 1;
-      UI.showToast(`🚀 ROUND #${roundNum} HAS STARTED!`, 'success', 3500);
+      
+      const broadcastRound = Number(state.roundNumber || state.round_number || 1);
+      const stageName = broadcastRound === 1 ? 'CARD MATCH' : (broadcastRound === 2 ? 'JIGSAW PUZZLE' : '15-PUZZLE SLIDER');
+      
+      Sound.playFlip();
+      UI.showToast(`🚀 STAGE ${broadcastRound}: ${stageName} HAS STARTED!`, 'success', 3500);
+
+      // Auto-launch if player is on Intermission Screen
+      if (AppState.currentScreen === 'intermission') {
+        launchBroadcastStage(broadcastRound);
+        return;
+      }
 
       // Auto-launch for players waiting in lobby with their name
       const rawName = nameInput ? nameInput.value.trim() : '';
       if (AppState.currentScreen === 'start' && (isPlayerWaitingInLobby || rawName)) {
-        handleStartGame();
+        handleStartGame(broadcastRound);
       }
     });
 
@@ -91,10 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
         UI.updateLobbyStatus(state);
 
         // Auto-launch if transitioned to playing
-        if (prevStatus === 'waiting' && state.status === 'playing' && AppState.currentScreen === 'start') {
-          const rawName = nameInput ? nameInput.value.trim() : '';
-          if (isPlayerWaitingInLobby || rawName) {
-            handleStartGame();
+        if (prevStatus === 'waiting' && state.status === 'playing') {
+          const broadcastRound = Number(state.roundNumber || state.round_number || 1);
+          if (AppState.currentScreen === 'intermission') {
+            launchBroadcastStage(broadcastRound);
+          } else if (AppState.currentScreen === 'start') {
+            const rawName = nameInput ? nameInput.value.trim() : '';
+            if (isPlayerWaitingInLobby || rawName) {
+              handleStartGame(broadcastRound);
+            }
           }
         }
       }
@@ -103,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   refreshStatus();
   setInterval(() => {
-    if (AppState.currentScreen === 'start') {
+    if (AppState.currentScreen === 'start' || AppState.currentScreen === 'intermission') {
       refreshStatus();
     }
   }, 3000);
@@ -129,15 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
         AppState.unflipCards(data.cardId1, data.cardId2);
       });
     } else if (event === 'round_complete') {
-      UI.showToast(`🎉 Round ${data.round} Clear! +${data.roundBonus + data.speedBonus} pts`, 'success', 2000);
+      UI.showToast(`🎉 Sub-Round ${data.round} Clear! +${data.roundBonus + data.speedBonus} pts`, 'success', 2000);
     }
   });
 
   // ------------------------------------------------------------------------
   // 1. Start Game Flow
   // ------------------------------------------------------------------------
-  async function handleStartGame() {
-    const rawName = nameInput ? nameInput.value.trim() : '';
+  async function handleStartGame(targetBroadcastRound = null) {
+    const rawName = nameInput ? nameInput.value.trim() : (AppState.playerName || '');
     if (!rawName) {
       UI.showToast('Please enter your name to play!', 'warning');
       if (nameInput) nameInput.focus();
@@ -147,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check synchronized state
     if (currentGameState.status === 'waiting') {
       isPlayerWaitingInLobby = true;
+      AppState.playerName = rawName;
       UI.setPlayerReady(true);
       UI.showToast('✅ Name registered! Waiting for host to start the round...', 'info', 3000);
       return;
@@ -162,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.setPlayerReady(false);
     UI.hideGameEndedAlert();
 
-    let sessionId = 'local_' + Math.random().toString(36).substring(2, 9);
+    let sessionId = AppState.sessionId || ('local_' + Math.random().toString(36).substring(2, 9));
     try {
       const serverSession = await Api.startGame(rawName);
       const sId = serverSession.sessionId || serverSession.session_id;
@@ -173,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else if (serverSession && serverSession.inLobby) {
         isPlayerWaitingInLobby = true;
+        AppState.playerName = rawName;
         UI.setPlayerReady(true);
         UI.showToast(serverSession.message || 'Waiting for host...', 'info', 3000);
         return;
@@ -181,15 +200,12 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('[Network] Session started:', err.message);
     }
 
-    // Initialize App State with broadcast event round or Round 1
-    const eventRound = Number(currentGameState.roundNumber || currentGameState.round_number);
-    const initialRound = (eventRound >= 1 && eventRound <= 3) ? eventRound : 1;
+    // Determine target stage
+    const eventRound = targetBroadcastRound || Number(currentGameState.roundNumber || currentGameState.round_number || 1);
+    const initialStage = (eventRound >= 1 && eventRound <= 3) ? eventRound : 1;
 
-    AppState.initSession(sessionId, rawName, GameConfig.totalRounds);
-    AppState.setScreen('game');
-
-    // Launch active stage
-    startRound(initialRound);
+    AppState.initSession(sessionId, rawName, GameConfig.totalRounds || 9);
+    launchBroadcastStage(initialStage);
   }
 
   if (startForm) {
@@ -200,95 +216,144 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------------
-  // 2. Round Gameplay Management
+  // 2. Stage Launcher & Sub-Round Flow
   // ------------------------------------------------------------------------
-  function startRound(roundNum) {
-    const targetRound = Number(roundNum) || 1;
+  function launchBroadcastStage(stageNum) {
+    const stage = Math.max(1, Math.min(Number(stageNum) || 1, 3));
+    AppState.stage = stage;
+    AppState.stageStartTime = Date.now();
+    AppState.setScreen('game');
 
-    if (targetRound === 3) {
-      // Round 3: 15-Puzzle Image Slider Mode
+    if (stage === 1) {
+      startRound(1); // Sub-round 1 of Card Match (Round 1)
+    } else if (stage === 2) {
+      startRound(4); // Sub-round 1 of Jigsaw Puzzle (Round 4)
+    } else if (stage === 3) {
+      startRound(7); // Sub-round 1 of 15-Puzzle Slider (Round 7)
+    }
+  }
+
+  function startRound(roundNum) {
+    const targetRound = Math.max(1, Math.min(Number(roundNum) || 1, GameConfig.totalRounds || 9));
+
+    // ========================================================================
+    // STAGE 3: 15-Puzzle Slider (Sub-Rounds 1, 2, 3 = Rounds 7, 8, 9)
+    // ========================================================================
+    if (targetRound >= 7 && targetRound <= 9) {
       if (UI.cardGrid) UI.cardGrid.classList.add('hidden');
       const jigsawBoard = document.getElementById('jigsaw-board');
       if (jigsawBoard) jigsawBoard.classList.add('hidden');
       const sliderBoard = document.getElementById('slider-board');
       if (sliderBoard) sliderBoard.classList.remove('hidden');
 
-      UI.showRoundAnnouncement(3, '15-Puzzle Slider', 'Slide tiles to restore the brand image!');
-      AppState.startRound(3, []);
+      const subRoundNum = targetRound - 6; // 1, 2, 3
+      if (subRoundNum === 1) {
+        UI.showRoundAnnouncement('STAGE 3 • 15-PUZZLE SLIDER', '4x4 Slider Challenge', 'Slide the tiles to restore the image!');
+      }
+
+      const sliderImgList = Array.isArray(GameConfig.sliderImages) && GameConfig.sliderImages.length >= 3
+        ? GameConfig.sliderImages
+        : ['images/Logo.png', 'images/cards/card_2.webp', 'images/cards/meme3.webp'];
+      const sliderImgSrc = sliderImgList[(subRoundNum - 1) % sliderImgList.length] || 'images/Logo.png';
+
+      AppState.startRound(targetRound, []);
 
       if (!window.sliderGame) {
-        window.sliderGame = new SliderEngine('slider-board', 'images/Logo.png');
+        window.sliderGame = new SliderEngine('slider-board', sliderImgSrc);
       }
       
-      window.sliderGame.startPuzzle(3, (moves) => {
+      window.sliderGame.startPuzzle(targetRound, (moves) => {
         const roundDurationMs = Date.now() - AppState.roundStartTime;
         const bonus = engine.calculateRoundBonus(roundDurationMs);
         AppState.matchesThisRound = 15;
         AppState.totalMatches += AppState.matchesThisRound;
         AppState.recordRoundCompletion(bonus.roundBonus, bonus.speedBonus, roundDurationMs);
 
-        // Sync intermediate score for Round 3
-        submitIntermediateRoundScore(3);
+        submitIntermediateRoundScore(targetRound);
 
-        setTimeout(() => {
-          handleGameEnd();
-        }, 1000);
-      });
+        if (subRoundNum < 3) {
+          setTimeout(() => {
+            startRound(targetRound + 1);
+          }, 900);
+        } else {
+          // Stage 3 Complete -> Grand Champion Victory Screen!
+          setTimeout(() => {
+            handleGameEnd();
+          }, 1200);
+        }
+      }, sliderImgSrc);
       return;
     }
 
-    if (targetRound === 2) {
-      // Round 2: Jigsaw Puzzle Mode
+    // ========================================================================
+    // STAGE 2: Jigsaw Puzzle (Sub-Rounds 1, 2, 3 = Rounds 4, 5, 6)
+    // ========================================================================
+    if (targetRound >= 4 && targetRound <= 6) {
       if (UI.cardGrid) UI.cardGrid.classList.add('hidden');
       const sliderBoard = document.getElementById('slider-board');
       if (sliderBoard) sliderBoard.classList.add('hidden');
       const jigsawBoard = document.getElementById('jigsaw-board');
       if (jigsawBoard) jigsawBoard.classList.remove('hidden');
 
-      UI.showRoundAnnouncement(2, 'Jigsaw Puzzle', 'Drag & place all 12 pieces into the board!');
-      AppState.startRound(2, []);
+      const subRoundNum = targetRound - 3; // 1, 2, 3
+      if (subRoundNum === 1) {
+        UI.showRoundAnnouncement('STAGE 2 • JIGSAW PUZZLE', '12-Piece Image Puzzle', 'Drag & fit the pieces into place!');
+      }
+
+      const jigsawImgList = Array.isArray(GameConfig.jigsawImages) && GameConfig.jigsawImages.length >= 3
+        ? GameConfig.jigsawImages
+        : ['images/puzzel.jpeg', 'images/cards/card_1.webp', 'images/cards/card_4.webp'];
+      const jigsawImgSrc = jigsawImgList[(subRoundNum - 1) % jigsawImgList.length] || 'images/puzzel.jpeg';
+
+      AppState.startRound(targetRound, []);
 
       if (!window.jigsawGame) {
         window.jigsawGame = new JigsawEngine('jigsaw-canvas');
       }
       
-      window.jigsawGame.startPuzzle(2, () => {
+      window.jigsawGame.startPuzzle(targetRound, () => {
         const roundDurationMs = Date.now() - AppState.roundStartTime;
         const bonus = engine.calculateRoundBonus(roundDurationMs);
         AppState.matchesThisRound = 12;
         AppState.totalMatches += AppState.matchesThisRound;
         AppState.recordRoundCompletion(bonus.roundBonus, bonus.speedBonus, roundDurationMs);
 
-        // Sync intermediate score for Round 2
-        submitIntermediateRoundScore(2);
+        submitIntermediateRoundScore(targetRound);
 
-        setTimeout(() => {
-          if (AppState.round < GameConfig.totalRounds) {
-            startRound(3);
-          } else {
-            handleGameEnd();
-          }
-        }, 1000);
-      });
+        if (subRoundNum < 3) {
+          setTimeout(() => {
+            startRound(targetRound + 1);
+          }, 900);
+        } else {
+          // Stage 2 Complete -> Transition to Stage 2 Intermission Screen!
+          setTimeout(() => {
+            enterIntermission(2);
+          }, 1000);
+        }
+      }, jigsawImgSrc);
       return;
     }
 
-    // Round 1: Flipcard Mode
+    // ========================================================================
+    // STAGE 1: Card Flip Matching (Sub-Rounds 1, 2, 3 = Rounds 1, 2, 3)
+    // ========================================================================
     const jigsawBoard = document.getElementById('jigsaw-board');
     if (jigsawBoard) jigsawBoard.classList.add('hidden');
     const sliderBoard = document.getElementById('slider-board');
     if (sliderBoard) sliderBoard.classList.add('hidden');
     if (UI.cardGrid) UI.cardGrid.classList.remove('hidden');
 
-    UI.showRoundAnnouncement(1, 'Card Matching', 'Find & match 3 pairs in fewest moves!');
+    if (targetRound === 1) {
+      UI.showRoundAnnouncement('STAGE 1 • MEMORY MATCH', 'Card Flip Challenge', 'Find matching pairs in fewest moves!');
+    }
 
     const deck = engine.generateRoundDeck(
-      1,
+      targetRound,
       GameConfig.imagePool,
-      GameConfig.pairsPerRound
+      GameConfig.pairsPerRound || 3
     );
 
-    AppState.startRound(1, deck);
+    AppState.startRound(targetRound, deck);
     UI.renderDeck(deck, handleCardClick);
   }
 
@@ -298,27 +363,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (result.type === 'match') {
       if (result.isRoundComplete) {
+        const currentSubRound = AppState.round; // 1, 2, 3
         const roundDurationMs = Date.now() - AppState.roundStartTime;
         const bonus = engine.calculateRoundBonus(roundDurationMs);
         AppState.recordRoundCompletion(bonus.roundBonus, bonus.speedBonus, roundDurationMs);
 
-        // Send non-blocking intermediate score update after round 1
-        submitIntermediateRoundScore(1);
+        // Send non-blocking intermediate score update after each completed sub-round
+        submitIntermediateRoundScore(currentSubRound);
 
-        // Check if next round or final game over
-        setTimeout(() => {
-          if (AppState.round < GameConfig.totalRounds) {
-            startRound(2);
-          } else {
-            handleGameEnd();
-          }
-        }, 1000);
+        if (currentSubRound < 3) {
+          setTimeout(() => {
+            startRound(currentSubRound + 1);
+          }, 900);
+        } else {
+          // Stage 1 Complete -> Transition to Stage 1 Intermission Screen!
+          setTimeout(() => {
+            enterIntermission(1);
+          }, 1000);
+        }
       }
     }
   }
 
   // ------------------------------------------------------------------------
-  // 3. Multi-Round Non-blocking Intermediate Score Submissions
+  // 3. Stage Intermission Management
+  // ------------------------------------------------------------------------
+  async function enterIntermission(completedStage) {
+    AppState.stage = completedStage;
+    AppState.setScreen('intermission');
+
+    // Fetch latest live rank for the player
+    let currentRank = null;
+    try {
+      if (AppState.sessionId) {
+        const sessionData = await Api.request(`/api/game/session/${AppState.sessionId}`);
+        if (sessionData && sessionData.rank) {
+          currentRank = sessionData.rank;
+          AppState.serverRank = currentRank;
+        }
+      }
+    } catch (e) {
+      console.warn('[Intermission] Rank sync info:', e.message);
+    }
+
+    const nextRoundNum = completedStage + 1;
+    const nextStageName = nextRoundNum === 2 ? 'Jigsaw Puzzle' : (nextRoundNum === 3 ? '15-Puzzle Slider' : 'Next Stage');
+
+    UI.renderIntermission(completedStage, AppState, nextStageName, currentRank);
+    Sound.playVictory();
+    UI.showToast(`🎉 Stage ${completedStage} Cleared! Waiting for Host to broadcast Stage ${nextRoundNum}...`, 'success', 4500);
+  }
+
+  // ------------------------------------------------------------------------
+  // 4. Multi-Round Non-blocking Intermediate Score Submissions
   // ------------------------------------------------------------------------
   function submitIntermediateRoundScore(completedRound) {
     const sendTime = new Date();
@@ -346,12 +443,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Non-blocking fire-and-forget; never penalize or block user if net is slow
     Api.submitScore(intermediatePayload).catch((err) => {
-      console.warn(`[Live Sync] Round ${completedRound} intermediate sync skipped (slow connection):`, err.message);
+      console.warn(`[Live Sync] Round ${completedRound} intermediate sync queued locally:`, err.message);
+      ScoreQueue.enqueue(intermediatePayload);
     });
   }
 
   // ------------------------------------------------------------------------
-  // 4. Final Game Completion & Master Overriding Score Submission
+  // 5. Final Game Completion & Grand Champion Presentation
   // ------------------------------------------------------------------------
   async function handleGameEnd() {
     AppState.recordGameCompletion();
@@ -367,12 +465,12 @@ document.addEventListener('DOMContentLoaded', () => {
       player_name: AppState.playerName,
       matches: AppState.totalMatches,
       mismatches: AppState.totalMismatches,
-      roundsCompleted: AppState.totalRounds,
-      rounds_completed: AppState.totalRounds,
+      roundsCompleted: AppState.totalRounds || 9,
+      rounds_completed: AppState.totalRounds || 9,
       durationMs: AppState.gameEndTime - AppState.gameStartTime,
       duration_ms: AppState.gameEndTime - AppState.gameStartTime,
       actions: {
-        roundsCompleted: AppState.totalRounds,
+        roundsCompleted: AppState.totalRounds || 9,
         matches: AppState.totalMatches,
         mismatches: AppState.totalMismatches,
         durationMs: AppState.gameEndTime - AppState.gameStartTime,
@@ -403,9 +501,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------------
-  // 4. Leaderboard Flow
+  // 6. Leaderboard Flow
   // ------------------------------------------------------------------------
   async function loadLeaderboard() {
+    screenBeforeLeaderboard = AppState.currentScreen;
     AppState.setScreen('leaderboard');
     UI.leaderboardList.innerHTML = '<div class="loading-spinner">Fetching live rankings...</div>';
 
@@ -419,20 +518,44 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------------
-  // 5. Global Button Navigation Listeners
+  // 7. Global Button Navigation Listeners
   // ------------------------------------------------------------------------
   document.getElementById('btn-view-leaderboard')?.addEventListener('click', loadLeaderboard);
   document.getElementById('btn-result-leaderboard')?.addEventListener('click', loadLeaderboard);
-  document.getElementById('btn-back-to-menu')?.addEventListener('click', () => {
-    AppState.setScreen('start');
-    refreshStatus();
+  document.getElementById('btn-intermission-leaderboard')?.addEventListener('click', loadLeaderboard);
+  
+  document.getElementById('btn-back-from-leaderboard')?.addEventListener('click', () => {
+    if (screenBeforeLeaderboard === 'intermission') {
+      AppState.setScreen('intermission');
+    } else if (screenBeforeLeaderboard === 'result') {
+      AppState.setScreen('result');
+    } else {
+      AppState.setScreen('start');
+      refreshStatus();
+    }
   });
+
+  document.getElementById('btn-refresh-leaderboard')?.addEventListener('click', loadLeaderboard);
+
+  document.getElementById('btn-leaderboard-play')?.addEventListener('click', () => {
+    if (AppState.currentScreen === 'leaderboard' && screenBeforeLeaderboard === 'intermission') {
+      AppState.setScreen('intermission');
+    } else {
+      AppState.setScreen('start');
+      refreshStatus();
+    }
+  });
+
   document.getElementById('btn-play-again')?.addEventListener('click', () => {
     AppState.setScreen('start');
     refreshStatus();
   });
 
   // Sound Toggle Button
+  document.getElementById('btn-toggle-sound')?.addEventListener('click', () => {
+    const isMuted = Sound.toggleMute();
+    UI.updateSoundIcon(isMuted);
+  });
   document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
     const isMuted = Sound.toggleMute();
     UI.updateSoundIcon(isMuted);

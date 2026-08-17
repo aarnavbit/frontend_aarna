@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const roundElapsedEl = document.getElementById('admin-round-elapsed');
 
   const btnAdminStart = document.getElementById('btn-admin-start-game');
+  const btnAdminStartR1 = document.getElementById('btn-admin-start-r1');
+  const btnAdminStartR2 = document.getElementById('btn-admin-start-r2');
+  const btnAdminStartR3 = document.getElementById('btn-admin-start-r3');
   const btnAdminStop = document.getElementById('btn-admin-stop-game');
   const btnAdminResetLobby = document.getElementById('btn-admin-reset-lobby');
   
@@ -158,15 +161,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------------------
   // Live Event Game Controls
   // ------------------------------------------------------------------------
-  btnAdminStart.addEventListener('click', async () => {
+  async function startBroadcastRound(roundNum) {
     const token = sessionStorage.getItem('adminToken');
     if (!token) return;
 
-    btnAdminStart.disabled = true;
+    if (btnAdminStart) btnAdminStart.disabled = true;
+    if (btnAdminStartR1) btnAdminStartR1.disabled = true;
+    if (btnAdminStartR2) btnAdminStartR2.disabled = true;
+    if (btnAdminStartR3) btnAdminStartR3.disabled = true;
+
     try {
       const res = await fetch(`${getBaseUrl()}/api/admin/game/start`, {
         method: 'POST',
-        headers: { 'x-admin-password': token }
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': token 
+        },
+        body: JSON.stringify(roundNum ? { roundNumber: Number(roundNum), round_number: Number(roundNum) } : {})
       });
       const data = await res.json();
       const state = data.gameState || data.state || data;
@@ -178,9 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       alert('Network error starting round');
     }
-  });
+  }
 
-  btnAdminStop.addEventListener('click', async () => {
+  btnAdminStart?.addEventListener('click', () => startBroadcastRound(null));
+  btnAdminStartR1?.addEventListener('click', () => startBroadcastRound(1));
+  btnAdminStartR2?.addEventListener('click', () => startBroadcastRound(2));
+  btnAdminStartR3?.addEventListener('click', () => startBroadcastRound(3));
+
+  btnAdminStop?.addEventListener('click', async () => {
     const token = sessionStorage.getItem('adminToken');
     if (!token) return;
 
@@ -188,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    btnAdminStop.disabled = true;
+    if (btnAdminStop) btnAdminStop.disabled = true;
     try {
       const res = await fetch(`${getBaseUrl()}/api/admin/game/stop`, {
         method: 'POST',
@@ -206,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  btnAdminResetLobby.addEventListener('click', async () => {
+  btnAdminResetLobby?.addEventListener('click', async () => {
     const token = sessionStorage.getItem('adminToken');
     if (!token) return;
 
@@ -237,17 +253,22 @@ document.addEventListener('DOMContentLoaded', () => {
     statusBadge.className = 'admin-badge';
     clearInterval(roundTimerInterval);
 
+    const isPlay = state.status === 'playing';
+    if (btnAdminStart) btnAdminStart.disabled = isPlay;
+    if (btnAdminStartR1) btnAdminStartR1.disabled = isPlay;
+    if (btnAdminStartR2) btnAdminStartR2.disabled = isPlay;
+    if (btnAdminStartR3) btnAdminStartR3.disabled = isPlay;
+    if (btnAdminStop) btnAdminStop.disabled = !isPlay;
+
     if (state.status === 'waiting') {
       statusBadge.classList.add('badge-waiting');
       statusBadge.innerHTML = '🟡 LOBBY OPEN (WAITING)';
-      btnAdminStart.disabled = false;
-      btnAdminStop.disabled = true;
       roundTimerRow.classList.add('hidden');
     } else if (state.status === 'playing') {
       statusBadge.classList.add('badge-playing');
-      statusBadge.innerHTML = `🟢 ROUND #${state.roundNumber || 1} LIVE`;
-      btnAdminStart.disabled = true;
-      btnAdminStop.disabled = false;
+      const roundN = state.roundNumber || 1;
+      const stageN = roundN === 1 ? 'CARDS' : (roundN === 2 ? 'JIGSAW' : 'SLIDER');
+      statusBadge.innerHTML = `🟢 STAGE ${roundN} (${stageN}) LIVE`;
       roundTimerRow.classList.remove('hidden');
 
       // Start elapsed timer
@@ -255,8 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (state.status === 'ended') {
       statusBadge.classList.add('badge-ended');
       statusBadge.innerHTML = `🔴 ROUND #${state.roundNumber || 1} ENDED`;
-      btnAdminStart.disabled = false;
-      btnAdminStop.disabled = true;
       roundTimerRow.classList.add('hidden');
     }
   }

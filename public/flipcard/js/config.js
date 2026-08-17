@@ -37,12 +37,12 @@ function resolveApiBaseUrl() {
 }
 
 const GameConfig = {
-  // Game parameters
-  totalRounds: 3,
+  // Game parameters: 3 mini-game types with 3 rounds each (Total 9 rounds)
+  totalRounds: 9,
   pairsPerRound: 3, // 3 pairs = 6 cards per round
   mismatchDelayMs: 800,
 
-  // Pre-existing image assets
+  // Pre-existing card image assets (9 unique items for 3 rounds of 3 pairs)
   imagePool: [
     { img: "images/cards/card_1.webp", name: "Card 1" },
     { img: "images/cards/card_2.webp", name: "Card 2" },
@@ -53,6 +53,20 @@ const GameConfig = {
     { img: "images/cards/meme2.webp", name: "Meme 2" },
     { img: "images/cards/meme3.webp", name: "Meme 3" },
     { img: "images/cards/meme4.webp", name: "Meme 4" }
+  ],
+
+  // Image assets for the 3 Jigsaw rounds (Rounds 4, 5, 6)
+  jigsawImages: [
+    'images/puzzel.jpeg',
+    'images/cards/card_1.webp',
+    'images/cards/card_4.webp'
+  ],
+
+  // Image assets for the 3 Slider rounds (Rounds 7, 8, 9)
+  sliderImages: [
+    'images/Logo.png',
+    'images/cards/card_2.webp',
+    'images/cards/meme3.webp'
   ],
 
   // Scoring Rules

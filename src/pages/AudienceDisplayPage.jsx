@@ -229,6 +229,13 @@ export function AudienceDisplayPage() {
   const isWaiting = gameState.status === 'waiting'
   const isEnded = gameState.status === 'ended'
 
+  const stageName = useMemo(() => {
+    if (roundNum === 1) return 'STAGE 1: CARD MATCH'
+    if (roundNum === 2) return 'STAGE 2: JIGSAW PUZZLE'
+    if (roundNum === 3) return 'STAGE 3: 15-PUZZLE SLIDER'
+    return `STAGE ${roundNum}`
+  }, [roundNum])
+
   return (
     <div className="audience-root">
       {/* Background Decor */}
@@ -277,7 +284,7 @@ export function AudienceDisplayPage() {
           <div className="aud-header-actions">
             <div className="aud-round-pill">
               <Flame size={18} color="#ea580c" />
-              <span>ROUND {String(roundNum).padStart(2, '0')} / 03</span>
+              <span>{stageName}</span>
             </div>
 
             <div
