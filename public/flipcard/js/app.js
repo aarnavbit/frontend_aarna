@@ -181,12 +181,15 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('[Network] Session started:', err.message);
     }
 
-    // Initialize App State
+    // Initialize App State with broadcast event round or Round 1
+    const eventRound = Number(currentGameState.roundNumber || currentGameState.round_number);
+    const initialRound = (eventRound >= 1 && eventRound <= 3) ? eventRound : 1;
+
     AppState.initSession(sessionId, rawName, GameConfig.totalRounds);
     AppState.setScreen('game');
 
-    // Start Round 1
-    startRound(1);
+    // Launch active stage
+    startRound(initialRound);
   }
 
   if (startForm) {

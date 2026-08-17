@@ -198,8 +198,44 @@ export function LiveLeaderboardPage() {
     }
   }
 
-  // Top 3 Podium & Remaining Players
-  const top3 = useMemo(() => players.slice(0, 3), [players])
+  const [sortBy, setSortBy] = useState('score') // 'score' | 'time' | 'matches' | 'rounds'
+
+  // Sorted Players based on user-selected criteria
+  const sortedPlayers = useMemo(() => {
+    const list = [...players]
+    return list.sort((a, b) => {
+      if (sortBy === 'time') {
+        const timeA = Number(a.durationMs ?? a.duration_ms ?? Infinity)
+        const timeB = Number(b.durationMs ?? b.duration_ms ?? Infinity)
+        if (timeA !== timeB) return timeA - timeB
+        return Number(b.score ?? 0) - Number(a.score ?? 0)
+      }
+      if (sortBy === 'matches') {
+        const matchA = Number(a.matches ?? 0)
+        const matchB = Number(b.matches ?? 0)
+        if (matchA !== matchB) return matchB - matchA
+        const timeA = Number(a.durationMs ?? a.duration_ms ?? Infinity)
+        const timeB = Number(b.durationMs ?? b.duration_ms ?? Infinity)
+        return timeA - timeB
+      }
+      if (sortBy === 'rounds') {
+        const rA = Number(a.roundsCompleted ?? a.rounds_completed ?? 0)
+        const rB = Number(b.roundsCompleted ?? b.rounds_completed ?? 0)
+        if (rA !== rB) return rB - rA
+        return Number(b.score ?? 0) - Number(a.score ?? 0)
+      }
+      // default 'score': Highest Points
+      const scoreA = Number(a.score ?? 0)
+      const scoreB = Number(b.score ?? 0)
+      if (scoreA !== scoreB) return scoreB - scoreA
+      const timeA = Number(a.durationMs ?? a.duration_ms ?? Infinity)
+      const timeB = Number(b.durationMs ?? b.duration_ms ?? Infinity)
+      return timeA - timeB
+    })
+  }, [players, sortBy])
+
+  // Top 3 Podium & Derived Players
+  const top3 = useMemo(() => sortedPlayers.slice(0, 3), [sortedPlayers])
   const roundNum = gameState.roundNumber || gameState.round_number || 1
   const isPlaying = gameState.status === 'playing'
   const isWaiting = gameState.status === 'waiting'
@@ -520,10 +556,9 @@ export function LiveLeaderboardPage() {
                       {p.playerName || p.player_name}
                     </div>
 
-                    <div className="aud-podium-bottom">
-                      <span className="aud-podium-score" style={{ fontSize: '1.4rem' }}>{p.score} PTS</span>
-                      <span className="aud-podium-time" style={{ fontSize: '0.9rem' }}>
-                        ⏱️ {Math.round((p.durationMs || p.duration_ms || 0) / 1000)}s
+                    <div className="aud-podium-bottom" style={{ justifyContent: 'center' }}>
+                      <span className="aud-podium-score" style={{ fontSize: '1.45rem', fontWeight: 900, color: 'var(--aud-purple-dark)' }}>
+                        {p.score} PTS
                       </span>
                     </div>
                   </motion.div>
@@ -538,15 +573,48 @@ export function LiveLeaderboardPage() {
             ==================================================================== */}
         <section className="aud-leaderboard-card" style={{ padding: '20px 24px', flex: 'none' }}>
           <div className="aud-card-header">
-            <h2 className="aud-card-title">
-              <Medal size={22} color="#ea580c" /> FULL PARTICIPANT LEADERBOARD
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h2 className="aud-card-title">
+                <Medal size={22} color="#ea580c" /> FULL PARTICIPANT LEADERBOARD
+              </h2>
+              {lastSyncTime && (
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--aud-text-muted)' }}>
+                  Last synced: {lastSyncTime.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
 
-            {lastSyncTime && (
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--aud-text-muted)' }}>
-                Last synced: {lastSyncTime.toLocaleTimeString()}
-              </span>
-            )}
+            {/* Sort By Filter Pills */}
+            <div className="aud-sort-bar">
+              <button
+                onClick={() => setSortBy('score')}
+                className={`aud-sort-btn ${sortBy === 'score' ? 'active' : ''}`}
+                title="Rank by Highest Score"
+              >
+                🏆 Points
+              </button>
+              <button
+                onClick={() => setSortBy('time')}
+                className={`aud-sort-btn ${sortBy === 'time' ? 'active' : ''}`}
+                title="Rank by Fastest Clear Time"
+              >
+                ⚡ Time
+              </button>
+              <button
+                onClick={() => setSortBy('matches')}
+                className={`aud-sort-btn ${sortBy === 'matches' ? 'active' : ''}`}
+                title="Rank by Most Matches"
+              >
+                🎯 Matches
+              </button>
+              <button
+                onClick={() => setSortBy('rounds')}
+                className={`aud-sort-btn ${sortBy === 'rounds' ? 'active' : ''}`}
+                title="Rank by Rounds Completed"
+              >
+                🔄 Rounds
+              </button>
+            </div>
           </div>
 
           {/* Table Header */}
@@ -570,7 +638,7 @@ export function LiveLeaderboardPage() {
           </div>
 
           {/* Rows */}
-          {players.length === 0 ? (
+          {sortedPlayers.length === 0 ? (
             <div className="aud-empty-state" style={{ padding: '48px 20px' }}>
               <div className="aud-empty-icon">🧩</div>
               <div className="aud-empty-title">No scores submitted yet</div>
@@ -579,7 +647,7 @@ export function LiveLeaderboardPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
               <AnimatePresence>
-                {players.map((p, idx) => {
+                {sortedPlayers.map((p, idx) => {
                   const rank = idx + 1
                   const isTop3 = rank <= 3
                   const medalEmoji = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`))
