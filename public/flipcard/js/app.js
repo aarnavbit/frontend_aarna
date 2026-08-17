@@ -217,6 +217,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const bonus = engine.calculateRoundBonus(roundDurationMs);
         AppState.recordRoundCompletion(bonus.roundBonus, bonus.speedBonus, roundDurationMs);
 
+        // Send non-blocking intermediate score update after each round (resilient for slow networks)
+        submitIntermediateRoundScore(AppState.round);
+
         // Check if next round or final game over
         setTimeout(() => {
           if (AppState.round < GameConfig.totalRounds) {
@@ -230,11 +233,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------------
-  // 3. Final Game Completion & Score Submission
+  // 3. Multi-Round Non-blocking Intermediate Score Submissions
+  // ------------------------------------------------------------------------
+  function submitIntermediateRoundScore(completedRound) {
+    const sendTime = new Date();
+    const intermediatePayload = {
+      sessionId: AppState.sessionId,
+      playerName: AppState.playerName,
+      actions: {
+        roundsCompleted: completedRound,
+        matches: AppState.totalMatches,
+        mismatches: AppState.totalMismatches,
+        durationMs: Math.max(600 * completedRound, Date.now() - AppState.gameStartTime),
+        roundBreakdown: AppState.roundBreakdown,
+        intermediate: true,
+        timestampSent: sendTime.toISOString()
+      }
+    };
+
+    // Non-blocking fire-and-forget; never penalize or block user if net is slow
+    Api.submitScore(intermediatePayload).catch((err) => {
+      console.warn(`[Live Sync] Round ${completedRound} intermediate sync skipped (slow connection):`, err.message);
+    });
+  }
+
+  // ------------------------------------------------------------------------
+  // 4. Final Game Completion & Master Overriding Score Submission
   // ------------------------------------------------------------------------
   async function handleGameEnd() {
     AppState.recordGameCompletion();
     Sound.playVictory();
+
+    const sendTime = new Date();
+    const timeFormatted = sendTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     const submissionPayload = {
       sessionId: AppState.sessionId,
@@ -244,7 +275,10 @@ document.addEventListener('DOMContentLoaded', () => {
         matches: AppState.totalMatches,
         mismatches: AppState.totalMismatches,
         durationMs: AppState.gameEndTime - AppState.gameStartTime,
-        roundBreakdown: AppState.roundBreakdown
+        roundBreakdown: AppState.roundBreakdown,
+        isFinalOverride: true,
+        timestampSent: sendTime.toISOString(),
+        timeString: timeFormatted
       }
     };
 
@@ -252,15 +286,15 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       serverResult = await Api.submitScore(submissionPayload);
       if (serverResult && serverResult.roundEnded) {
-        UI.syncStatusMsg.innerHTML = '<span class="sync-dot" style="background:#ef4444;"></span> Round ended by host. Score not ranked.';
-        UI.showToast('Round ended before submission. Score not ranked.', 'warning', 4000);
+        UI.syncStatusMsg.innerHTML = `<span class="sync-dot" style="background:#ef4444;"></span> Round ended by host (Sent: ${timeFormatted}). Score not ranked.`;
+        UI.showToast(`Round ended before submission. Sent at ${timeFormatted}.`, 'warning', 4000);
       } else {
-        UI.syncStatusMsg.innerHTML = '<span class="sync-dot"></span> Score synced to live rankings!';
+        UI.syncStatusMsg.innerHTML = `<span class="sync-dot"></span> Final score synced to live rankings! (Sent: ${timeFormatted})`;
       }
     } catch (err) {
-      console.warn('[Score Submit] Failed online submission, queueing locally:', err.message);
+      console.warn('[Score Submit] Failed final online submission, queueing locally:', err.message);
       ScoreQueue.enqueue(submissionPayload);
-      UI.syncStatusMsg.innerHTML = '<span class="sync-dot" style="background:#f59e0b;"></span> Saved offline. Will sync when connected!';
+      UI.syncStatusMsg.innerHTML = `<span class="sync-dot" style="background:#f59e0b;"></span> Saved offline (Sent: ${timeFormatted}). Syncing when connected!`;
     }
 
     UI.renderResult(AppState, serverResult);

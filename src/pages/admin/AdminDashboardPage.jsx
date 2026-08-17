@@ -5,7 +5,7 @@ import {
   X, CheckCircle, AlertCircle, LoaderCircle, Eye, Star,
   GraduationCap, Download,
   ArrowUpDown, ArrowUp, ArrowDown, Briefcase, ChevronDown,
-  FileSpreadsheet, FileText, RefreshCw, Sparkles
+  FileSpreadsheet, FileText, RefreshCw, Sparkles, Trophy
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { adminApi } from '../../api/adminApi'
@@ -367,7 +367,29 @@ export function AdminDashboardPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {/* Live Audience Screen Link */}
+          <button
+            onClick={() => navigate('/admin/live')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '9px 16px',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(249, 115, 22, 0.2))',
+              border: '1px solid rgba(234, 179, 8, 0.45)',
+              color: '#facc15',
+              fontWeight: '700',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              boxShadow: '0 4px 14px rgba(234, 179, 8, 0.15)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Trophy size={16} /> Live Leaderboard Stage
+          </button>
+
           {/* Refresh Data button */}
           <button
             onClick={fetchInitialData}

@@ -10,6 +10,7 @@ import { api } from './api/client'
 const ApplyPage = lazy(() => import('./pages/ApplyPage').then((m) => ({ default: m.ApplyPage })))
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })))
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })))
+const LiveLeaderboardPage = lazy(() => import('./pages/admin/LiveLeaderboardPage').then((m) => ({ default: m.LiveLeaderboardPage })))
 
 function PageLoader() {
   return (
@@ -47,6 +48,10 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/live" element={<LiveLeaderboardPage />} />
+          <Route path="/admin/live-game" element={<LiveLeaderboardPage />} />
+          <Route path="/live" element={<LiveLeaderboardPage />} />
+          <Route path="/leaderboard" element={<LiveLeaderboardPage />} />
 
           {/* Public Site Routes Wrapped in SiteShell */}
           <Route
