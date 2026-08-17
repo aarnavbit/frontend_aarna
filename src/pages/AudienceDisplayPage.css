@@ -1,0 +1,1071 @@
+/* ==========================================================================
+   AARNA LIVE ARENA - AUDIENCE EVENT DISPLAY STYLES
+   Optimized for 1920x1080 Fullscreen / Projectors / Distance Viewing
+   Design System: Warm Cream + Coral/Orange + Dark Brown Borders + Chunky Shadows
+   ========================================================================== */
+
+:root {
+  --aud-bg: #ea580c;
+  --aud-bg-gradient: radial-gradient(circle at 50% 20%, #ff7828 0%, #ea580c 45%, #c2410c 100%);
+  --aud-surface: #fffdf9;
+  --aud-surface-card: #fff9ee;
+  --aud-surface-inset: #f5eedf;
+  --aud-surface-dark: #291809;
+  --aud-border: #291809;
+  --aud-border-width: 3px;
+  --aud-shadow: 5px 5px 0px #291809;
+  --aud-shadow-lg: 8px 8px 0px #291809;
+  --aud-shadow-sm: 3px 3px 0px #291809;
+  --aud-radius-lg: 24px;
+  --aud-radius-md: 16px;
+  --aud-radius-sm: 10px;
+
+  /* Accent Colors */
+  --aud-coral: #ea580c;
+  --aud-coral-light: #ffedd5;
+  --aud-coral-dark: #9a3412;
+  --aud-gold: #f59e0b;
+  --aud-gold-light: #fef3c7;
+  --aud-gold-glow: #fde047;
+  --aud-purple: #7e22ce;
+  --aud-purple-light: #f3e8ff;
+  --aud-purple-dark: #581c87;
+  --aud-green: #16a34a;
+  --aud-green-light: #dcfce7;
+  --aud-red: #dc2626;
+  --aud-text-main: #291809;
+  --aud-text-muted: #786450;
+  --aud-text-inv: #fffdf9;
+}
+
+/* Reset and Container */
+.audience-root {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--aud-bg-gradient);
+  color: var(--aud-text-main);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle Wooden Table / Board Game Stage Backdrop */
+.audience-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(0, 0, 0, 0.15) 0%, transparent 45%),
+    linear-gradient(rgba(41, 24, 9, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(41, 24, 9, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+}
+
+/* Main Layout Shell */
+.audience-layout {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1920px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 16px 28px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   1. TOP EVENT HEADER
+   -------------------------------------------------------------------------- */
+.aud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--aud-surface);
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: var(--aud-shadow);
+  border-radius: var(--aud-radius-md);
+  padding: 12px 24px;
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.aud-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.aud-brand-badge {
+  width: 48px;
+  height: 48px;
+  background: var(--aud-gold);
+  border: var(--aud-border-width) solid var(--aud-border);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0px var(--aud-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.aud-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.aud-brand-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--aud-text-main);
+  line-height: 1.1;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.aud-brand-subtitle {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--aud-coral);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.aud-header-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aud-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: 2px 2px 0px var(--aud-border);
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aud-status-pill.live {
+  background: var(--aud-green-light);
+  color: #14532d;
+}
+
+.aud-status-pill.waiting {
+  background: var(--aud-gold-light);
+  color: #78350f;
+}
+
+.aud-status-pill.ended {
+  background: var(--aud-purple-light);
+  color: var(--aud-purple-dark);
+}
+
+.aud-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--aud-green);
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+  animation: audPulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes audPulse {
+  to {
+    box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+  }
+}
+
+.aud-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aud-round-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--aud-surface-inset);
+  border: var(--aud-border-width) solid var(--aud-border);
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--aud-text-main);
+  box-shadow: 2px 2px 0px var(--aud-border);
+}
+
+.aud-fs-btn {
+  background: var(--aud-surface-card);
+  border: var(--aud-border-width) solid var(--aud-border);
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px var(--aud-border);
+  color: var(--aud-text-main);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.aud-fs-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--aud-border);
+  background: #ffffff;
+}
+
+.aud-fs-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--aud-border);
+}
+
+/* --------------------------------------------------------------------------
+   2. DYNAMIC LIVE HERO / STATE STAGE
+   -------------------------------------------------------------------------- */
+.aud-hero-stage {
+  background: var(--aud-surface);
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: var(--aud-shadow-lg);
+  border-radius: var(--aud-radius-lg);
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.aud-hero-stage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--aud-coral),
+    var(--aud-coral) 12px,
+    var(--aud-gold) 12px,
+    var(--aud-gold) 24px
+  );
+}
+
+.aud-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.aud-hero-icon-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: 3px 3px 0px var(--aud-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.aud-hero-icon-box.waiting {
+  background: var(--aud-gold);
+}
+
+.aud-hero-icon-box.live {
+  background: #22c55e;
+}
+
+.aud-hero-icon-box.winner {
+  background: #a855f7;
+  color: #fff;
+}
+
+.aud-hero-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.aud-hero-tag {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--aud-coral-dark);
+}
+
+.aud-hero-title {
+  font-size: 1.9rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--aud-text-main);
+  margin: 2px 0 0 0;
+  line-height: 1.1;
+}
+
+.aud-hero-desc {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--aud-text-muted);
+  margin: 4px 0 0 0;
+}
+
+/* Stats Row inside Hero Stage */
+.aud-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.aud-stat-card {
+  background: var(--aud-surface-card);
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: 3px 3px 0px var(--aud-border);
+  border-radius: 14px;
+  padding: 10px 18px;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aud-stat-icon {
+  font-size: 1.5rem;
+}
+
+.aud-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.aud-stat-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--aud-text-main);
+  line-height: 1;
+}
+
+.aud-stat-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--aud-text-muted);
+  margin-top: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   3. COUNTDOWN OVERLAY / BANNER
+   -------------------------------------------------------------------------- */
+.aud-countdown-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(41, 24, 9, 0.88);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border-radius: var(--aud-radius-lg);
+}
+
+.aud-countdown-card {
+  background: var(--aud-surface);
+  border: 4px solid var(--aud-border);
+  box-shadow: 10px 10px 0px var(--aud-border);
+  border-radius: 32px;
+  padding: 40px 60px;
+  text-align: center;
+  color: var(--aud-text-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 540px;
+}
+
+.aud-countdown-round {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aud-coral);
+  margin-bottom: 8px;
+}
+
+.aud-countdown-digit {
+  font-size: 6.5rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--aud-text-main);
+  text-shadow: 4px 4px 0px var(--aud-gold);
+  margin: 10px 0;
+}
+
+.aud-countdown-prompt {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--aud-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   4. WINNER SPOTLIGHT PRESENTATION
+   -------------------------------------------------------------------------- */
+.aud-winner-spotlight {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffdf9 50%, #f3e8ff 100%);
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: var(--aud-shadow-lg);
+  border-radius: var(--aud-radius-lg);
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.aud-winner-badge-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.aud-winner-crown-box {
+  width: 72px;
+  height: 72px;
+  background: var(--aud-gold);
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: 4px 4px 0px var(--aud-border);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  animation: crownBounce 2s infinite ease-in-out;
+}
+
+@keyframes crownBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(-3deg); }
+}
+
+.aud-winner-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.aud-winner-banner-tag {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--aud-purple-dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aud-winner-name {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--aud-text-main);
+  margin: 2px 0 0 0;
+  line-height: 1;
+}
+
+.aud-winner-stats-pills {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.aud-winner-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--aud-border);
+  background: var(--aud-surface);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--aud-text-main);
+  box-shadow: 2px 2px 0px var(--aud-border);
+}
+
+/* --------------------------------------------------------------------------
+   5. MAIN TWO-COLUMN ARENA GRID (Leaderboard + Join Panel)
+   -------------------------------------------------------------------------- */
+.aud-main-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 18px;
+  flex: 1;
+  min-height: 0; /* Important for flex child */
+  box-sizing: border-box;
+}
+
+/* LEFT COLUMN: LIVE LEADERBOARD */
+.aud-leaderboard-card {
+  background: var(--aud-surface);
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: var(--aud-shadow);
+  border-radius: var(--aud-radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.aud-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--aud-surface-inset);
+  flex-shrink: 0;
+}
+
+.aud-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--aud-text-main);
+}
+
+.aud-card-badge {
+  background: var(--aud-purple-light);
+  border: 2px solid var(--aud-border);
+  border-radius: 8px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--aud-purple-dark);
+}
+
+/* TOP 3 PODIUM HERO CARDS */
+.aud-podium-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.aud-podium-card {
+  border: var(--aud-border-width) solid var(--aud-border);
+  border-radius: var(--aud-radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 3px 3px 0px var(--aud-border);
+}
+
+.aud-podium-card.rank-1 {
+  background: linear-gradient(180deg, #fef08a 0%, #fef9c3 60%, #fffdf9 100%);
+  border-color: var(--aud-border);
+  box-shadow: 4px 4px 0px var(--aud-border);
+}
+
+.aud-podium-card.rank-2 {
+  background: linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 60%, #fffdf9 100%);
+}
+
+.aud-podium-card.rank-3 {
+  background: linear-gradient(180deg, #ffedd5 0%, #fed7aa 60%, #fffdf9 100%);
+}
+
+.aud-podium-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.aud-podium-medal {
+  font-size: 1.4rem;
+}
+
+.aud-podium-rank-tag {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1.5px solid var(--aud-border);
+  background: #ffffff;
+}
+
+.aud-podium-name {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--aud-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 4px 0;
+}
+
+.aud-podium-card.rank-1 .aud-podium-name {
+  font-size: 1.3rem;
+}
+
+.aud-podium-bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1.5px dashed rgba(41, 24, 9, 0.2);
+}
+
+.aud-podium-score {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--aud-text-main);
+}
+
+.aud-podium-time {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--aud-text-muted);
+}
+
+/* LEADERBOARD SCROLLABLE TABLE LIST */
+.aud-leaderboard-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+  min-height: 0;
+}
+
+/* Custom Scrollbar */
+.aud-leaderboard-list::-webkit-scrollbar {
+  width: 6px;
+}
+.aud-leaderboard-list::-webkit-scrollbar-track {
+  background: var(--aud-surface-inset);
+  border-radius: 4px;
+}
+.aud-leaderboard-list::-webkit-scrollbar-thumb {
+  background: var(--aud-coral);
+  border-radius: 4px;
+}
+
+.aud-row-item {
+  display: grid;
+  grid-template-columns: 44px 1.4fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--aud-surface-card);
+  border: 2px solid var(--aud-border);
+  border-radius: var(--aud-radius-sm);
+  box-shadow: 2px 2px 0px var(--aud-border);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--aud-text-main);
+  transition: transform 0.15s ease;
+}
+
+.aud-row-rank {
+  font-weight: 900;
+  font-size: 0.95rem;
+  color: var(--aud-text-muted);
+}
+
+.aud-row-name {
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aud-row-score {
+  font-weight: 900;
+  color: var(--aud-purple-dark);
+}
+
+.aud-row-time {
+  color: var(--aud-text-muted);
+  font-size: 0.88rem;
+}
+
+.aud-row-matches {
+  color: var(--aud-green);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+/* Empty State */
+.aud-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--aud-text-muted);
+  margin: auto 0;
+}
+
+.aud-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  opacity: 0.8;
+}
+
+.aud-empty-title {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--aud-text-main);
+  margin-bottom: 4px;
+}
+
+.aud-empty-desc {
+  font-size: 0.9rem;
+  max-width: 320px;
+  margin: 0;
+}
+
+/* RIGHT COLUMN: JOIN ARENA & QR CODE */
+.aud-join-card {
+  background: var(--aud-surface);
+  border: var(--aud-border-width) solid var(--aud-border);
+  box-shadow: var(--aud-shadow);
+  border-radius: var(--aud-radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.aud-join-badge-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--aud-coral-light);
+  border: 2px solid var(--aud-border);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--aud-coral-dark);
+  box-shadow: 2px 2px 0px var(--aud-border);
+  margin-bottom: 10px;
+}
+
+.aud-join-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--aud-text-main);
+  text-transform: uppercase;
+  margin: 0 0 6px 0;
+  line-height: 1.1;
+}
+
+.aud-join-subtitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--aud-text-muted);
+  margin: 0 0 14px 0;
+}
+
+/* Crisp QR Frame */
+.aud-qr-frame {
+  background: #ffffff;
+  border: 4px solid var(--aud-border);
+  border-radius: 20px;
+  padding: 12px;
+  box-shadow: 6px 6px 0px var(--aud-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.aud-qr-img {
+  width: 190px;
+  height: 190px;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.aud-qr-badge-corner {
+  position: absolute;
+  bottom: -10px;
+  background: var(--aud-gold);
+  border: 2px solid var(--aud-border);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 2px 2px 0px var(--aud-border);
+}
+
+/* Join Link and Instructions */
+.aud-join-url-box {
+  width: 100%;
+  background: var(--aud-surface-inset);
+  border: 2px solid var(--aud-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  box-shadow: 2px 2px 0px var(--aud-border);
+}
+
+.aud-join-url-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--aud-text-muted);
+}
+
+.aud-join-url-text {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--aud-coral);
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+
+.aud-join-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  padding-top: 10px;
+  border-top: 2px dashed rgba(41, 24, 9, 0.15);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--aud-text-muted);
+}
+
+.aud-join-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.aud-step-num {
+  width: 22px;
+  height: 22px;
+  background: var(--aud-surface-dark);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+/* --------------------------------------------------------------------------
+   6. RECONNECTION / DISCONNECTION BANNER
+   -------------------------------------------------------------------------- */
+.aud-reconnect-bar {
+  background: #fef08a;
+  border: 2px solid var(--aud-border);
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #854d0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 2px 2px 0px var(--aud-border);
+}
+
+/* --------------------------------------------------------------------------
+   7. GRAND TOURNAMENT CHAMPION PRESENTATION (FINAL ROUND)
+   -------------------------------------------------------------------------- */
+.aud-grand-champ-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(41, 24, 9, 0.92);
+  backdrop-filter: blur(12px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.aud-grand-champ-card {
+  background: linear-gradient(180deg, #fffbeb 0%, #fffdf9 40%, #fef3c7 100%);
+  border: 5px solid var(--aud-border);
+  box-shadow: 12px 12px 0px var(--aud-border);
+  border-radius: 36px;
+  padding: 36px 48px;
+  max-width: 720px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.aud-grand-trophy {
+  font-size: 5rem;
+  filter: drop-shadow(4px 4px 0px var(--aud-border));
+  margin-bottom: 8px;
+  animation: crownBounce 2s infinite ease-in-out;
+}
+
+.aud-grand-title {
+  font-size: 2.6rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--aud-text-main);
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.aud-grand-subtitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--aud-coral);
+  text-transform: uppercase;
+  margin: 6px 0 16px 0;
+}
+
+.aud-grand-winner-name {
+  font-size: 3.4rem;
+  font-weight: 900;
+  color: var(--aud-purple-dark);
+  background: var(--aud-gold-light);
+  border: 3px solid var(--aud-border);
+  border-radius: 20px;
+  padding: 10px 32px;
+  box-shadow: 6px 6px 0px var(--aud-border);
+  margin: 10px 0 20px 0;
+  text-transform: uppercase;
+}
+
+.aud-grand-stats-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   8. RESPONSIVE BREAKPOINTS (Laptops, Tablets, 1366x768, 1440x900)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1440px) {
+  .audience-layout {
+    padding: 12px 18px 16px 18px;
+    gap: 12px;
+  }
+  .aud-brand-title {
+    font-size: 1.35rem;
+  }
+  .aud-hero-title {
+    font-size: 1.6rem;
+  }
+  .aud-qr-img {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+@media (max-height: 800px) {
+  .aud-hero-stage {
+    padding: 10px 20px;
+  }
+  .aud-stat-card {
+    padding: 6px 12px;
+  }
+  .aud-stat-value {
+    font-size: 1.3rem;
+  }
+  .aud-qr-img {
+    width: 140px;
+    height: 140px;
+  }
+  .aud-join-card {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .audience-root {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  .aud-main-grid {
+    grid-template-columns: 1fr;
+  }
+  .aud-hero-stats {
+    flex-wrap: wrap;
+  }
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

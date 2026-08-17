@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Trophy, Flame, Users, Clock, Play, Square, RefreshCw, 
-  Download, Maximize2, Minimize2, Radio, Zap, Shield, 
-  Crown, Medal, Sparkles, CheckCircle, AlertTriangle, ArrowLeft
+import {
+  Trophy, Flame, Users, Clock, Play, Square, RefreshCw,
+  Download, Maximize2, Minimize2, Radio, Zap, Shield,
+  Crown, Medal, Sparkles, CheckCircle, AlertTriangle, ArrowLeft,
+  ExternalLink, Lock, CheckCircle2
 } from 'lucide-react'
 import { liveGameApi } from '../../api/liveGameApi'
 import { useNavigate } from 'react-router-dom'
+import '../AudienceDisplayPage.css'
 
 export function LiveLeaderboardPage() {
   const [players, setPlayers] = useState([])
@@ -47,7 +49,7 @@ export function LiveLeaderboardPage() {
       }
       setLastSyncTime(new Date())
     } catch (err) {
-      console.warn('[Live View] Error syncing scores:', err.message)
+      console.warn('[Admin Live View] Error syncing scores:', err.message)
     }
   }
 
@@ -198,155 +200,93 @@ export function LiveLeaderboardPage() {
 
   // Top 3 Podium & Remaining Players
   const top3 = useMemo(() => players.slice(0, 3), [players])
-  const remainingPlayers = useMemo(() => players.slice(3), [players])
+  const roundNum = gameState.roundNumber || gameState.round_number || 1
+  const isPlaying = gameState.status === 'playing'
+  const isWaiting = gameState.status === 'waiting'
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0a0d14',
-      color: '#f8fafc',
-      fontFamily: '"DM Sans", system-ui, -apple-system, sans-serif',
-      padding: '24px 32px 64px 32px',
-      position: 'relative',
-      overflowX: 'hidden'
-    }}>
-      {/* Dynamic Background Glow Elements */}
-      <div style={{
-        position: 'fixed',
-        top: '-10%',
-        left: '20%',
-        width: '500px',
-        height: '500px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(10, 13, 20, 0) 70%)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-      <div style={{
-        position: 'fixed',
-        bottom: '-10%',
-        right: '15%',
-        width: '600px',
-        height: '600px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, rgba(10, 13, 20, 0) 70%)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-      <div style={{
-        position: 'fixed',
-        top: '40%',
-        left: '-10%',
-        width: '450px',
-        height: '450px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, rgba(10, 13, 20, 0) 70%)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
+    <div className="audience-root" style={{ height: 'auto', minHeight: '100vh', overflowY: 'auto' }}>
+      {/* Background Decor */}
+      <div className="audience-backdrop" />
 
       {/* Main Container */}
-      <div style={{ maxWidth: '1440px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div className="audience-layout" style={{ maxWidth: '1480px', margin: '0 auto', paddingBottom: '60px' }}>
         
-        {/* Top Header Bar */}
-        <header style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          paddingBottom: '24px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
-        }}>
-          {/* Brand & Status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* ====================================================================
+            1. TOP ADMIN CONTROL BAR
+            ==================================================================== */}
+        <header className="aud-header">
+          {/* Brand & Portal Return */}
+          <div className="aud-header-brand">
             <button
               onClick={() => navigate('/admin/dashboard')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '6px',
                 padding: '8px 14px',
-                borderRadius: '10px',
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#94a3b8',
+                borderRadius: '12px',
+                backgroundColor: 'var(--aud-surface-inset)',
+                border: '2.5px solid var(--aud-border)',
+                boxShadow: '2px 2px 0px var(--aud-border)',
+                color: 'var(--aud-text-main)',
                 cursor: 'pointer',
-                fontSize: '0.88rem',
-                transition: 'all 0.2s ease'
+                fontWeight: 800,
+                fontSize: '0.85rem'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)'; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.color = '#94a3b8' }}
             >
               <ArrowLeft size={16} /> Portal
             </button>
 
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Trophy size={28} color="#eab308" />
-                <h1 style={{
-                  fontSize: '1.8rem',
-                  fontWeight: 900,
-                  letterSpacing: '-0.02em',
-                  background: 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  margin: 0
-                }}>
-                  AARNA LIVE RANKINGS
-                </h1>
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  backgroundColor: connected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                  color: connected ? '#34d399' : '#f87171',
-                  border: `1px solid ${connected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-                }}>
-                  <span style={{
-                    width: '7px',
-                    height: '7px',
-                    borderRadius: '50%',
-                    backgroundColor: connected ? '#10b981' : '#ef4444',
-                    boxShadow: connected ? '0 0 8px #10b981' : 'none'
-                  }} />
-                  {connected ? 'LIVE SYNC' : 'OFFLINE'}
-                </span>
-              </div>
-              <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.85rem' }}>
-                Live Audience Stage • Real-time score aggregation & smooth rank updates
-              </p>
+            <div className="aud-brand-badge" style={{ background: '#f59e0b' }}>
+              <Shield size={26} color="#291809" />
+            </div>
+
+            <div className="aud-brand-text">
+              <h1 className="aud-brand-title">AARNA GAME CONTROLLER</h1>
+              <span className="aud-brand-subtitle">HOST & ORGANIZER CONTROL ROOM</span>
             </div>
           </div>
 
-          {/* Action Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            {/* Round Badge */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              borderRadius: '12px',
-              backgroundColor: gameState.status === 'playing' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-              border: `1px solid ${gameState.status === 'playing' ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255, 255, 255, 0.1)'}`
-            }}>
-              <Flame size={18} color={gameState.status === 'playing' ? '#818cf8' : '#94a3b8'} />
-              <div>
-                <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Round</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: gameState.status === 'playing' ? '#a5b4fc' : '#e2e8f0' }}>
-                  {gameState.status === 'playing' ? `ROUND #${gameState.roundNumber || 1} ACTIVE` : (gameState.status === 'waiting' ? 'LOBBY READY' : 'ROUND ENDED')}
-                </div>
+          {/* Center Status Badge */}
+          <div className="aud-header-center">
+            {isPlaying ? (
+              <div className="aud-status-pill live">
+                <span className="aud-pulse-dot" />
+                <span>ROUND #{roundNum} ACTIVE</span>
               </div>
-            </div>
+            ) : (
+              <div className="aud-status-pill waiting">
+                <span>{isWaiting ? 'LOBBY READY' : 'ROUND ENDED'}</span>
+              </div>
+            )}
+          </div>
 
-            {/* Host Unlock Button */}
+          {/* Right Action Bar */}
+          <div className="aud-header-actions" style={{ flexWrap: 'wrap' }}>
+            {/* Open Audience Stage in New Window */}
+            <button
+              onClick={() => window.open('/display', '_blank')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '9px 16px',
+                borderRadius: '12px',
+                backgroundColor: 'var(--aud-coral-light)',
+                border: '2.5px solid var(--aud-border)',
+                boxShadow: '3px 3px 0px var(--aud-border)',
+                color: 'var(--aud-coral-dark)',
+                fontWeight: 900,
+                fontSize: '0.88rem',
+                cursor: 'pointer'
+              }}
+              title="Open the spectator screen for TV/Projector"
+            >
+              <ExternalLink size={16} /> Open Audience Stage
+            </button>
+
+            {/* Host Unlock / Control Actions */}
             {!isHostUnlocked ? (
               <button
                 onClick={() => setShowPasswordModal(true)}
@@ -354,22 +294,22 @@ export function LiveLeaderboardPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '10px 18px',
+                  padding: '9px 16px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(234, 179, 8, 0.15)',
-                  border: '1px solid rgba(234, 179, 8, 0.35)',
-                  color: '#facc15',
-                  fontWeight: 700,
+                  backgroundColor: 'var(--aud-gold)',
+                  border: '2.5px solid var(--aud-border)',
+                  boxShadow: '3px 3px 0px var(--aud-border)',
+                  color: 'var(--aud-text-main)',
+                  fontWeight: 900,
                   fontSize: '0.88rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  cursor: 'pointer'
                 }}
               >
-                <Shield size={16} /> Host Controls
+                <Lock size={16} /> Unlock Host Controls
               </button>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {gameState.status !== 'playing' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                {!isPlaying ? (
                   <button
                     onClick={handleStartRound}
                     disabled={actionLoading === 'start'}
@@ -377,15 +317,15 @@ export function LiveLeaderboardPage() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      padding: '10px 18px',
+                      padding: '9px 18px',
                       borderRadius: '12px',
-                      backgroundColor: '#10b981',
-                      border: 'none',
+                      backgroundColor: '#16a34a',
+                      border: '2.5px solid var(--aud-border)',
+                      boxShadow: '3px 3px 0px var(--aud-border)',
                       color: '#ffffff',
-                      fontWeight: 800,
+                      fontWeight: 900,
                       fontSize: '0.88rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)'
+                      cursor: 'pointer'
                     }}
                   >
                     <Play size={16} /> Start Round
@@ -398,15 +338,15 @@ export function LiveLeaderboardPage() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      padding: '10px 18px',
+                      padding: '9px 18px',
                       borderRadius: '12px',
-                      backgroundColor: '#ef4444',
-                      border: 'none',
+                      backgroundColor: '#dc2626',
+                      border: '2.5px solid var(--aud-border)',
+                      boxShadow: '3px 3px 0px var(--aud-border)',
                       color: '#ffffff',
-                      fontWeight: 800,
+                      fontWeight: 900,
                       fontSize: '0.88rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)'
+                      cursor: 'pointer'
                     }}
                   >
                     <Square size={16} /> Stop Round
@@ -417,11 +357,12 @@ export function LiveLeaderboardPage() {
                   onClick={handleResetLobby}
                   title="Reset lobby for next round"
                   style={{
-                    padding: '10px',
+                    padding: '9px 12px',
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: '#cbd5e1',
+                    backgroundColor: 'var(--aud-surface-card)',
+                    border: '2.5px solid var(--aud-border)',
+                    boxShadow: '2px 2px 0px var(--aud-border)',
+                    color: 'var(--aud-text-main)',
                     cursor: 'pointer'
                   }}
                 >
@@ -432,11 +373,12 @@ export function LiveLeaderboardPage() {
                   onClick={handleExportCsv}
                   title="Export Leaderboard CSV"
                   style={{
-                    padding: '10px',
+                    padding: '9px 12px',
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: '#cbd5e1',
+                    backgroundColor: 'var(--aud-surface-card)',
+                    border: '2.5px solid var(--aud-border)',
+                    boxShadow: '2px 2px 0px var(--aud-border)',
+                    color: 'var(--aud-text-main)',
                     cursor: 'pointer'
                   }}
                 >
@@ -447,11 +389,12 @@ export function LiveLeaderboardPage() {
                   onClick={handleClearScores}
                   title="Clear All Leaderboard Scores"
                   style={{
-                    padding: '10px',
+                    padding: '9px 12px',
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    color: '#f87171',
+                    backgroundColor: '#fee2e2',
+                    border: '2.5px solid var(--aud-border)',
+                    boxShadow: '2px 2px 0px var(--aud-border)',
+                    color: '#dc2626',
                     cursor: 'pointer'
                   }}
                 >
@@ -463,242 +406,125 @@ export function LiveLeaderboardPage() {
             {/* Fullscreen Button */}
             <button
               onClick={toggleFullscreen}
-              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Audience Mode'}
-              style={{
-                padding: '10px',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#cbd5e1',
-                cursor: 'pointer'
-              }}
+              className="aud-fs-btn"
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
-              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
             </button>
           </div>
         </header>
 
-        {/* Stats Row */}
+        {/* ====================================================================
+            2. LIVE STATS CARDS ROW
+            ==================================================================== */}
         <section style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: '16px',
-          margin: '24px 0 32px 0'
+          margin: '8px 0'
         }}>
-          <div style={{
-            padding: '18px 24px',
-            borderRadius: '16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.07)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(99, 102, 241, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Users size={24} color="#818cf8" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Unique Players</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#f8fafc' }}>{stats.totalPlayers || players.length}</div>
+          <div className="aud-stat-card" style={{ background: 'var(--aud-surface)', padding: '16px 20px', minHeight: '80px' }}>
+            <div className="aud-stat-icon" style={{ fontSize: '2rem' }}>👥</div>
+            <div className="aud-stat-content">
+              <span className="aud-stat-value" style={{ fontSize: '2rem' }}>
+                {stats.totalPlayers || players.length}
+              </span>
+              <span className="aud-stat-label">UNIQUE PLAYERS</span>
             </div>
           </div>
 
-          <div style={{
-            padding: '18px 24px',
-            borderRadius: '16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.07)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(234, 179, 8, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Crown size={24} color="#facc15" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>High Score</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#facc15' }}>
-                {stats.highestScore || (players[0]?.score || 0)} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>pts</span>
-              </div>
+          <div className="aud-stat-card" style={{ background: 'var(--aud-surface)', padding: '16px 20px', minHeight: '80px' }}>
+            <div className="aud-stat-icon" style={{ fontSize: '2rem' }}>👑</div>
+            <div className="aud-stat-content">
+              <span className="aud-stat-value" style={{ fontSize: '2rem', color: '#b45309' }}>
+                {stats.highestScore || (players[0]?.score || 0)} pts
+              </span>
+              <span className="aud-stat-label">HIGHEST SCORE</span>
             </div>
           </div>
 
-          <div style={{
-            padding: '18px 24px',
-            borderRadius: '16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.07)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Zap size={24} color="#34d399" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Leader</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#34d399', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }}>
+          <div className="aud-stat-card" style={{ background: 'var(--aud-surface)', padding: '16px 20px', minHeight: '80px' }}>
+            <div className="aud-stat-icon" style={{ fontSize: '2rem' }}>⚡</div>
+            <div className="aud-stat-content">
+              <span className="aud-stat-value" style={{ fontSize: '1.6rem', color: 'var(--aud-purple-dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
                 {players[0]?.playerName || players[0]?.player_name || '—'}
-              </div>
+              </span>
+              <span className="aud-stat-label">CURRENT LEADER</span>
             </div>
           </div>
 
-          <div style={{
-            padding: '18px 24px',
-            borderRadius: '16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.07)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(236, 72, 153, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Clock size={24} color="#f472b6" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Avg Clear Time</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#f8fafc' }}>
-                {stats.avgDurationSec || 0} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>sec</span>
-              </div>
+          <div className="aud-stat-card" style={{ background: 'var(--aud-surface)', padding: '16px 20px', minHeight: '80px' }}>
+            <div className="aud-stat-icon" style={{ fontSize: '2rem' }}>⏱️</div>
+            <div className="aud-stat-content">
+              <span className="aud-stat-value" style={{ fontSize: '2rem' }}>
+                {stats.avgDurationSec || 0}s
+              </span>
+              <span className="aud-stat-label">AVG CLEAR TIME</span>
             </div>
           </div>
         </section>
 
-        {/* Top 3 Podium / Hero Cards */}
+        {/* ====================================================================
+            3. TOP 3 PODIUM HERO STANDINGS
+            ==================================================================== */}
         {top3.length > 0 && (
-          <section style={{ marginBottom: '36px' }}>
-            <h2 style={{
-              fontSize: '1rem',
-              fontWeight: 800,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: '#94a3b8',
-              marginBottom: '16px',
+          <section style={{ margin: '8px 0' }}>
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              justifyContent: 'space-between',
+              marginBottom: '10px'
             }}>
-              <Sparkles size={18} color="#eab308" /> Podium Standings
-            </h2>
+              <h2 style={{
+                fontSize: '1.1rem',
+                fontWeight: 900,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: 'var(--aud-text-inv)',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                textShadow: '2px 2px 0px var(--aud-border)'
+              }}>
+                <Sparkles size={20} color="#facc15" /> PODIUM LEADERS
+              </h2>
+            </div>
 
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '20px'
+              gap: '16px'
             }}>
               {top3.map((p, idx) => {
                 const rank = idx + 1
-                const isFirst = rank === 1
-                const isSecond = rank === 2
-                const isThird = rank === 3
-
-                const borderColor = isFirst ? 'rgba(234, 179, 8, 0.6)' : (isSecond ? 'rgba(148, 163, 184, 0.5)' : 'rgba(217, 119, 6, 0.5)')
-                const glowBg = isFirst ? 'radial-gradient(circle at 50% 0%, rgba(234, 179, 8, 0.18), transparent 70%)' : (isSecond ? 'radial-gradient(circle at 50% 0%, rgba(148, 163, 184, 0.12), transparent 70%)' : 'radial-gradient(circle at 50% 0%, rgba(217, 119, 6, 0.12), transparent 70%)')
-                const badgeColor = isFirst ? '#facc15' : (isSecond ? '#e2e8f0' : '#fb923c')
+                const medalEmoji = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : '🥉')
 
                 return (
                   <motion.div
-                    key={p.playerName || p.player_name}
+                    key={p.playerName || p.player_name || idx}
                     layout
-                    layoutId={`podium-${p.playerName || p.player_name}`}
-                    initial={{ opacity: 0, y: 20 }}
+                    layoutId={`admin-podium-${p.playerName || p.player_name}`}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                    style={{
-                      padding: '24px',
-                      borderRadius: '20px',
-                      backgroundColor: 'rgba(15, 23, 42, 0.65)',
-                      backgroundImage: glowBg,
-                      border: `1.5px solid ${borderColor}`,
-                      backdropFilter: 'blur(16px)',
-                      boxShadow: isFirst ? '0 10px 30px rgba(234, 179, 8, 0.15)' : '0 8px 24px rgba(0, 0, 0, 0.4)',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}
+                    className={`aud-podium-card rank-${rank}`}
+                    style={{ padding: '16px 20px', minHeight: '120px' }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                          width: '44px',
-                          height: '44px',
-                          borderRadius: '12px',
-                          backgroundColor: isFirst ? 'rgba(234, 179, 8, 0.2)' : (isSecond ? 'rgba(148, 163, 184, 0.2)' : 'rgba(217, 119, 6, 0.2)'),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '1.3rem',
-                          fontWeight: 900,
-                          color: badgeColor
-                        }}>
-                          {isFirst ? '🥇' : (isSecond ? '🥈' : '🥉')}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: badgeColor, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                            RANK #{rank}
-                          </div>
-                          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f8fafc' }}>
-                            {p.playerName || p.player_name}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '1.8rem', fontWeight: 900, color: badgeColor, lineHeight: 1 }}>
-                          {p.score}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>TOTAL PTS</div>
-                      </div>
+                    <div className="aud-podium-top">
+                      <span className="aud-podium-medal" style={{ fontSize: '1.8rem' }}>{medalEmoji}</span>
+                      <span className="aud-podium-rank-tag">RANK #{rank}</span>
                     </div>
 
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 14px',
-                      borderRadius: '12px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                      fontSize: '0.82rem',
-                      color: '#cbd5e1'
-                    }}>
-                      <span>Rounds: <strong style={{ color: '#fff' }}>{p.roundsCompleted || p.rounds_completed || 3}</strong></span>
-                      <span>Matches: <strong style={{ color: '#34d399' }}>{p.matches || 0}</strong></span>
-                      <span>Time: <strong style={{ color: '#93c5fd' }}>{Math.round((p.durationMs || p.duration_ms || 0) / 1000)}s</strong></span>
+                    <div className="aud-podium-name" style={{ fontSize: '1.4rem', margin: '4px 0 8px 0' }}>
+                      {p.playerName || p.player_name}
+                    </div>
+
+                    <div className="aud-podium-bottom">
+                      <span className="aud-podium-score" style={{ fontSize: '1.4rem' }}>{p.score} PTS</span>
+                      <span className="aud-podium-time" style={{ fontSize: '0.9rem' }}>
+                        ⏱️ {Math.round((p.durationMs || p.duration_ms || 0) / 1000)}s
+                      </span>
                     </div>
                   </motion.div>
                 )
@@ -707,38 +533,18 @@ export function LiveLeaderboardPage() {
           </section>
         )}
 
-        {/* Live Animated Leaderboard Table */}
-        <section style={{
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: '24px',
-          padding: '24px',
-          backdropFilter: 'blur(16px)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.45)'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px',
-            paddingBottom: '16px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
-          }}>
-            <h2 style={{
-              fontSize: '1.25rem',
-              fontWeight: 900,
-              letterSpacing: '-0.01em',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <Medal size={22} color="#818cf8" /> Full Live Leaderboard
+        {/* ====================================================================
+            4. LIVE LEADERBOARD TABLE CARD
+            ==================================================================== */}
+        <section className="aud-leaderboard-card" style={{ padding: '20px 24px', flex: 'none' }}>
+          <div className="aud-card-header">
+            <h2 className="aud-card-title">
+              <Medal size={22} color="#ea580c" /> FULL PARTICIPANT LEADERBOARD
             </h2>
 
             {lastSyncTime && (
-              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                Last updated: {lastSyncTime.toLocaleTimeString()}
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--aud-text-muted)' }}>
+                Last synced: {lastSyncTime.toLocaleTimeString()}
               </span>
             )}
           </div>
@@ -746,14 +552,14 @@ export function LiveLeaderboardPage() {
           {/* Table Header */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '70px 1.5fr 1fr 1fr 1fr 1.2fr',
-            padding: '12px 20px',
+            gridTemplateColumns: '60px 1.6fr 1fr 1fr 1fr 1.2fr',
+            padding: '10px 16px',
             fontSize: '0.8rem',
-            fontWeight: 800,
+            fontWeight: 900,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: '#64748b',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.04)'
+            color: 'var(--aud-text-muted)',
+            borderBottom: '2px solid var(--aud-surface-inset)'
           }}>
             <div>Rank</div>
             <div>Player Name</div>
@@ -763,46 +569,40 @@ export function LiveLeaderboardPage() {
             <div>Clear Time</div>
           </div>
 
-          {/* Table Rows with Layout Animation */}
+          {/* Rows */}
           {players.length === 0 ? (
-            <div style={{
-              textAlign: 'center',
-              padding: '64px 20px',
-              color: '#64748b'
-            }}>
-              <Trophy size={48} color="#334155" style={{ marginBottom: '16px' }} />
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#94a3b8' }}>No scores submitted yet</div>
-              <p style={{ fontSize: '0.9rem', margin: '6px 0 0 0' }}>Launch a round and watch participant rankings appear live on this screen!</p>
+            <div className="aud-empty-state" style={{ padding: '48px 20px' }}>
+              <div className="aud-empty-icon">🧩</div>
+              <div className="aud-empty-title">No scores submitted yet</div>
+              <p className="aud-empty-desc">Launch a round and participant rankings will appear live on this screen!</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
               <AnimatePresence>
                 {players.map((p, idx) => {
                   const rank = idx + 1
-                  const isTopRank = rank <= 3
-                  const rowGlow = rank === 1 
-                    ? 'rgba(234, 179, 8, 0.06)' 
-                    : (rank === 2 ? 'rgba(148, 163, 184, 0.05)' : (rank === 3 ? 'rgba(217, 119, 6, 0.05)' : 'rgba(255, 255, 255, 0.02)'))
+                  const isTop3 = rank <= 3
+                  const medalEmoji = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`))
 
                   return (
                     <motion.div
-                      key={p.playerName || p.player_name}
+                      key={p.playerName || p.player_name || idx}
                       layout
-                      layoutId={p.playerName || p.player_name}
+                      layoutId={`admin-row-${p.playerName || p.player_name}`}
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ type: 'spring', damping: 25, stiffness: 320 }}
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: '70px 1.5fr 1fr 1fr 1fr 1.2fr',
+                        gridTemplateColumns: '60px 1.6fr 1fr 1fr 1fr 1.2fr',
                         alignItems: 'center',
-                        padding: '14px 20px',
-                        borderRadius: '14px',
-                        backgroundColor: rowGlow,
-                        border: isTopRank ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.04)',
-                        transition: 'background-color 0.2s ease',
-                        boxShadow: isTopRank ? '0 4px 12px rgba(0, 0, 0, 0.2)' : 'none'
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        backgroundColor: isTop3 ? '#fffdf9' : 'var(--aud-surface-card)',
+                        border: '2px solid var(--aud-border)',
+                        boxShadow: '2px 2px 0px var(--aud-border)',
+                        fontWeight: 700
                       }}
                     >
                       {/* Rank */}
@@ -815,52 +615,53 @@ export function LiveLeaderboardPage() {
                           height: '32px',
                           borderRadius: '8px',
                           fontWeight: 900,
-                          fontSize: '0.95rem',
-                          backgroundColor: rank === 1 ? '#facc15' : (rank === 2 ? '#cbd5e1' : (rank === 3 ? '#fb923c' : 'rgba(255, 255, 255, 0.08)')),
-                          color: rank <= 3 ? '#0f172a' : '#94a3b8'
+                          fontSize: '0.9rem',
+                          backgroundColor: rank === 1 ? 'var(--aud-gold)' : (rank === 2 ? '#e2e8f0' : (rank === 3 ? '#fed7aa' : 'var(--aud-surface-inset)')),
+                          color: 'var(--aud-text-main)',
+                          border: '1.5px solid var(--aud-border)'
                         }}>
-                          {rank}
+                          {medalEmoji}
                         </span>
                       </div>
 
                       {/* Player Name */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{
-                          fontWeight: 800,
+                          fontWeight: 900,
                           fontSize: '1.05rem',
-                          color: rank === 1 ? '#facc15' : '#f8fafc'
+                          color: 'var(--aud-text-main)'
                         }}>
                           {p.playerName || p.player_name}
                         </span>
-                        {rank === 1 && <Crown size={16} color="#facc15" />}
+                        {rank === 1 && <Crown size={16} color="#f59e0b" />}
                       </div>
 
                       {/* Score */}
                       <div>
                         <span style={{
                           fontWeight: 900,
-                          fontSize: '1.15rem',
-                          color: rank === 1 ? '#facc15' : (rank === 2 ? '#e2e8f0' : (rank === 3 ? '#fb923c' : '#38bdf8'))
+                          fontSize: '1.1rem',
+                          color: 'var(--aud-purple-dark)'
                         }}>
-                          {p.score} <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>pts</span>
+                          {p.score} <span style={{ fontSize: '0.75rem', color: 'var(--aud-text-muted)' }}>pts</span>
                         </span>
                       </div>
 
                       {/* Rounds */}
-                      <div style={{ color: '#cbd5e1', fontWeight: 700, fontSize: '0.9rem' }}>
+                      <div style={{ color: 'var(--aud-text-muted)', fontWeight: 800, fontSize: '0.9rem' }}>
                         {p.roundsCompleted || p.rounds_completed || 3} Rnds
                       </div>
 
                       {/* Matches / Mismatches */}
                       <div style={{ fontSize: '0.88rem' }}>
-                        <span style={{ color: '#34d399', fontWeight: 700 }}>+{p.matches || 0}</span>
-                        <span style={{ color: '#64748b', margin: '0 4px' }}>/</span>
-                        <span style={{ color: '#f87171', fontWeight: 700 }}>-{p.mismatches || 0}</span>
+                        <span style={{ color: 'var(--aud-green)', fontWeight: 800 }}>+{p.matches || 0}</span>
+                        <span style={{ color: 'var(--aud-text-muted)', margin: '0 4px' }}>/</span>
+                        <span style={{ color: 'var(--aud-red)', fontWeight: 800 }}>-{p.mismatches || 0}</span>
                       </div>
 
                       {/* Clear Time */}
-                      <div style={{ color: '#94a3b8', fontSize: '0.88rem', fontWeight: 600 }}>
-                        {Math.round((p.durationMs || p.duration_ms || 0) / 1000)}s ({p.durationMs || p.duration_ms || 0}ms)
+                      <div style={{ color: 'var(--aud-text-muted)', fontSize: '0.88rem', fontWeight: 800 }}>
+                        {Math.round((p.durationMs || p.duration_ms || 0) / 1000)}s
                       </div>
                     </motion.div>
                   )
@@ -871,13 +672,15 @@ export function LiveLeaderboardPage() {
         </section>
       </div>
 
-      {/* Host Password Modal */}
+      {/* ====================================================================
+          5. HOST PASSWORD AUTH MODAL
+          ==================================================================== */}
       <AnimatePresence>
         {showPasswordModal && (
           <div style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backgroundColor: 'rgba(41, 24, 9, 0.82)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -890,20 +693,26 @@ export function LiveLeaderboardPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               style={{
-                backgroundColor: '#0f172a',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px',
+                backgroundColor: 'var(--aud-surface)',
+                border: '4px solid var(--aud-border)',
+                boxShadow: '10px 10px 0px var(--aud-border)',
+                borderRadius: '24px',
                 padding: '32px',
                 width: '100%',
-                maxWidth: '400px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                maxWidth: '420px'
               }}
             >
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 8px 0', color: '#f8fafc' }}>
-                Host Admin Authentication
-              </h3>
-              <p style={{ fontSize: '0.88rem', color: '#94a3b8', margin: '0 0 20px 0' }}>
-                Enter the master game admin password to control live rounds.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <div className="aud-brand-badge" style={{ width: '40px', height: '40px', fontSize: '1.2rem' }}>
+                  <Lock size={20} color="#291809" />
+                </div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: 'var(--aud-text-main)' }}>
+                  Host Admin Unlock
+                </h3>
+              </div>
+
+              <p style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--aud-text-muted)', margin: '0 0 20px 0' }}>
+                Enter the master game admin password to unlock round controls and score resets.
               </p>
 
               <form onSubmit={handleHostLogin}>
@@ -917,10 +726,11 @@ export function LiveLeaderboardPage() {
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: '#f8fafc',
+                    backgroundColor: 'var(--aud-surface-inset)',
+                    border: '2.5px solid var(--aud-border)',
+                    color: 'var(--aud-text-main)',
                     fontSize: '1rem',
+                    fontWeight: 700,
                     marginBottom: '20px',
                     outline: 'none',
                     boxSizing: 'border-box'
@@ -935,10 +745,10 @@ export function LiveLeaderboardPage() {
                       padding: '10px 18px',
                       borderRadius: '10px',
                       backgroundColor: 'transparent',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      color: '#94a3b8',
+                      border: '2px solid var(--aud-border)',
+                      color: 'var(--aud-text-main)',
                       cursor: 'pointer',
-                      fontWeight: 600
+                      fontWeight: 800
                     }}
                   >
                     Cancel
@@ -946,16 +756,17 @@ export function LiveLeaderboardPage() {
                   <button
                     type="submit"
                     style={{
-                      padding: '10px 20px',
+                      padding: '10px 22px',
                       borderRadius: '10px',
-                      backgroundColor: '#6366f1',
-                      border: 'none',
+                      backgroundColor: 'var(--aud-coral)',
+                      border: '2.5px solid var(--aud-border)',
+                      boxShadow: '3px 3px 0px var(--aud-border)',
                       color: '#fff',
                       cursor: 'pointer',
-                      fontWeight: 700
+                      fontWeight: 900
                     }}
                   >
-                    Unlock
+                    Unlock Controls
                   </button>
                 </div>
               </form>
@@ -964,7 +775,9 @@ export function LiveLeaderboardPage() {
         )}
       </AnimatePresence>
 
-      {/* Floating Toast Notification */}
+      {/* ====================================================================
+          6. FLOATING TOAST NOTIFICATION
+          ==================================================================== */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
@@ -975,21 +788,21 @@ export function LiveLeaderboardPage() {
               position: 'fixed',
               bottom: '24px',
               right: '24px',
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              padding: '12px 20px',
-              borderRadius: '12px',
-              color: '#f8fafc',
-              fontSize: '0.9rem',
-              fontWeight: 700,
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+              backgroundColor: 'var(--aud-surface)',
+              border: '3px solid var(--aud-border)',
+              padding: '12px 22px',
+              borderRadius: '14px',
+              color: 'var(--aud-text-main)',
+              fontSize: '0.95rem',
+              fontWeight: 900,
+              boxShadow: '6px 6px 0px var(--aud-border)',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               zIndex: 1000
             }}
           >
-            <Sparkles size={16} color="#facc15" />
+            <Sparkles size={18} color="#f59e0b" />
             {toastMessage}
           </motion.div>
         )}
@@ -997,3 +810,5 @@ export function LiveLeaderboardPage() {
     </div>
   )
 }
+
+export default LiveLeaderboardPage

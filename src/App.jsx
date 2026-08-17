@@ -11,6 +11,7 @@ const ApplyPage = lazy(() => import('./pages/ApplyPage').then((m) => ({ default:
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin })))
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })))
 const LiveLeaderboardPage = lazy(() => import('./pages/admin/LiveLeaderboardPage').then((m) => ({ default: m.LiveLeaderboardPage })))
+const AudienceDisplayPage = lazy(() => import('./pages/AudienceDisplayPage').then((m) => ({ default: m.AudienceDisplayPage })))
 
 function PageLoader() {
   return (
@@ -44,6 +45,12 @@ function App() {
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* Audience Standalone Live Event Screen Routes */}
+          <Route path="/display" element={<AudienceDisplayPage />} />
+          <Route path="/audience" element={<AudienceDisplayPage />} />
+          <Route path="/stage" element={<AudienceDisplayPage />} />
+          <Route path="/live-display" element={<AudienceDisplayPage />} />
+
           {/* Admin Standalone Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
