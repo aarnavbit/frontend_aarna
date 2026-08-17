@@ -5,6 +5,17 @@
 document.addEventListener('DOMContentLoaded', () => {
   const engine = new GameEngine(GameConfig);
 
+  // Preload card images into memory immediately for zero-lag instant display
+  if (Array.isArray(GameConfig.imagePool)) {
+    GameConfig.imagePool.forEach(item => {
+      const src = (typeof item === 'object' && item && item.img) ? item.img : (typeof item === 'string' && (item.startsWith('http') || item.startsWith('images/') || item.endsWith('.webp') || item.endsWith('.png') || item.endsWith('.jpg') || item.endsWith('.jpeg')) ? item : null);
+      if (src) {
+        const preloadImg = new Image();
+        preloadImg.src = src;
+      }
+    });
+  }
+
   // Global Synchronized State
   let currentGameState = { status: 'waiting', roundNumber: 0, startTime: null };
   let isPlayerWaitingInLobby = false;

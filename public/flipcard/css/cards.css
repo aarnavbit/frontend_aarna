@@ -87,6 +87,8 @@
   background-color: var(--bg-white);
   transform: rotateY(180deg);
   border: var(--border-medium);
+  position: relative;
+  overflow: hidden;
 }
 
 .card-content-emoji {
@@ -94,13 +96,27 @@
   line-height: 1;
   filter: drop-shadow(2px 2px 0px rgba(59, 36, 18, 0.15));
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .card-content-img {
-  width: 70%;
-  height: 70%;
-  object-fit: contain;
-  filter: drop-shadow(2px 2px 0px rgba(59, 36, 18, 0.15));
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(var(--radius-md) - 2px);
+  opacity: 0;
+  transition: opacity 0.22s ease-in;
+}
+
+.card-content-img.is-loaded {
+  opacity: 1;
 }
 
 /* Match Animation */

@@ -195,15 +195,40 @@ class UIRenderer {
       cardEl.id = `card-${card.id}`;
       cardEl.dataset.cardId = card.id;
 
-      // Render content (detect emoji vs image URL)
-      let faceHtml = '';
-      const isImg = typeof card.content === 'string' && 
-        (card.content.startsWith('http') || card.content.startsWith('./') || card.content.startsWith('/') || card.content.endsWith('.png') || card.content.endsWith('.svg'));
+      // Render content (Smart Image with Instant Emoji Fallback)
+      let imgSrc = null;
+      let emojiFallback = '✨';
 
-      if (isImg) {
-        faceHtml = `<img src="${card.content}" alt="card icon" class="card-content-img">`;
+      if (typeof card.content === 'object' && card.content !== null) {
+        imgSrc = card.content.img || null;
+        emojiFallback = card.content.fallbackEmoji || card.content.emoji || '✨';
+      } else if (typeof card.content === 'string') {
+        const lower = card.content.toLowerCase();
+        if (lower.startsWith('http') || lower.startsWith('./') || lower.startsWith('/') || lower.startsWith('images/') ||
+            lower.endsWith('.webp') || lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.svg')) {
+          imgSrc = card.content;
+          emojiFallback = '🖼️';
+        } else {
+          emojiFallback = card.content;
+        }
+      }
+
+      let faceHtml = '';
+      if (imgSrc) {
+        faceHtml = `
+          <span class="card-content-emoji">${emojiFallback}</span>
+          <img 
+            src="${imgSrc}" 
+            alt="card face" 
+            class="card-content-img" 
+            loading="eager" 
+            decoding="async"
+            onload="this.classList.add('is-loaded');" 
+            onerror="this.style.display='none';"
+          >
+        `;
       } else {
-        faceHtml = `<span class="card-content-emoji">${card.content}</span>`;
+        faceHtml = `<span class="card-content-emoji">${emojiFallback}</span>`;
       }
 
       cardEl.innerHTML = `

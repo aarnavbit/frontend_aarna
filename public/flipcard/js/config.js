@@ -42,11 +42,20 @@ const GameConfig = {
   pairsPerRound: 3, // 3 pairs = 6 cards per round
   mismatchDelayMs: 800,
 
-  // Easily customizable Image/Emoji Pool (18 items)
+  // Easily customizable Image/Emoji Pool with instant fallback
   imagePool: [
-    "⚡", "🔥", "🚀", "💎", "⭐", "🍕", 
-    "🎮", "🏆", "🦄", "🎸", "🎯", "👑", 
-    "🪐", "🍀", "👾", "🍔", "🌈", "🍦"
+    { img: 'images/cards/meme1.webp', fallbackEmoji: '😭', name: 'Meme 1' },
+    { img: 'images/cards/meme2.webp', fallbackEmoji: '😼', name: 'Meme 2' },
+    { img: 'images/cards/meme3.webp', fallbackEmoji: '🗿', name: 'Meme 3' },
+    { img: 'images/cards/meme4.webp', fallbackEmoji: '🐸', name: 'Meme 4' },
+    { img: null, fallbackEmoji: '⚡', name: 'Lightning' },
+    { img: null, fallbackEmoji: '🔥', name: 'Fire' },
+    { img: null, fallbackEmoji: '🚀', name: 'Rocket' },
+    { img: null, fallbackEmoji: '💎', name: 'Diamond' },
+    { img: null, fallbackEmoji: '🍕', name: 'Pizza' },
+    { img: null, fallbackEmoji: '🏆', name: 'Trophy' },
+    { img: null, fallbackEmoji: '🎮', name: 'Gaming' },
+    { img: null, fallbackEmoji: '👑', name: 'Crown' }
   ],
 
   // Scoring Rules
