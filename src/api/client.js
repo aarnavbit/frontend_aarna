@@ -1,5 +1,14 @@
-const configuredUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-const API_BASE_URL = configuredUrl.replace(/\/$/, '')
+function resolveApiUrl() {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')
+  }
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:8000'
+  }
+  return 'https://backend-aarna.onrender.com'
+}
+
+const API_BASE_URL = resolveApiUrl()
 
 const LOCAL_STORAGE_KEY = 'aarana_mock_applications'
 
@@ -42,7 +51,8 @@ async function request(path, options = {}) {
     })
     const body = await response.json().catch(() => null)
     if (!response.ok) {
-      const error = new Error(body?.error?.message || 'We could not complete that request.')
+      const errorMsg = body?.detail || body?.error?.message || body?.report || 'We could not complete that request.'
+      const error = new Error(errorMsg)
       error.code = body?.error?.code
       error.fields = body?.error?.fields || {}
       error.status = response.status
@@ -50,7 +60,7 @@ async function request(path, options = {}) {
     }
     return body
   } catch (networkError) {
-    // If backend server is unreachable (e.g. backend server not running), fallback to local storage mock
+    // If backend server is unreachable (e.g. offline fallback), fallback to local storage mock
     if (networkError instanceof TypeError || networkError.message === 'Failed to fetch') {
       if (path === '/applications' && fetchOptions.method === 'POST') {
         const payload = JSON.parse(fetchOptions.body || '{}')

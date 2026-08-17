@@ -27,7 +27,12 @@ function resolveApiBaseUrl() {
     // Storage access fallback
   }
 
-  // 3. Production backend default
+  // 3. Localhost development fallback
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:8000';
+  }
+
+  // 4. Production backend default
   return 'https://backend-aarna.onrender.com';
 }
 

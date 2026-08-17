@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && (data.success || data.gameState)) {
         sessionStorage.setItem('adminToken', password);
         errorMsg.classList.add('hidden');
         showDashboard();
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         loadDashboardData();
       } else {
-        errorMsg.textContent = data.error || 'Invalid password';
+        errorMsg.textContent = data.detail || data.error || data.message || 'Invalid password';
         errorMsg.classList.remove('hidden');
       }
     } catch (err) {
@@ -169,10 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'x-admin-password': token }
       });
       const data = await res.json();
-      if (data.success && data.gameState) {
-        handleGameStateUpdate(data.gameState);
+      const state = data.gameState || data.state || data;
+      if (res.ok && state) {
+        handleGameStateUpdate(state);
       } else {
-        alert(data.error || 'Failed to start game round');
+        alert(data.detail || data.error || 'Failed to start game round');
       }
     } catch (e) {
       alert('Network error starting round');
@@ -194,10 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'x-admin-password': token }
       });
       const data = await res.json();
-      if (data.success && data.gameState) {
-        handleGameStateUpdate(data.gameState);
+      const state = data.gameState || data.state || data;
+      if (res.ok && state) {
+        handleGameStateUpdate(state);
       } else {
-        alert(data.error || 'Failed to stop game round');
+        alert(data.detail || data.error || 'Failed to stop game round');
       }
     } catch (e) {
       alert('Network error stopping round');
@@ -214,8 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'x-admin-password': token }
       });
       const data = await res.json();
-      if (data.success && data.gameState) {
-        handleGameStateUpdate(data.gameState);
+      const state = data.gameState || data.state || data;
+      if (res.ok && state) {
+        handleGameStateUpdate(state);
       }
     } catch (e) {
       alert('Network error resetting lobby');
@@ -359,12 +362,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       const data = await res.json();
-      if (data.success) {
+      if (data) {
         if (data.gameState) {
           handleGameStateUpdate(data.gameState);
         }
-        updateStats(data.stats);
-        renderTable(data.players || []);
+        
+        const stats = data.stats || {};
+        const players = data.players || (Array.isArray(data.entries) ? data.entries.map((e, idx) => ({
+          rank: idx + 1,
+          playerName: e.player_name,
+          score: e.score,
+          durationMs: e.duration_ms,
+          matches: e.matches,
+          mismatches: e.mismatches,
+          createdAt: e.created_at
+        })) : []);
+
+        updateStats({
+          totalPlayers: stats.totalPlayers ?? stats.total_players ?? players.length,
+          highestScore: stats.highestScore ?? stats.top_score ?? 0,
+          avgDurationSec: stats.avgDurationSec ?? (stats.average_duration_ms ? Math.round(stats.average_duration_ms / 1000) : 0)
+        });
+        renderTable(players);
       }
     } catch (e) {
       console.error('Failed to load admin data:', e);
