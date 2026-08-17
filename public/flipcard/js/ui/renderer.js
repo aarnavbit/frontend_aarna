@@ -337,7 +337,8 @@ class UIRenderer {
     this.offlineBadge.classList.toggle('hidden', !isOffline);
     this.leaderboardList.innerHTML = '';
 
-    const players = data && Array.isArray(data.topPlayers) ? data.topPlayers : [];
+    let players = Array.isArray(data) ? data : (data && Array.isArray(data.topPlayers) ? data.topPlayers : (data && Array.isArray(data.players) ? data.players : []));
+    players = [...players].sort((a, b) => Number(a.durationMs || a.duration_ms || Infinity) - Number(b.durationMs || b.duration_ms || Infinity));
     if (players.length === 0) {
       this.leaderboardList.innerHTML = `
         <div class="empty-leaderboard">

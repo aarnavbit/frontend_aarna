@@ -37,14 +37,27 @@ export const liveGameApi = {
     }
     const data = await res.json()
     if (Array.isArray(data)) {
+      const sorted = [...data].sort((a, b) => {
+        const timeA = Number(a.durationMs ?? a.duration_ms ?? Infinity)
+        const timeB = Number(b.durationMs ?? b.duration_ms ?? Infinity)
+        return timeA - timeB
+      })
       return {
-        players: data.map((p, idx) => ({ ...p, rank: idx + 1 })),
+        players: sorted.map((p, idx) => ({ ...p, rank: idx + 1 })),
         stats: {
-          totalPlayers: data.length,
-          highestScore: data[0]?.score || 0,
-          avgDurationSec: data.length ? Math.round((data.reduce((a, b) => a + (b.durationMs || b.duration_ms || 0), 0) / data.length) / 1000) : 0
+          totalPlayers: sorted.length,
+          highestScore: sorted[0]?.score || 0,
+          avgDurationSec: sorted.length ? Math.round((sorted.reduce((a, b) => a + (b.durationMs || b.duration_ms || 0), 0) / sorted.length) / 1000) : 0
         }
       }
+    }
+    if (data && Array.isArray(data.players)) {
+      data.players.sort((a, b) => {
+        const timeA = Number(a.durationMs ?? a.duration_ms ?? Infinity)
+        const timeB = Number(b.durationMs ?? b.duration_ms ?? Infinity)
+        return timeA - timeB
+      })
+      data.players.forEach((p, idx) => { p.rank = idx + 1 })
     }
     return data
   },
