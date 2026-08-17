@@ -1,41 +1,51 @@
-# Flipcards Live Event Game — Frontend
+# AARNA Web Platform & Live Flipcard Game Challenge
 
-Ultra-lightweight, high-performance card matching game interface designed for live event challenges, with dynamic leaderboards, resilient offline queueing, and near-zero bandwidth footprint.
+Full-stack interactive web platform for AARNA featuring the main recruitment experience and an isolated, high-performance live event card matching challenge.
 
-## 🚀 Cloudflare Pages Deployment
+---
 
-This repository is optimized for instant deployment on Cloudflare Pages:
-- **Framework Preset**: None / Static / Custom
-- **Build Command**: `npm run build`
-- **Output Directory**: `dist`
-- **Payload Size**: < 100 KB (Zero heavy node_modules dependencies, zero runtime JS framework overhead)
+## 🌐 Application Architecture & Routes
 
-## 🔄 React Website Backup
+| URL Route | Destination | Description |
+| :--- | :--- | :--- |
+| `/` | **AARNA Main Site** | Full interactive React experience (Home, Application, Admin) |
+| `/apply` | **Recruitment Form** | Application submission and screening portal |
+| `/dashboard` | **Reviewer Dashboard** | Candidate evaluation & scoring system |
+| `/flipcard` | **FlipMatch Game** | Ultra-lightweight live event card matching game challenge |
+| `/flipcard/admin` | **FlipMatch Admin** | Real-time event controller, live leaderboard, and CSV export |
 
-The previous React-based website is safely preserved in the remote branch:
+---
+
+## ⚡ Zero Cross-Bandwidth Footprint
+
+The applications are strictly separated for optimal performance and bandwidth efficiency:
+- **Main Website Visitors**: Never download the Flipcard game assets (0 KB extra overhead).
+- **Flipcard Players**: Only download **~100 KB total** (pure static HTML/CSS/JS). Never download the React framework bundle.
+- **Cloudflare Edge Caching**: Assets under `/assets/*`, `/flipcard/css/*`, and `/flipcard/js/*` are served with `Cache-Control: public, max-age=31536000, immutable`.
+
+---
+
+## ⚙️ Flipcard Game API Endpoint Configuration
+
+The game dynamically discovers the backend API:
+1. **Query Parameter**: Append `?api=https://your-backend.com` to any `/flipcard` or `/flipcard/admin` URL.
+2. **Global Variable**: Define `window.__GAME_API_URL__ = 'https://your-backend.com'`.
+3. **Automatic Fallback**: Resolves to `window.location.origin` in production environments or `http://localhost:3000` in local testing.
+
+---
+
+## 🛠️ Local Development & Production Build
+
 ```bash
-git checkout website-react-backup
-```
-To switch back to the React website in the future:
-```bash
-git checkout website-react-backup
-git branch -M main
-git push -u origin main --force
-```
+# Install dependencies
+npm install
 
-## ⚙️ Backend API Configuration
+# Start Vite development server
+npm run dev
 
-The frontend automatically resolves the backend endpoint:
-1. **URL Parameter Override**: Append `?api=https://your-backend.domain` to the URL.
-2. **Global Variable Override**: Set `window.__GAME_API_URL__ = 'https://your-backend.domain'`.
-3. **Automatic Fallback**: Defaults to `window.location.origin` in production environments or `http://localhost:3000` in local testing.
-
-## 🛠️ Local Development & Build
-
-```bash
-# Build static bundle to dist/
+# Build production bundle to dist/
 npm run build
 
-# Preview locally
-node scripts/build.js
+# Preview production build locally
+npm run preview
 ```

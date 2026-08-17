@@ -1,0 +1,12 @@
+# Cloudflare Pages Redirects / Rewrites
+
+# 1. Flipcard Live Game & Admin Routes
+/flipcard/admin     /flipcard/admin.html    200
+/flipcards/admin    /flipcard/admin.html    200
+/flipcard           /flipcard/index.html    200
+/flipcard/          /flipcard/index.html    200
+/flipcards          /flipcard/index.html    200
+/flipcards/         /flipcard/index.html    200
+
+# 2. Main React Single Page App Fallback
+/*                  /index.html             200

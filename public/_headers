@@ -1,0 +1,30 @@
+# Cloudflare Pages Headers Configuration
+# Bandwidth & Caching Optimization
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Static assets immutable caching (saves bandwidth)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/flipcard/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/flipcard/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=86400
+
+/videos/*
+  Cache-Control: public, max-age=86400
+
+# HTML entry points must revalidate
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/flipcard/*.html
+  Cache-Control: public, max-age=0, must-revalidate
