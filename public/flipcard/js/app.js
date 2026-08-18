@@ -493,6 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
       actions: {
         score: AppState.score,
         roundsCompleted: actualRoundsCompleted,
+        isEarlySubmit: isEarlySubmit,
         matches: AppState.totalMatches,
         mismatches: AppState.totalMismatches,
         durationMs: AppState.gameEndTime - AppState.gameStartTime,
