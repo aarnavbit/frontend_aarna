@@ -13,11 +13,11 @@ class StateStore {
     this.sessionId = null;
     this.playerName = '';
 
-    // Stage and Sub-Round Tracking (3 Stages x 3 Sub-Rounds = 9 Total Sub-Rounds)
+    // Stage and Sub-Round Tracking (3 Stages. 3 Card, 1 Jigsaw, 1 Slider = 5 Total Rounds)
     this.stage = 1; // 1: Cards | 2: Jigsaw | 3: Slider
     this.subRound = 1; // 1, 2, 3 within current stage
     this.round = 1; // 1 to 9 global sub-round index
-    this.totalRounds = 9;
+    this.totalRounds = 5;
     this.score = 0;
     this.streak = 0;
     this.isLocked = false;

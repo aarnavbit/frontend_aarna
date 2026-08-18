@@ -61,6 +61,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      // Prompt to auto-launch if player is on Result Screen
+      if (AppState.currentScreen === 'result') {
+        if (confirm(`The host has started a new game! Join now?`)) {
+          handleStartGame(broadcastRound);
+        }
+        return;
+      }
+
       // Auto-launch for players waiting in lobby with their name
       const rawName = nameInput ? nameInput.value.trim() : '';
       if (AppState.currentScreen === 'start' && (isPlayerWaitingInLobby || rawName)) {
@@ -229,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (stage === 2) {
       startRound(4); // Sub-round 1 of Jigsaw Puzzle (Round 4)
     } else if (stage === 3) {
-      startRound(7); // Sub-round 1 of 15-Puzzle Slider (Round 7)
+      startRound(5); // Sub-round 1 of 15-Puzzle Slider (Round 5)
     }
   }
 
@@ -237,24 +245,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetRound = Math.max(1, Math.min(Number(roundNum) || 1, GameConfig.totalRounds || 9));
 
     // ========================================================================
-    // STAGE 3: 15-Puzzle Slider (Sub-Rounds 1, 2, 3 = Rounds 7, 8, 9)
+    // STAGE 3: 15-Puzzle Slider (Sub-Round 1 = Round 5)
     // ========================================================================
-    if (targetRound >= 7 && targetRound <= 9) {
+    if (targetRound === 5) {
       if (UI.cardGrid) UI.cardGrid.classList.add('hidden');
       const jigsawBoard = document.getElementById('jigsaw-board');
       if (jigsawBoard) jigsawBoard.classList.add('hidden');
       const sliderBoard = document.getElementById('slider-board');
       if (sliderBoard) sliderBoard.classList.remove('hidden');
 
-      const subRoundNum = targetRound - 6; // 1, 2, 3
-      if (subRoundNum === 1) {
-        UI.showRoundAnnouncement('STAGE 3 • 15-PUZZLE SLIDER', '4x4 Slider Challenge', 'Slide the tiles to restore the image!');
-      }
+      UI.showRoundAnnouncement('STAGE 3 • 15-PUZZLE SLIDER', '3x3 Slider Challenge', 'Slide the tiles to restore the image!');
 
-      const sliderImgList = Array.isArray(GameConfig.sliderImages) && GameConfig.sliderImages.length >= 3
-        ? GameConfig.sliderImages
-        : ['images/Logo.png', 'images/cards/card_2.webp', 'images/cards/meme3.webp'];
-      const sliderImgSrc = sliderImgList[(subRoundNum - 1) % sliderImgList.length] || 'images/Logo.png';
+      const sliderImgSrc = Array.isArray(GameConfig.sliderImages) && GameConfig.sliderImages.length > 0
+        ? GameConfig.sliderImages[0]
+        : 'images/Logo.png';
 
       AppState.startRound(targetRound, []);
 
@@ -265,45 +269,35 @@ document.addEventListener('DOMContentLoaded', () => {
       window.sliderGame.startPuzzle(targetRound, (moves) => {
         const roundDurationMs = Date.now() - AppState.roundStartTime;
         const bonus = engine.calculateRoundBonus(roundDurationMs);
-        AppState.matchesThisRound = 15;
+        AppState.matchesThisRound = 9;
         AppState.totalMatches += AppState.matchesThisRound;
         AppState.recordRoundCompletion(bonus.roundBonus, bonus.speedBonus, roundDurationMs);
 
         submitIntermediateRoundScore(targetRound);
 
-        if (subRoundNum < 3) {
-          setTimeout(() => {
-            startRound(targetRound + 1);
-          }, 900);
-        } else {
-          // Stage 3 Complete -> Grand Champion Victory Screen!
-          setTimeout(() => {
-            handleGameEnd();
-          }, 1200);
-        }
+        // Stage 3 Complete -> Grand Champion Victory Screen!
+        setTimeout(() => {
+          handleGameEnd();
+        }, 1200);
       }, sliderImgSrc);
       return;
     }
 
     // ========================================================================
-    // STAGE 2: Jigsaw Puzzle (Sub-Rounds 1, 2, 3 = Rounds 4, 5, 6)
+    // STAGE 2: Jigsaw Puzzle (Sub-Round 1 = Round 4)
     // ========================================================================
-    if (targetRound >= 4 && targetRound <= 6) {
+    if (targetRound === 4) {
       if (UI.cardGrid) UI.cardGrid.classList.add('hidden');
       const sliderBoard = document.getElementById('slider-board');
       if (sliderBoard) sliderBoard.classList.add('hidden');
       const jigsawBoard = document.getElementById('jigsaw-board');
       if (jigsawBoard) jigsawBoard.classList.remove('hidden');
 
-      const subRoundNum = targetRound - 3; // 1, 2, 3
-      if (subRoundNum === 1) {
-        UI.showRoundAnnouncement('STAGE 2 • JIGSAW PUZZLE', '12-Piece Image Puzzle', 'Drag & fit the pieces into place!');
-      }
+      UI.showRoundAnnouncement('STAGE 2 • JIGSAW PUZZLE', '12-Piece Image Puzzle', 'Drag & fit the pieces into place!');
 
-      const jigsawImgList = Array.isArray(GameConfig.jigsawImages) && GameConfig.jigsawImages.length >= 3
-        ? GameConfig.jigsawImages
-        : ['images/puzzel.jpeg', 'images/cards/card_1.webp', 'images/cards/card_4.webp'];
-      const jigsawImgSrc = jigsawImgList[(subRoundNum - 1) % jigsawImgList.length] || 'images/puzzel.jpeg';
+      const jigsawImgSrc = Array.isArray(GameConfig.jigsawImages) && GameConfig.jigsawImages.length > 0
+        ? GameConfig.jigsawImages[0]
+        : 'images/puzzel.jpeg';
 
       AppState.startRound(targetRound, []);
 
@@ -320,16 +314,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         submitIntermediateRoundScore(targetRound);
 
-        if (subRoundNum < 3) {
-          setTimeout(() => {
-            startRound(targetRound + 1);
-          }, 900);
-        } else {
-          // Stage 2 Complete -> Transition to Stage 2 Intermission Screen!
-          setTimeout(() => {
-            enterIntermission(2);
-          }, 1000);
-        }
+        // Stage 2 Complete -> Transition to Stage 2 Intermission Screen!
+        setTimeout(() => {
+          enterIntermission(2);
+        }, 1000);
       }, jigsawImgSrc);
       return;
     }
@@ -549,6 +537,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-play-again')?.addEventListener('click', () => {
     AppState.setScreen('start');
     refreshStatus();
+  });
+
+  document.getElementById('btn-submit-quit')?.addEventListener('click', () => {
+    if (confirm('Are you sure you want to submit your current score and end the game?')) {
+      handleGameEnd();
+    }
   });
 
   // Sound Toggle Button

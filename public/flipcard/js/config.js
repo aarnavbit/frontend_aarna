@@ -19,7 +19,7 @@ function resolveApiBaseUrl() {
       sessionStorage.setItem('GAME_API_URL', queryApi);
       return queryApi.replace(/\/+$/, '');
     }
-    const storedApi = sessionStorage.getItem('GAME_API_URL') || localStorage.getItem('GAME_API_URL');
+    const storedApi = sessionStorage.getItem('GAME_API_URL');
     if (storedApi) {
       return storedApi.replace(/\/+$/, '');
     }
@@ -37,8 +37,8 @@ function resolveApiBaseUrl() {
 }
 
 const GameConfig = {
-  // Game parameters: 3 mini-game types with 3 rounds each (Total 9 rounds)
-  totalRounds: 9,
+  // Game parameters: 3 mini-game types (Total 5 rounds: 3 Cards, 1 Jigsaw, 1 Slider)
+  totalRounds: 5,
   pairsPerRound: 3, // 3 pairs = 6 cards per round
   mismatchDelayMs: 800,
 

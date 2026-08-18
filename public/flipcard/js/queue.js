@@ -23,7 +23,7 @@ class ScoreQueueManager {
 
   getQueue() {
     try {
-      const raw = localStorage.getItem(this.storageKey);
+      const raw = sessionStorage.getItem(this.storageKey);
       return raw ? JSON.parse(raw) : [];
     } catch (e) {
       return [];
@@ -32,7 +32,7 @@ class ScoreQueueManager {
 
   saveQueue(queue) {
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(queue));
+      sessionStorage.setItem(this.storageKey, JSON.stringify(queue));
     } catch (e) {}
   }
 
@@ -85,7 +85,7 @@ class ScoreQueueManager {
   // Cache Leaderboard locally
   cacheLeaderboard(data) {
     try {
-      localStorage.setItem(this.cacheKeyLeaderboard, JSON.stringify({
+      sessionStorage.setItem(this.cacheKeyLeaderboard, JSON.stringify({
         data,
         cachedAt: Date.now()
       }));
@@ -94,7 +94,7 @@ class ScoreQueueManager {
 
   getCachedLeaderboard() {
     try {
-      const raw = localStorage.getItem(this.cacheKeyLeaderboard);
+      const raw = sessionStorage.getItem(this.cacheKeyLeaderboard);
       return raw ? JSON.parse(raw) : null;
     } catch (e) {
       return null;

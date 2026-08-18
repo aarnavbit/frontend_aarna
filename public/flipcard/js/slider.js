@@ -6,12 +6,12 @@ class SliderEngine {
   constructor(containerId = 'slider-board', imgSrc = 'images/Logo.png') {
     this.container = document.getElementById(containerId);
     this.imgSrc = imgSrc;
-    this.gridSize = 4;
-    this.totalTiles = 16;
+    this.gridSize = 3;
+    this.totalTiles = 9;
     
-    // Board state: array of 16 integers (0 to 15), where 15 is the empty slot
-    this.board = Array.from({ length: 16 }, (_, i) => i);
-    this.emptyIdx = 15;
+    // Board state: array of 9 integers (0 to 8), where 8 is the empty slot
+    this.board = Array.from({ length: 9 }, (_, i) => i);
+    this.emptyIdx = 8;
     this.moves = 0;
     this.isWon = false;
     this.isShuffling = false;
@@ -46,8 +46,8 @@ class SliderEngine {
       </div>
       <div class="slider-board-wrapper">
         <div class="slider-wood-frame">
-          <div class="slider-inner-tray" id="slider-inner-tray" role="grid" aria-label="15 Puzzle Grid">
-            <!-- 15 playable tiles + 1 final 16th reveal tile injected here -->
+          <div class="slider-inner-tray" id="slider-inner-tray" role="grid" aria-label="8 Puzzle Grid">
+            <!-- 8 playable tiles + 1 final 9th reveal tile injected here -->
           </div>
         </div>
       </div>
@@ -57,11 +57,11 @@ class SliderEngine {
     this.restartBtn = this.container.querySelector('#slider-restart-btn');
     this.tray = this.container.querySelector('#slider-inner-tray');
 
-    // Create 16 tile elements (0-14 visible, 15 complete 16th reveal tile)
+    // Create 9 tile elements (0-7 visible, 8 complete 9th reveal tile)
     this.tileElements = [];
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 9; i++) {
       const tile = document.createElement('div');
-      tile.className = `slider-tile ${i === 15 ? 'slider-tile-final' : ''}`;
+      tile.className = `slider-tile ${i === 8 ? 'slider-tile-final' : ''}`;
       tile.setAttribute('data-tile-val', i);
       tile.setAttribute('role', 'button');
       tile.setAttribute('tabindex', '0');
@@ -74,12 +74,12 @@ class SliderEngine {
       const bgY = (origRow / (this.gridSize - 1)) * 100;
 
       tile.style.backgroundImage = `url('${this.imgSrc}')`;
-      tile.style.backgroundSize = '400% 400%';
+      tile.style.backgroundSize = '300% 300%';
       tile.style.backgroundPosition = `${bgX}% ${bgY}%`;
 
       // Set initial position
-      tile.style.top = `${origRow * 25}%`;
-      tile.style.left = `${origCol * 25}%`;
+      tile.style.top = `${origRow * 33.333}%`;
+      tile.style.left = `${origCol * 33.333}%`;
 
       // Number badge for readability
       const badge = document.createElement('span');
@@ -128,18 +128,18 @@ class SliderEngine {
       this.container.classList.remove('slider-won');
     }
 
-    // Hide final 16th tile
-    const finalTile = this.tileElements[15];
+    // Hide final 9th tile
+    const finalTile = this.tileElements[8];
     if (finalTile) {
       finalTile.classList.remove('revealed');
     }
 
     // Reset array to solved state
-    this.board = Array.from({ length: 16 }, (_, i) => i);
-    this.emptyIdx = 15;
+    this.board = Array.from({ length: 9 }, (_, i) => i);
+    this.emptyIdx = 8;
 
     // Apply solvable shuffle
-    this.shuffle(160);
+    this.shuffle(100);
   }
 
   /**
@@ -159,7 +159,7 @@ class SliderEngine {
 
       // Swap in array
       this.board[this.emptyIdx] = this.board[chosenIdx];
-      this.board[chosenIdx] = 15;
+      this.board[chosenIdx] = 8;
 
       lastMovedIdx = this.emptyIdx;
       this.emptyIdx = chosenIdx;
@@ -170,7 +170,7 @@ class SliderEngine {
       const neighbors = this.getAdjacentIndices(this.emptyIdx);
       const chosenIdx = neighbors[0];
       this.board[this.emptyIdx] = this.board[chosenIdx];
-      this.board[chosenIdx] = 15;
+      this.board[chosenIdx] = 8;
       this.emptyIdx = chosenIdx;
     }
 
@@ -194,15 +194,15 @@ class SliderEngine {
    * Synchronizes visual CSS top/left of all tiles based on board state.
    */
   syncDOMPositions() {
-    for (let slotIdx = 0; slotIdx < 16; slotIdx++) {
+    for (let slotIdx = 0; slotIdx < 9; slotIdx++) {
       const tileVal = this.board[slotIdx];
-      if (tileVal !== 15) {
+      if (tileVal !== 8) {
         const row = Math.floor(slotIdx / this.gridSize);
         const col = slotIdx % this.gridSize;
         const tileEl = this.tileElements[tileVal];
         if (tileEl) {
-          tileEl.style.top = `${row * 25}%`;
-          tileEl.style.left = `${col * 25}%`;
+          tileEl.style.top = `${row * 33.333}%`;
+          tileEl.style.left = `${col * 33.333}%`;
         }
       }
     }
@@ -242,13 +242,13 @@ class SliderEngine {
     // Swap in state array
     const tileVal = this.board[tileIdx];
     this.board[this.emptyIdx] = tileVal;
-    this.board[tileIdx] = 15;
+    this.board[tileIdx] = 8;
 
     // Animate moving tile to empty slot coordinates
     const tileEl = this.tileElements[tileVal];
     if (tileEl) {
-      tileEl.style.top = `${emptyRow * 25}%`;
-      tileEl.style.left = `${emptyCol * 25}%`;
+      tileEl.style.top = `${emptyRow * 33.333}%`;
+      tileEl.style.left = `${emptyCol * 33.333}%`;
     }
 
     // Update empty slot index
@@ -288,11 +288,11 @@ class SliderEngine {
       this.container.classList.add('slider-won');
     }
 
-    // Fade in the complete 16th tile to reveal the full image
-    const finalTile = this.tileElements[15];
+    // Fade in the complete 9th tile to reveal the full image
+    const finalTile = this.tileElements[8];
     if (finalTile) {
-      finalTile.style.top = '75%';
-      finalTile.style.left = '75%';
+      finalTile.style.top = '66.666%';
+      finalTile.style.left = '66.666%';
       finalTile.classList.add('revealed');
     }
 
@@ -302,7 +302,7 @@ class SliderEngine {
     }
 
     if (typeof UI !== 'undefined' && UI.showToast) {
-      UI.showToast('🏆 15-Puzzle Solved!', 'success', 2500);
+      UI.showToast('🏆 8-Puzzle Solved!', 'success', 2500);
     }
 
     // Complete callback for round progression
