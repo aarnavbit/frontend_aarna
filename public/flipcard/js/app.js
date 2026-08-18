@@ -477,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTime = new Date();
     const timeFormatted = sendTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+    const actualRoundsCompleted = AppState.roundBreakdown.length;
     const submissionPayload = {
       sessionId: AppState.sessionId,
       session_id: AppState.sessionId,
@@ -485,13 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
       score: AppState.score,
       matches: AppState.totalMatches,
       mismatches: AppState.totalMismatches,
-      roundsCompleted: AppState.totalRounds || 5,
-      rounds_completed: AppState.totalRounds || 5,
+      roundsCompleted: actualRoundsCompleted,
+      rounds_completed: actualRoundsCompleted,
       durationMs: AppState.gameEndTime - AppState.gameStartTime,
       duration_ms: AppState.gameEndTime - AppState.gameStartTime,
       actions: {
         score: AppState.score,
-        roundsCompleted: AppState.totalRounds || 5,
+        roundsCompleted: actualRoundsCompleted,
         matches: AppState.totalMatches,
         mismatches: AppState.totalMismatches,
         durationMs: AppState.gameEndTime - AppState.gameStartTime,
