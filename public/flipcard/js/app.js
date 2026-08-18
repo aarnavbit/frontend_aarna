@@ -217,14 +217,18 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('[Network] Session started:', err.message);
     }
 
-    // Determine target stage based on event round
+    // Determine target stage based on event round (Admin broadcasts 1=Cards, 2=Jigsaw, 3=Slider)
     const eventRound = targetBroadcastRound || Number(currentGameState.roundNumber || currentGameState.round_number || 1);
     let initialStage = 1;
-    if (eventRound >= 1 && eventRound <= 3) initialStage = 1;
-    else if (eventRound === 4) initialStage = 2;
-    else if (eventRound === 5) initialStage = 3;
+    if (eventRound === 1) initialStage = 1;
+    else if (eventRound === 2) initialStage = 2;
+    else if (eventRound >= 3) initialStage = 3;
 
-    AppState.initSession(sessionId, rawName, GameConfig.totalRounds || 5);
+    // Only wipe the score/session if it's a completely new game (Round 1) or they are joining from the menu
+    if (eventRound === 1 || AppState.currentScreen === 'start' || AppState.currentScreen === 'result') {
+      AppState.initSession(sessionId, rawName, GameConfig.totalRounds || 5);
+    }
+    
     launchBroadcastStage(initialStage);
   }
 
