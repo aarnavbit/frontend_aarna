@@ -130,6 +130,13 @@ document.addEventListener('DOMContentLoaded', () => {
               setTimeout(() => handleStartGame(broadcastRound), 1300);
             }
           }
+        } else if (state.status === 'playing' && AppState.currentScreen === 'intermission') {
+          const broadcastRound = Number(state.roundNumber || state.round_number || 1);
+          const hostStage = broadcastRound === 1 ? 1 : (broadcastRound === 2 ? 2 : 3);
+          if (hostStage > AppState.stage) {
+            UI.showRoundAnnouncement('HOST ALERT', 'NEXT STAGE ACTIVE', 'Joining automatically...');
+            setTimeout(() => handleStartGame(broadcastRound), 1300);
+          }
         }
       }
     }).catch(() => {});
@@ -140,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (AppState.currentScreen === 'start' || AppState.currentScreen === 'intermission') {
       refreshStatus();
     }
-  }, 3000);
+  }, 2000);
 
   // Bind State to UI Renderer
   AppState.subscribe((state, event, data) => {
@@ -416,6 +423,20 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.renderIntermission(completedStage, AppState, nextStageName, currentRank);
     Sound.playVictory();
     UI.showToast(`🎉 Stage ${completedStage} Cleared! Waiting for Host to broadcast Stage ${nextRoundNum}...`, 'success', 4500);
+
+    // Auto-advance if host already started a subsequent stage while player was in the middle of finishing
+    const hostRound = Number(currentGameState.roundNumber || currentGameState.round_number || 0);
+    const hostStage = hostRound === 1 ? 1 : (hostRound === 2 ? 2 : (hostRound >= 3 ? 3 : 0));
+    if (currentGameState.status === 'playing' && hostStage > completedStage) {
+      setTimeout(() => {
+        if (AppState.currentScreen === 'intermission') {
+          UI.showRoundAnnouncement('HOST ALERT', 'NEXT STAGE ACTIVE', 'Pulling you in now...');
+          setTimeout(() => {
+            handleStartGame(hostRound);
+          }, 1200);
+        }
+      }, 1500);
+    }
   }
 
   // ------------------------------------------------------------------------

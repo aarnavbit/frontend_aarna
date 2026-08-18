@@ -14,15 +14,16 @@
 /* Neo-Brutalist HUD Header */
 .game-hud {
   display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr auto;
+  grid-template-columns: 1fr 1fr auto;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 8px 14px;
   border-radius: var(--radius-lg);
   background: var(--bg-cream);
   border: var(--border-thick);
   box-shadow: var(--shadow-hard-md);
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .hud-item {
@@ -128,7 +129,9 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-height: calc(100% - 130px);
+  max-height: calc(100% - 120px);
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* 6 Card Grid Layout */
@@ -136,18 +139,18 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   height: 100%;
-  max-width: 380px;
-  max-height: 480px;
+  max-width: 360px;
+  max-height: 460px;
   margin: 0 auto;
 }
 
 @media (min-height: 700px) {
   .card-grid {
-    gap: 16px;
-    max-height: 520px;
+    gap: 14px;
+    max-height: 500px;
   }
 }
 
@@ -156,14 +159,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  gap: 8px;
+  padding: 8px 12px;
   background: var(--bg-cream);
   border: var(--border-thick);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-hard-md);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-muted);
+  flex-shrink: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+.player-tag {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+  font-size: 0.78rem;
+  flex-shrink: 1;
 }
 
 .player-tag strong {
@@ -173,6 +189,16 @@
 .status-indicator {
   color: var(--bg-primary);
   font-weight: 800;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  text-align: center;
+  flex: 1;
+}
+
+#btn-submit-quit {
+  width: auto;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* Jigsaw Board */
@@ -208,7 +234,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  gap: 8px;
+  gap: 6px;
 }
 
 .slider-header-bar {
@@ -216,8 +242,10 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 420px;
-  padding: 0 4px;
+  max-width: 360px;
+  padding: 0 2px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .slider-stat-pill {
@@ -227,13 +255,13 @@
   background: var(--bg-cream);
   border: var(--border-medium);
   border-radius: var(--radius-sm);
-  padding: 4px 12px;
+  padding: 4px 10px;
   box-shadow: var(--shadow-hard-sm);
 }
 
 .slider-stat-label {
   font-family: var(--font-heading);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--text-muted);
@@ -241,7 +269,7 @@
 
 .slider-stat-value {
   font-family: var(--font-heading);
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--text-main);
 }
@@ -252,23 +280,29 @@
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-hard-sm);
   font-family: var(--font-heading);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 800;
   color: var(--text-main);
-  padding: 6px 14px;
+  padding: 5px 12px;
   cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   transition: transform 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
 }
 
 .slider-btn-restart:active {
-  transform: translate(2px, 2px);
+  transform: translate(1px, 1px);
   box-shadow: none;
 }
 
 /* Responsive Board Wrapper (1:1 Aspect Ratio) */
 .slider-board-wrapper {
   width: 100%;
-  max-width: 440px;
+  max-width: 340px;
+  max-height: 340px;
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;

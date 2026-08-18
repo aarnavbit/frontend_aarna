@@ -229,10 +229,10 @@ class UIRenderer {
       if (state.round <= 3) {
         const pairsLeft = Math.max(0, 3 - state.matchesThisRound);
         this.roundPairsLeft.textContent = `${pairsLeft} pair${pairsLeft === 1 ? '' : 's'} left`;
-      } else if (state.round <= 6) {
+      } else if (state.round === 4) {
         this.roundPairsLeft.textContent = `Jigsaw Puzzle`;
       } else {
-        this.roundPairsLeft.textContent = `15-Slider Puzzle`;
+        this.roundPairsLeft.textContent = `3x3 Slider`;
       }
     }
 
