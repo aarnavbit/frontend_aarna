@@ -2,10 +2,10 @@ function resolveApiUrl() {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')
   }
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return 'http://localhost:8000'
+  if (typeof window !== 'undefined' && window.location && window.location.origin && !window.location.origin.includes('file://')) {
+    return window.location.origin.replace(/\/+$/, '')
   }
-  return 'https://backend-aarna.onrender.com'
+  return 'http://localhost:8000'
 }
 
 const API_BASE_URL = resolveApiUrl()

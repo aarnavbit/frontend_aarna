@@ -4,10 +4,10 @@ export function getLiveBackendBase() {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')
   }
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return 'http://localhost:8000'
+  if (typeof window !== 'undefined' && window.location && window.location.origin && !window.location.origin.includes('file://')) {
+    return window.location.origin.replace(/\/+$/, '')
   }
-  return 'https://backend-aarna.onrender.com'
+  return 'http://localhost:8000'
 }
 
 export const liveGameApi = {
@@ -38,6 +38,9 @@ export const liveGameApi = {
     const data = await res.json()
     if (Array.isArray(data)) {
       const sorted = [...data].sort((a, b) => {
+        const scoreA = Number(a.score ?? 0)
+        const scoreB = Number(b.score ?? 0)
+        if (scoreB !== scoreA) return scoreB - scoreA
         const timeA = Number(a.durationMs ?? a.duration_ms ?? Infinity)
         const timeB = Number(b.durationMs ?? b.duration_ms ?? Infinity)
         return timeA - timeB
@@ -53,6 +56,9 @@ export const liveGameApi = {
     }
     if (data && Array.isArray(data.players)) {
       data.players.sort((a, b) => {
+        const scoreA = Number(a.score ?? 0)
+        const scoreB = Number(b.score ?? 0)
+        if (scoreB !== scoreA) return scoreB - scoreA
         const timeA = Number(a.durationMs ?? a.duration_ms ?? Infinity)
         const timeB = Number(b.durationMs ?? b.duration_ms ?? Infinity)
         return timeA - timeB
