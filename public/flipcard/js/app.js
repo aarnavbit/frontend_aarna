@@ -57,22 +57,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Auto-launch if player is on Intermission Screen
       if (AppState.currentScreen === 'intermission') {
-        launchBroadcastStage(broadcastRound);
+        UI.showRoundAnnouncement('HOST ALERT', 'NEW ROUND STARTING', 'Joining automatically...');
+        setTimeout(() => {
+          handleStartGame(broadcastRound);
+        }, 1300);
         return;
       }
 
-      // Prompt to auto-launch if player is on Result Screen
+      // Force launch if player is on Result Screen
       if (AppState.currentScreen === 'result') {
-        if (confirm(`The host has started a new game! Join now?`)) {
+        UI.showRoundAnnouncement('HOST ALERT', 'NEW ROUND STARTING', 'Joining automatically...');
+        setTimeout(() => {
           handleStartGame(broadcastRound);
-        }
+        }, 1300);
         return;
       }
 
       // Auto-launch for players waiting in lobby with their name
       const rawName = nameInput ? nameInput.value.trim() : '';
       if (AppState.currentScreen === 'start' && (isPlayerWaitingInLobby || rawName)) {
-        handleStartGame(broadcastRound);
+        UI.showRoundAnnouncement('HOST ALERT', 'GAME STARTING', 'Pulling you in...');
+        setTimeout(() => {
+          handleStartGame(broadcastRound);
+        }, 1300);
       }
     });
 
@@ -114,11 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (prevStatus === 'waiting' && state.status === 'playing') {
           const broadcastRound = Number(state.roundNumber || state.round_number || 1);
           if (AppState.currentScreen === 'intermission') {
-            launchBroadcastStage(broadcastRound);
+            UI.showRoundAnnouncement('HOST ALERT', 'NEW ROUND STARTING', 'Joining automatically...');
+            setTimeout(() => handleStartGame(broadcastRound), 1300);
           } else if (AppState.currentScreen === 'start') {
             const rawName = nameInput ? nameInput.value.trim() : '';
             if (isPlayerWaitingInLobby || rawName) {
-              handleStartGame(broadcastRound);
+              UI.showRoundAnnouncement('HOST ALERT', 'GAME STARTING', 'Pulling you in...');
+              setTimeout(() => handleStartGame(broadcastRound), 1300);
             }
           }
         }
@@ -208,11 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('[Network] Session started:', err.message);
     }
 
-    // Determine target stage
+    // Determine target stage based on event round
     const eventRound = targetBroadcastRound || Number(currentGameState.roundNumber || currentGameState.round_number || 1);
-    const initialStage = (eventRound >= 1 && eventRound <= 3) ? eventRound : 1;
+    let initialStage = 1;
+    if (eventRound >= 1 && eventRound <= 3) initialStage = 1;
+    else if (eventRound === 4) initialStage = 2;
+    else if (eventRound === 5) initialStage = 3;
 
-    AppState.initSession(sessionId, rawName, GameConfig.totalRounds || 9);
+    AppState.initSession(sessionId, rawName, GameConfig.totalRounds || 5);
     launchBroadcastStage(initialStage);
   }
 
@@ -412,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
       session_id: AppState.sessionId,
       playerName: AppState.playerName,
       player_name: AppState.playerName,
+      score: AppState.score,
       matches: AppState.totalMatches,
       mismatches: AppState.totalMismatches,
       roundsCompleted: completedRound,
@@ -419,6 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
       durationMs: Math.max(600 * completedRound, Date.now() - AppState.gameStartTime),
       duration_ms: Math.max(600 * completedRound, Date.now() - AppState.gameStartTime),
       actions: {
+        score: AppState.score,
         roundsCompleted: completedRound,
         matches: AppState.totalMatches,
         mismatches: AppState.totalMismatches,
@@ -439,7 +453,24 @@ document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------------------
   // 5. Final Game Completion & Grand Champion Presentation
   // ------------------------------------------------------------------------
-  async function handleGameEnd() {
+  async function handleGameEnd(isEarlySubmit = false) {
+    if (isEarlySubmit) {
+      AppState.score = Math.max(0, AppState.score - 500);
+      UI.showToast('⚠️ Early Submit Penalty: -500 points', 'warning', 3500);
+    } else {
+      // Global Time Bonus for finishing the whole game
+      const totalTimeMs = Date.now() - AppState.gameStartTime;
+      let globalTimeBonus = 0;
+      if (totalTimeMs < 45000) globalTimeBonus = 3000;
+      else if (totalTimeMs < 75000) globalTimeBonus = 1500;
+      else if (totalTimeMs < 120000) globalTimeBonus = 500;
+      
+      if (globalTimeBonus > 0) {
+        AppState.score += globalTimeBonus;
+        UI.showToast(`⚡ Global Time Bonus: +${globalTimeBonus} points!`, 'success', 3500);
+      }
+    }
+
     AppState.recordGameCompletion();
     Sound.playVictory();
 
@@ -451,14 +482,16 @@ document.addEventListener('DOMContentLoaded', () => {
       session_id: AppState.sessionId,
       playerName: AppState.playerName,
       player_name: AppState.playerName,
+      score: AppState.score,
       matches: AppState.totalMatches,
       mismatches: AppState.totalMismatches,
-      roundsCompleted: AppState.totalRounds || 9,
-      rounds_completed: AppState.totalRounds || 9,
+      roundsCompleted: AppState.totalRounds || 5,
+      rounds_completed: AppState.totalRounds || 5,
       durationMs: AppState.gameEndTime - AppState.gameStartTime,
       duration_ms: AppState.gameEndTime - AppState.gameStartTime,
       actions: {
-        roundsCompleted: AppState.totalRounds || 9,
+        score: AppState.score,
+        roundsCompleted: AppState.totalRounds || 5,
         matches: AppState.totalMatches,
         mismatches: AppState.totalMismatches,
         durationMs: AppState.gameEndTime - AppState.gameStartTime,
@@ -540,8 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-submit-quit')?.addEventListener('click', () => {
-    if (confirm('Are you sure you want to submit your current score and end the game?')) {
-      handleGameEnd();
+    if (confirm('Are you sure you want to submit your current score and end the game? (-500 pt penalty)')) {
+      handleGameEnd(true);
     }
   });
 

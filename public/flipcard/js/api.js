@@ -82,6 +82,7 @@ class ApiClient {
         session_id: sessionId,
         playerName,
         player_name: playerName,
+        score: act.score || 0,
         matches: act.matches || 0,
         mismatches: act.mismatches || 0,
         roundsCompleted: act.roundsCompleted || 3,
