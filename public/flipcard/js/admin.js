@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   let pollingInterval;
   let roundTimerInterval;
-  let currentGameState = { status: 'waiting', roundNumber: 0, startTime: null };
 
   const getBaseUrl = () => {
     const stored = sessionStorage.getItem('GAME_API_URL') || localStorage.getItem('GAME_API_URL');
@@ -186,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         alert(data.detail || data.error || 'Failed to start game round');
       }
-    } catch (e) {
+    } catch {
       alert('Network error starting round');
     }
   }
@@ -217,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         alert(data.detail || data.error || 'Failed to stop game round');
       }
-    } catch (e) {
+    } catch {
       alert('Network error stopping round');
     }
   });
@@ -236,14 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok && state) {
         handleGameStateUpdate(state);
       }
-    } catch (e) {
+    } catch {
       alert('Network error resetting lobby');
     }
   });
 
   function handleGameStateUpdate(state) {
     if (!state) return;
-    currentGameState = state;
 
     if (connectedCountEl && state.connectedClients !== undefined) {
       connectedCountEl.textContent = state.connectedClients;
@@ -315,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         alert('Failed to export CSV. Unauthorized?');
       }
-    } catch (e) {
+    } catch {
       alert('Network error while exporting.');
     }
   });
@@ -342,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         alert(data.error || 'Failed to reset leaderboard.');
       }
-    } catch (e) {
+    } catch {
       alert('Network error while resetting.');
     }
   });
@@ -430,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.innerHTML = players.map(p => {
       const durationSec = Math.round((p.durationMs || 0) / 1000);
       const timeStr = new Date(p.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      let medal = p.rank;
+      let medal;
       if (p.rank === 1) medal = '🥇 #1';
       else if (p.rank === 2) medal = '🥈 #2';
       else if (p.rank === 3) medal = '🥉 #3';

@@ -49,7 +49,7 @@ class SoundEngine {
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.08);
-    } catch (e) {
+    } catch {
       // Audio context ignored if unavailable
     }
   }
@@ -79,7 +79,9 @@ class SoundEngine {
         osc.start(now + idx * 0.06);
         osc.stop(now + idx * 0.06 + 0.25);
       });
-    } catch (e) {}
+    } catch {
+      // Audio playback fallback
+    }
   }
 
   playMismatch() {
@@ -105,7 +107,9 @@ class SoundEngine {
 
       osc.start(now);
       osc.stop(now + 0.18);
-    } catch (e) {}
+    } catch {
+      // Audio playback fallback
+    }
   }
 
   playVictory() {
@@ -133,8 +137,17 @@ class SoundEngine {
         osc.start(now + idx * 0.1);
         osc.stop(now + idx * 0.1 + 0.4);
       });
-    } catch (e) {}
+    } catch {
+      // Audio playback fallback
+    }
   }
 }
 
 const Sound = new SoundEngine();
+if (typeof window !== 'undefined') {
+  window.SoundEngine = SoundEngine;
+  window.Sound = Sound;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Sound;
+}

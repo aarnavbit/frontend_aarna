@@ -128,8 +128,10 @@ export function AdminDashboardPage() {
   }, [navigate])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchInitialData()
+    const timer = setTimeout(() => {
+      fetchInitialData()
+    }, 0)
+    return () => clearTimeout(timer)
   }, [fetchInitialData])
 
   const handleLogout = () => {

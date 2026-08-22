@@ -403,3 +403,10 @@ class SliderEngine {
     });
   }
 }
+
+if (typeof window !== 'undefined') {
+  window.SliderEngine = SliderEngine;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SliderEngine;
+}

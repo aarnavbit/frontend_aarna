@@ -1,5 +1,14 @@
-function resolveApiUrl() {
-  if (import.meta.env.VITE_API_BASE_URL) {
+/**
+ * Public and Reviewer API client for the AARNA recruitment portal.
+ * Handles backend communication with automated offline localStorage mock fallback.
+ */
+
+/**
+ * Resolves the active backend API base URL from Vite environment or runtime hostname.
+ * @returns {string}
+ */
+export function resolveApiUrl() {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')
   }
   if (typeof window !== 'undefined' && window.location && window.location.origin && !window.location.origin.includes('file://')) {
@@ -8,11 +17,15 @@ function resolveApiUrl() {
   return 'http://localhost:8000'
 }
 
-const API_BASE_URL = resolveApiUrl()
+export const API_BASE_URL = resolveApiUrl()
 
 const LOCAL_STORAGE_KEY = 'aarana_mock_applications'
 
-function getLocalApplications() {
+/**
+ * Retrieves mock application records from local storage.
+ * @returns {Array<Object>}
+ */
+export function getLocalApplications() {
   try {
     return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]')
   } catch {
@@ -20,10 +33,16 @@ function getLocalApplications() {
   }
 }
 
-function saveLocalApplication(app) {
+/**
+ * Saves a new application record to local storage mock storage.
+ * @param {Object} app - Application payload
+ * @returns {Object} Saved application record with metadata
+ */
+export function saveLocalApplication(app) {
   const apps = getLocalApplications()
+  const randomSuffix = Math.random().toString(36).slice(2, 6)
   const newApp = {
-    id: 'app_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+    id: `app_${Date.now()}_${randomSuffix}`,
     created_at: new Date().toISOString(),
     status: 'pending',
     ...app,
@@ -32,11 +51,17 @@ function saveLocalApplication(app) {
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(apps))
   } catch {
-    // Storage quota or disabled
+    // Storage quota exceeded or storage disabled
   }
   return newApp
 }
 
+/**
+ * Generic HTTP request helper with error normalization and offline fallback.
+ * @param {string} path - Request endpoint path
+ * @param {Object} [options={}] - Fetch options and token
+ * @returns {Promise<any>}
+ */
 async function request(path, options = {}) {
   const { token, ...fetchOptions } = options
   try {
@@ -68,7 +93,7 @@ async function request(path, options = {}) {
         return { success: true, application: created, is_mock: true }
       }
       if (path === '/admin/session' && fetchOptions.method === 'POST') {
-        return { token: 'mock_session_token_' + Date.now() }
+        return { token: `mock_session_token_${Date.now()}` }
       }
       if (path.startsWith('/admin/applications')) {
         const items = getLocalApplications()
@@ -83,12 +108,48 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  /**
+   * Submits applicant registration data.
+   * @param {Object} payload
+   */
   submitApplication: (payload) =>
     request('/applications', { method: 'POST', body: JSON.stringify(payload) }),
+
+  /**
+   * Authenticates reviewer session via password.
+   * @param {string} password
+   */
   createReviewerSession: (password) =>
     request('/admin/session', { method: 'POST', body: JSON.stringify({ password }) }),
-  getApplications: (token, query) =>
-    request(`/admin/applications?${new URLSearchParams(query)}`, { token }),
+
+  /**
+   * Alias for createReviewerSession to satisfy alternate interface contracts.
+   * @param {string} secret
+   */
+  adminSession: (secret) =>
+    request('/admin/session', { method: 'POST', body: JSON.stringify({ password: secret }) }),
+
+  /**
+   * Fetches paginated applications for reviewer dashboard.
+   * @param {string} token - Reviewer Bearer token
+   * @param {Object} [query={}] - Query filters (limit, offset, etc.)
+   */
+  getApplications: (token, query = {}) => {
+    const searchParams = new URLSearchParams(query)
+    const queryString = searchParams.toString()
+    const endpoint = queryString ? `/admin/applications?${queryString}` : '/admin/applications'
+    return request(endpoint, { token })
+  },
+
+  /**
+   * Fetches database synchronization status.
+   * @param {string} token - Reviewer Bearer token
+   */
   getSyncStatus: (token) => request('/admin/sync-status', { token }),
+
+  /**
+   * Fire-and-forget backend health ping to wake server instances.
+   */
   wakeup: () => fetch(`${API_BASE_URL}/applications`, { method: 'OPTIONS' }).catch(() => null),
 }
+

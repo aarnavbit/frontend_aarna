@@ -241,7 +241,7 @@ export function ReviewerDashboard() {
               </thead>
               <tbody>
                 {applications.map((application) => (
-                  <tr key={application.applicationId} onClick={() => setSelected(application)} tabIndex="0" onKeyDown={(event) => {
+                  <tr key={application.applicationId} onClick={() => setSelected(application)} tabIndex={0} onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') setSelected(application)
                   }}>
                     <td><strong>{application.fullName}</strong><span>{application.collegeEmail}</span></td>
@@ -261,7 +261,7 @@ export function ReviewerDashboard() {
                   key={application.applicationId}
                   className="reviewer-applicant-card"
                   onClick={() => setSelected(application)}
-                  tabIndex="0"
+                  tabIndex={0}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') setSelected(application)
                   }}

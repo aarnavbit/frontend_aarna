@@ -4,7 +4,7 @@
  */
 class ScoreQueueManager {
   constructor(apiClient) {
-    this.api = apiClient || (typeof Api !== 'undefined' ? Api : null);
+    this.api = apiClient || (typeof Api !== 'undefined' ? Api : (typeof window !== 'undefined' ? window.Api : null));
     this.storageKey = 'flipcards_pending_scores';
     this.cacheKeyLeaderboard = 'flipcards_cached_leaderboard';
     this.isProcessing = false;
@@ -25,7 +25,7 @@ class ScoreQueueManager {
     try {
       const raw = sessionStorage.getItem(this.storageKey);
       return raw ? JSON.parse(raw) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   }
@@ -33,7 +33,9 @@ class ScoreQueueManager {
   saveQueue(queue) {
     try {
       sessionStorage.setItem(this.storageKey, JSON.stringify(queue));
-    } catch (e) {}
+    } catch {
+      // Storage fallback
+    }
   }
 
   enqueue(submission) {
@@ -69,7 +71,7 @@ class ScoreQueueManager {
         if (typeof onSuccessCallback === 'function') {
           onSuccessCallback(item, res);
         }
-      } catch (err) {
+      } catch {
         item.attempts = (item.attempts || 0) + 1;
         // Keep in queue if it was a network error or server 5xx error
         if (item.attempts < 10) {
@@ -89,20 +91,26 @@ class ScoreQueueManager {
         data,
         cachedAt: Date.now()
       }));
-    } catch (e) {}
+    } catch {
+      // Storage fallback
+    }
   }
 
   getCachedLeaderboard() {
     try {
       const raw = sessionStorage.getItem(this.cacheKeyLeaderboard);
       return raw ? JSON.parse(raw) : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
 }
 
-const ScoreQueue = new ScoreQueueManager(Api);
+const ScoreQueue = new ScoreQueueManager(typeof Api !== 'undefined' ? Api : (typeof window !== 'undefined' ? window.Api : null));
+if (typeof window !== 'undefined') {
+  window.ScoreQueueManager = ScoreQueueManager;
+  window.ScoreQueue = ScoreQueue;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ScoreQueueManager;
 }

@@ -110,6 +110,10 @@ class ApiClient {
 }
 
 const Api = new ApiClient();
+if (typeof window !== 'undefined') {
+  window.ApiClient = ApiClient;
+  window.Api = Api;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ApiClient;
 }

@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Trophy, Flame, Users, Clock, Play, Square, RefreshCw,
-  Download, Maximize2, Minimize2, Radio, Zap, Shield,
-  Crown, Medal, Sparkles, CheckCircle, AlertTriangle, ArrowLeft,
-  ExternalLink, Lock, CheckCircle2
+  Play, Square, RefreshCw,
+  Download, Maximize2, Minimize2, Shield,
+  Crown, Medal, Sparkles, AlertTriangle, ArrowLeft,
+  ExternalLink, Lock
 } from 'lucide-react'
 import { liveGameApi } from '../../api/liveGameApi'
 import { useNavigate } from 'react-router-dom'
@@ -14,7 +14,6 @@ export function LiveLeaderboardPage() {
   const [players, setPlayers] = useState([])
   const [stats, setStats] = useState({ totalPlayers: 0, highestScore: 0, avgDurationSec: 0 })
   const [gameState, setGameState] = useState({ status: 'waiting', roundNumber: 1 })
-  const [connected, setConnected] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('aarna_game_admin_pwd') || '')
   const [isHostUnlocked, setIsHostUnlocked] = useState(() => !!localStorage.getItem('aarna_game_admin_pwd'))
@@ -27,13 +26,13 @@ export function LiveLeaderboardPage() {
   const socketRef = useRef(null)
   const navigate = useNavigate()
 
-  const showToast = (msg) => {
+  const showToast = useCallback((msg) => {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(''), 4000)
-  }
+  }, [])
 
   // Fetch Latest Scores & Stats
-  const fetchScores = async () => {
+  const fetchScores = useCallback(async () => {
     try {
       const data = await liveGameApi.getScores(isHostUnlocked ? adminPassword : null)
       if (data && data.players) {
@@ -51,7 +50,7 @@ export function LiveLeaderboardPage() {
     } catch (err) {
       console.warn('[Admin Live View] Error syncing scores:', err.message)
     }
-  }
+  }, [isHostUnlocked, adminPassword])
 
   // Socket.IO Setup
   useEffect(() => {
@@ -59,12 +58,11 @@ export function LiveLeaderboardPage() {
     socketRef.current = socket
 
     socket.on('connect', () => {
-      setConnected(true)
       fetchScores()
     })
 
     socket.on('disconnect', () => {
-      setConnected(false)
+      // Disconnected state
     })
 
     socket.on('game_state', (state) => {
@@ -93,16 +91,19 @@ export function LiveLeaderboardPage() {
     })
 
     // Initial fetch
-    fetchScores()
+    const timer = setTimeout(() => {
+      fetchScores()
+    }, 0)
 
     // Backup polling every 3.5 seconds
     const interval = setInterval(fetchScores, 3500)
 
     return () => {
+      clearTimeout(timer)
       clearInterval(interval)
       socket.disconnect()
     }
-  }, [isHostUnlocked, adminPassword])
+  }, [fetchScores, showToast])
 
   // Fullscreen Toggle
   const toggleFullscreen = () => {
@@ -131,7 +132,7 @@ export function LiveLeaderboardPage() {
       setShowPasswordModal(false)
       showToast('✨ Host Admin Controls Unlocked!')
       fetchScores()
-    } catch (err) {
+    } catch {
       showToast('❌ Incorrect Host Password')
     }
   }
@@ -666,126 +667,130 @@ export function LiveLeaderboardPage() {
             </div>
           </div>
 
-          {/* Table Header */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '60px 1.6fr 1fr 1fr 1fr 1.2fr',
-            padding: '10px 16px',
-            fontSize: '0.8rem',
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: 'var(--aud-text-muted)',
-            borderBottom: '2px solid var(--aud-surface-inset)'
-          }}>
-            <div>Rank</div>
-            <div>Player Name</div>
-            <div>Score</div>
-            <div>Rounds</div>
-            <div>Matches / Errors</div>
-            <div>Clear Time</div>
+          {/* Table Header & Rows with Responsive Scroll */}
+          <div style={{ overflowX: 'auto', width: '100%' }}>
+            <div style={{ minWidth: '580px' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '60px 1.6fr 1fr 1fr 1fr 1.2fr',
+                padding: '10px 16px',
+                fontSize: '0.8rem',
+                fontWeight: 900,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: 'var(--aud-text-muted)',
+                borderBottom: '2px solid var(--aud-surface-inset)'
+              }}>
+                <div>Rank</div>
+                <div>Player Name</div>
+                <div>Score</div>
+                <div>Rounds</div>
+                <div>Matches / Errors</div>
+                <div>Clear Time</div>
+              </div>
+
+              {/* Rows */}
+              {sortedPlayers.length === 0 ? (
+                <div className="aud-empty-state" style={{ padding: '48px 20px' }}>
+                  <div className="aud-empty-icon">🧩</div>
+                  <div className="aud-empty-title">No scores submitted yet</div>
+                  <p className="aud-empty-desc">Launch a round and participant rankings will appear live on this screen!</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                  <AnimatePresence>
+                    {sortedPlayers.map((p, idx) => {
+                      const rank = idx + 1
+                      const isTop3 = rank <= 3
+                      const medalEmoji = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`))
+
+                      return (
+                        <motion.div
+                          key={p.playerName || p.player_name || idx}
+                          layout
+                          layoutId={`admin-row-${p.playerName || p.player_name}`}
+                          initial={{ opacity: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ type: 'spring', damping: 25, stiffness: 320 }}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '60px 1.6fr 1fr 1fr 1fr 1.2fr',
+                            alignItems: 'center',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            backgroundColor: isTop3 ? '#fffdf9' : 'var(--aud-surface-card)',
+                            border: '2px solid var(--aud-border)',
+                            boxShadow: '2px 2px 0px var(--aud-border)',
+                            fontWeight: 700
+                          }}
+                        >
+                          {/* Rank */}
+                          <div>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '8px',
+                              fontWeight: 900,
+                              fontSize: '0.9rem',
+                              backgroundColor: rank === 1 ? 'var(--aud-gold)' : (rank === 2 ? '#e2e8f0' : (rank === 3 ? '#fed7aa' : 'var(--aud-surface-inset)')),
+                              color: 'var(--aud-text-main)',
+                              border: '1.5px solid var(--aud-border)'
+                            }}>
+                              {medalEmoji}
+                            </span>
+                          </div>
+
+                          {/* Player Name */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{
+                              fontWeight: 900,
+                              fontSize: '1.05rem',
+                              color: 'var(--aud-text-main)'
+                            }}>
+                              {p.playerName || p.player_name}
+                            </span>
+                            {rank === 1 && <Crown size={16} color="#f59e0b" />}
+                          </div>
+
+                          {/* Score */}
+                          <div>
+                            <span style={{
+                              fontWeight: 900,
+                              fontSize: '1.1rem',
+                              color: 'var(--aud-purple-dark)'
+                            }}>
+                              {p.score} <span style={{ fontSize: '0.75rem', color: 'var(--aud-text-muted)' }}>pts</span>
+                            </span>
+                          </div>
+
+                          {/* Rounds */}
+                          <div style={{ color: 'var(--aud-text-muted)', fontWeight: 800, fontSize: '0.9rem' }}>
+                            {p.roundsCompleted || p.rounds_completed || 3} Rnds
+                          </div>
+
+                          {/* Matches / Mismatches */}
+                          <div style={{ fontSize: '0.88rem' }}>
+                            <span style={{ color: 'var(--aud-green)', fontWeight: 800 }}>+{p.matches || 0}</span>
+                            <span style={{ color: 'var(--aud-text-muted)', margin: '0 4px' }}>/</span>
+                            <span style={{ color: 'var(--aud-red)', fontWeight: 800 }}>-{p.mismatches || 0}</span>
+                          </div>
+
+                          {/* Clear Time */}
+                          <div style={{ color: 'var(--aud-text-muted)', fontSize: '0.88rem', fontWeight: 800 }}>
+                            {Math.round((p.durationMs || p.duration_ms || 0) / 1000)}s
+                          </div>
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
           </div>
-
-          {/* Rows */}
-          {sortedPlayers.length === 0 ? (
-            <div className="aud-empty-state" style={{ padding: '48px 20px' }}>
-              <div className="aud-empty-icon">🧩</div>
-              <div className="aud-empty-title">No scores submitted yet</div>
-              <p className="aud-empty-desc">Launch a round and participant rankings will appear live on this screen!</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-              <AnimatePresence>
-                {sortedPlayers.map((p, idx) => {
-                  const rank = idx + 1
-                  const isTop3 = rank <= 3
-                  const medalEmoji = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`))
-
-                  return (
-                    <motion.div
-                      key={p.playerName || p.player_name || idx}
-                      layout
-                      layoutId={`admin-row-${p.playerName || p.player_name}`}
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '60px 1.6fr 1fr 1fr 1fr 1.2fr',
-                        alignItems: 'center',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        backgroundColor: isTop3 ? '#fffdf9' : 'var(--aud-surface-card)',
-                        border: '2px solid var(--aud-border)',
-                        boxShadow: '2px 2px 0px var(--aud-border)',
-                        fontWeight: 700
-                      }}
-                    >
-                      {/* Rank */}
-                      <div>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '8px',
-                          fontWeight: 900,
-                          fontSize: '0.9rem',
-                          backgroundColor: rank === 1 ? 'var(--aud-gold)' : (rank === 2 ? '#e2e8f0' : (rank === 3 ? '#fed7aa' : 'var(--aud-surface-inset)')),
-                          color: 'var(--aud-text-main)',
-                          border: '1.5px solid var(--aud-border)'
-                        }}>
-                          {medalEmoji}
-                        </span>
-                      </div>
-
-                      {/* Player Name */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{
-                          fontWeight: 900,
-                          fontSize: '1.05rem',
-                          color: 'var(--aud-text-main)'
-                        }}>
-                          {p.playerName || p.player_name}
-                        </span>
-                        {rank === 1 && <Crown size={16} color="#f59e0b" />}
-                      </div>
-
-                      {/* Score */}
-                      <div>
-                        <span style={{
-                          fontWeight: 900,
-                          fontSize: '1.1rem',
-                          color: 'var(--aud-purple-dark)'
-                        }}>
-                          {p.score} <span style={{ fontSize: '0.75rem', color: 'var(--aud-text-muted)' }}>pts</span>
-                        </span>
-                      </div>
-
-                      {/* Rounds */}
-                      <div style={{ color: 'var(--aud-text-muted)', fontWeight: 800, fontSize: '0.9rem' }}>
-                        {p.roundsCompleted || p.rounds_completed || 3} Rnds
-                      </div>
-
-                      {/* Matches / Mismatches */}
-                      <div style={{ fontSize: '0.88rem' }}>
-                        <span style={{ color: 'var(--aud-green)', fontWeight: 800 }}>+{p.matches || 0}</span>
-                        <span style={{ color: 'var(--aud-text-muted)', margin: '0 4px' }}>/</span>
-                        <span style={{ color: 'var(--aud-red)', fontWeight: 800 }}>-{p.mismatches || 0}</span>
-                      </div>
-
-                      {/* Clear Time */}
-                      <div style={{ color: 'var(--aud-text-muted)', fontSize: '0.88rem', fontWeight: 800 }}>
-                        {Math.round((p.durationMs || p.duration_ms || 0) / 1000)}s
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </AnimatePresence>
-            </div>
-          )}
         </section>
       </div>
 

@@ -173,6 +173,10 @@ class StateStore {
 }
 
 const AppState = new StateStore();
+if (typeof window !== 'undefined') {
+  window.StateStore = StateStore;
+  window.AppState = AppState;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = StateStore;
 }

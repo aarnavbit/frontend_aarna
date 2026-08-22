@@ -561,6 +561,10 @@ class UIRenderer {
 }
 
 const UI = new UIRenderer();
+if (typeof window !== 'undefined') {
+  window.UIRenderer = UIRenderer;
+  window.UI = UI;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = UIRenderer;
 }

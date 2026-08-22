@@ -1094,6 +1094,7 @@
   .audience-root {
     height: auto;
     min-height: 100vh;
+    min-height: 100dvh;
     overflow-y: auto;
   }
   .aud-main-grid {
@@ -1101,6 +1102,117 @@
   }
   .aud-hero-stats {
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .audience-layout {
+    padding: 10px 12px 16px 12px;
+    gap: 12px;
+  }
+  .aud-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .aud-header-brand {
+    justify-content: flex-start;
+  }
+  .aud-header-center {
+    justify-content: center;
+  }
+  .aud-header-actions {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .aud-hero-stage {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 14px;
+  }
+  .aud-hero-left {
+    gap: 12px;
+  }
+  .aud-hero-title {
+    font-size: 1.35rem;
+  }
+  .aud-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+  .aud-stat-card {
+    min-width: 0;
+    padding: 8px 12px;
+  }
+  .aud-podium-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .aud-podium-card {
+    padding: 10px 12px;
+  }
+  .aud-row-item {
+    grid-template-columns: 32px 1.2fr 0.9fr 0.9fr 0.9fr;
+    font-size: 0.82rem;
+    padding: 6px 8px;
+  }
+  .aud-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .aud-sort-bar {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: space-between;
+  }
+  .aud-sort-btn {
+    min-height: 44px;
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+  .aud-fs-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .aud-grand-champ-card {
+    padding: 24px 20px;
+    max-width: 95vw;
+  }
+  .aud-grand-title {
+    font-size: 1.8rem;
+  }
+  .aud-grand-winner-name {
+    font-size: 2rem;
+    padding: 8px 16px;
+  }
+  .aud-grand-stats-row {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .aud-brand-title {
+    font-size: 1.15rem;
+  }
+  .aud-brand-subtitle {
+    font-size: 0.72rem;
+  }
+  .aud-row-item {
+    grid-template-columns: 28px 1.2fr 1fr;
+    gap: 4px;
+  }
+  .aud-row-time, .aud-row-matches {
+    display: none;
+  }
+  .aud-qr-img {
+    width: 150px;
+    height: 150px;
   }
 }
 
@@ -1112,3 +1224,4 @@
     transition-duration: 0.01ms !important;
   }
 }
+

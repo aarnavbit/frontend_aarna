@@ -4,7 +4,7 @@
  */
 class GameEngine {
   constructor(config) {
-    this.config = config || (typeof GameConfig !== 'undefined' ? GameConfig : {});
+    this.config = config || (typeof GameConfig !== 'undefined' ? GameConfig : (typeof window !== 'undefined' ? window.GameConfig : {}));
   }
 
   // Fisher-Yates Modern Shuffle
@@ -153,6 +153,9 @@ class GameEngine {
   }
 }
 
+if (typeof window !== 'undefined') {
+  window.GameEngine = GameEngine;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = GameEngine;
 }

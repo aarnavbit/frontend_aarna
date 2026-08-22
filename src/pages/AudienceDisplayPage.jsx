@@ -1,23 +1,18 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Trophy,
   Crown,
-  Users,
-  Clock,
   Zap,
   Sparkles,
   QrCode,
   Flame,
   Radio,
-  CheckCircle2,
   Maximize2,
   Minimize2,
   Smartphone,
   Award,
-  Gamepad2,
-  RefreshCw,
-  AlertCircle
+  Gamepad2
 } from 'lucide-react'
 import QRCode from 'qrcode'
 import { liveGameApi } from '../api/liveGameApi'
@@ -31,7 +26,6 @@ export function AudienceDisplayPage() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [countdown, setCountdown] = useState(null) // null | 3 | 2 | 1 | 'GO!'
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('')
-  const [lastSyncTime, setLastSyncTime] = useState(null)
   const [showGrandChampionModal, setShowGrandChampionModal] = useState(false)
   const [sortBy, setSortBy] = useState('score') // 'score' | 'time' | 'matches' | 'rounds'
 
@@ -86,7 +80,7 @@ export function AudienceDisplayPage() {
   }
 
   // Fetch Latest Scores & Stats
-  const fetchScores = async () => {
+  const fetchScores = useCallback(async () => {
     try {
       const data = await liveGameApi.getScores()
       if (data && data.players) {
@@ -100,11 +94,10 @@ export function AudienceDisplayPage() {
       if (data && data.gameState) {
         setGameState(data.gameState)
       }
-      setLastSyncTime(new Date())
     } catch (err) {
       console.warn('[Audience Stage] Syncing scores error:', err.message)
     }
-  }
+  }, [])
 
   // Trigger Local Dramatic Countdown sequence
   const startCountdownSequence = () => {
@@ -173,17 +166,20 @@ export function AudienceDisplayPage() {
     })
 
     // Initial fetch
-    fetchScores()
+    const timer = setTimeout(() => {
+      fetchScores()
+    }, 0)
 
     // Backup polling every 3.5 seconds
     const interval = setInterval(fetchScores, 3500)
 
     return () => {
+      clearTimeout(timer)
       clearInterval(interval)
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current)
       socket.disconnect()
     }
-  }, [])
+  }, [fetchScores])
 
   // Sorted Players based on user-selected criteria
   const sortedPlayers = useMemo(() => {
@@ -222,7 +218,6 @@ export function AudienceDisplayPage() {
   // Derived Rankings from sorted list
   const top1 = useMemo(() => sortedPlayers[0] || null, [sortedPlayers])
   const top3 = useMemo(() => sortedPlayers.slice(0, 3), [sortedPlayers])
-  const remainingPlayers = useMemo(() => sortedPlayers.slice(3), [sortedPlayers])
 
   const roundNum = gameState.roundNumber || gameState.round_number || 1
   const isPlaying = gameState.status === 'playing'

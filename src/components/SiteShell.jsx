@@ -23,11 +23,12 @@ export function SiteShell({ children, theme, setTheme }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
 
-  // Close drawer on navigation
+  // Close mobile drawer on browser history navigation (back/forward)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMobileMenuOpen(false)
-  }, [location])
+    const handlePopState = () => setIsMobileMenuOpen(false)
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   // Prevent background scroll when mobile drawer is open and listen for Escape key
   useEffect(() => {

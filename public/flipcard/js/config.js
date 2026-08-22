@@ -23,7 +23,7 @@ function resolveApiBaseUrl() {
     if (storedApi) {
       return storedApi.replace(/\/+$/, '');
     }
-  } catch (e) {
+  } catch {
     // Storage access fallback
   }
 
@@ -101,6 +101,9 @@ const GameConfig = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.GameConfig = GameConfig;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = GameConfig;
 }

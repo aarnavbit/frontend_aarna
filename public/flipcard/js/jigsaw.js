@@ -361,7 +361,7 @@ class JigsawEngine {
       e.preventDefault();
     };
 
-    const handleUp = (e) => {
+    const handleUp = () => {
       if (!this.isDragging || !this.draggedPiece) return;
       const p = this.draggedPiece;
       this.isDragging = false;
@@ -418,4 +418,11 @@ class JigsawEngine {
       }
     }
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.JigsawEngine = JigsawEngine;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = JigsawEngine;
 }
