@@ -1,0 +1,427 @@
+/* Ishanya event styles integrated with the AARNA Poster visual system (lilac, coral-orange, cream, espresso brown) */
+
+.ishanya-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 3rem 1.5rem 5rem;
+  font-family: var(--font-primary, 'Tektur', sans-serif);
+  color: var(--ink);
+  background: var(--canvas);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.ishanya-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ishanya-brand-logo {
+  max-width: 380px;
+  width: 90%;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 0.75rem;
+  transition: filter 0.3s ease;
+}
+
+/* In dark mode, invert the black logo to bright luminous white */
+:root[data-theme='dark'] .ishanya-brand-logo {
+  filter: invert(1) brightness(1.2);
+}
+
+.ishanya-header-sub {
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+}
+
+/* Tabs */
+.ishanya-tabs {
+  display: flex;
+  gap: 0;
+  max-width: 620px;
+  margin: 0 auto 2rem;
+  border: 3px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 5px 5px 0px var(--border);
+}
+
+.ishanya-tab {
+  flex: 1;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.ishanya-tab:first-child {
+  border-right: 3px solid var(--border);
+}
+
+.ishanya-tab.active {
+  background: var(--violet);
+  color: var(--ink);
+}
+
+:root[data-theme='dark'] .ishanya-tab.active {
+  background: var(--violet);
+  color: #f3e3d3;
+}
+
+.ishanya-tab:hover:not(.active) {
+  background: color-mix(in srgb, var(--violet) 30%, transparent);
+}
+
+/* Cards */
+.ishanya-card {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  border-radius: 24px;
+  padding: 2.25rem;
+  max-width: 620px;
+  margin: 0 auto 1.5rem;
+  box-shadow: 6px 6px 0px var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ishanya-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px var(--border);
+}
+
+.ishanya-card h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 1.25rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.75rem;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Input group */
+.ishanya-input-group {
+  margin-bottom: 1.2rem;
+}
+
+.ishanya-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 0.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+}
+
+.ishanya-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  outline: none;
+  font-family: var(--font-primary, 'Tektur', sans-serif);
+  transition: box-shadow 0.15s, border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.ishanya-input:focus {
+  border-color: var(--gold);
+  box-shadow: 3px 3px 0px var(--gold);
+}
+
+.ishanya-input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.7;
+}
+
+/* Member cards (Lilac block matching ApplyPage timeline cards) */
+.ishanya-member-card {
+  background: var(--violet);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 4px 4px 0px var(--border);
+}
+
+.ishanya-member-card h3 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ishanya-member-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+/* Buttons (Gradient of Lilac and Coral from ApplyPage) */
+.ishanya-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border: 2.5px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  background: linear-gradient(135deg, var(--violet) 0%, var(--gold) 100%);
+  color: var(--ink);
+  box-shadow: 4px 4px 0px var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+}
+
+.ishanya-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--violet) 100%);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--border);
+}
+
+.ishanya-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--border);
+}
+
+.ishanya-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ishanya-btn-secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border: 2px solid var(--border);
+}
+
+.ishanya-btn-success {
+  background: linear-gradient(135deg, #287a55, #48bb78);
+  color: #ffffff;
+}
+
+.ishanya-btn-danger {
+  background: linear-gradient(135deg, #d94e34, #f56565);
+  color: #ffffff;
+}
+
+/* Status Badges */
+.ishanya-status-badge {
+  display: inline-block;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0px var(--border);
+}
+
+.ishanya-status-badge.pending {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.ishanya-status-badge.accepted {
+  background: #287a55;
+  color: #ffffff;
+}
+
+.ishanya-status-badge.rejected {
+  background: #d94e34;
+  color: #ffffff;
+}
+
+/* Modal Overlay */
+.ishanya-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(26, 15, 8, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1.25rem;
+}
+
+.ishanya-modal {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  border-radius: 26px;
+  padding: 2.25rem;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 8px 8px 0px var(--border);
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: center;
+  color: var(--ink);
+}
+
+.ishanya-modal h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 1rem;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ishanya-qr-image {
+  max-width: 240px;
+  width: 100%;
+  margin: 1.25rem auto;
+  display: block;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 8px;
+  box-shadow: 4px 4px 0px var(--border);
+}
+
+/* Success ID box */
+.ishanya-success-id {
+  background: var(--violet);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 1.15rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin: 1.25rem 0;
+  word-break: break-all;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  letter-spacing: 0.06em;
+  box-shadow: 3px 3px 0px var(--border);
+}
+
+.ishanya-success-id button {
+  background: var(--border);
+  color: var(--canvas);
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  transition: opacity 0.15s;
+}
+
+.ishanya-success-id button:hover {
+  opacity: 0.85;
+}
+
+/* WhatsApp Group Link */
+.ishanya-whatsapp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #25D366;
+  color: #ffffff;
+  padding: 0.85rem 1.75rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: 4px 4px 0px var(--border);
+  transition: transform 0.15s, box-shadow 0.15s;
+  margin-top: 1.25rem;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  letter-spacing: 0.04em;
+}
+
+.ishanya-whatsapp-link:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--border);
+}
+
+/* Error message */
+.ishanya-error {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  border: 2px solid var(--danger);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+/* Loading */
+.ishanya-loading {
+  text-align: center;
+  padding: 2.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+  font-family: var(--font-display, 'Tektur', sans-serif);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .ishanya-page {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .ishanya-brand-logo {
+    max-width: 280px;
+  }
+
+  .ishanya-card {
+    padding: 1.5rem;
+  }
+
+  .ishanya-member-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ishanya-modal {
+    padding: 1.5rem;
+  }
+}

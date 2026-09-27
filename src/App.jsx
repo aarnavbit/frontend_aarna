@@ -12,6 +12,8 @@ const AdminLogin = lazy(() => import('./pages/admin/AdminLogin').then((m) => ({ 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })))
 const LiveLeaderboardPage = lazy(() => import('./pages/admin/LiveLeaderboardPage').then((m) => ({ default: m.LiveLeaderboardPage })))
 const AudienceDisplayPage = lazy(() => import('./pages/AudienceDisplayPage').then((m) => ({ default: m.AudienceDisplayPage })))
+const IshanyaPage = lazy(() => import('./pages/IshanyaPage').then((m) => ({ default: m.IshanyaPage })))
+const IshanyaAdminPage = lazy(() => import('./pages/admin/IshanyaAdminPage').then((m) => ({ default: m.IshanyaAdminPage })))
 
 function PageLoader() {
   return (
@@ -59,6 +61,7 @@ function App() {
           <Route path="/admin/live-game" element={<LiveLeaderboardPage />} />
           <Route path="/live" element={<LiveLeaderboardPage />} />
           <Route path="/leaderboard" element={<LiveLeaderboardPage />} />
+          <Route path="/admin/ishanya" element={<IshanyaAdminPage />} />
 
           {/* Public Site Routes Wrapped in SiteShell */}
           <Route
@@ -68,6 +71,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/apply" element={<ApplyPage />} />
+                  <Route path="/ishanya" element={<IshanyaPage />} />
                   <Route path="*" element={<HomePage />} />
                 </Routes>
               </SiteShell>

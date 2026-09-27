@@ -10,17 +10,17 @@ const STORAGE_KEY = 'aarna-theme'
  * @returns {'dark' | 'light'}
  */
 function getInitialTheme() {
-  if (typeof window === 'undefined') return 'dark'
+  if (typeof window === 'undefined') return 'light'
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'dark' || saved === 'light') return saved
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light'
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark'
     }
   } catch {
     // localStorage might be unavailable or throw SecurityError in private windows
   }
-  return 'dark'
+  return 'light'
 }
 
 /**

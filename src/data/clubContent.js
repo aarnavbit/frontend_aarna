@@ -32,6 +32,50 @@ export const portfolios = [
     interviewFocus: 'Problem solving, web fundamentals, projects & willingness to learn',
     badge: 'Core Engineering',
     color: '#3b82f6',
+    lead: {
+      name: 'Aarav Sharma',
+      role: 'Team Lead & Tech Architect',
+      photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      github: 'https://github.com',
+      linkedin: 'https://linkedin.com',
+    },
+    members: [
+      {
+        name: 'Priya Nair',
+        role: 'Full Stack Developer',
+        photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Karthik Verma',
+        role: 'Backend Systems Lead',
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Ananya Rao',
+        role: 'Frontend & UI Engineer',
+        photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Rohan Joshi',
+        role: 'DevOps & Cloud Engineer',
+        photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Sneha Gupta',
+        role: 'Mobile App Engineer',
+        photo: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com',
+      },
+    ],
   },
   {
     name: 'Production team',
@@ -45,6 +89,39 @@ export const portfolios = [
     interviewFocus: 'Resourcefulness, stage presence, crisis handling & team execution',
     badge: 'On-Ground Operations',
     color: '#10b981',
+    lead: {
+      name: 'Devendra Patil',
+      role: 'Team Lead & Operations',
+      photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+      github: '',
+      linkedin: 'https://linkedin.com',
+    },
+    members: [
+      {
+        name: 'Meera Kulkarni',
+        role: 'Stage & Floor Manager',
+        photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Arjun Deshmukh',
+        role: 'Live Sound & AV Engineer',
+        photo: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Tanvi Shah',
+        role: 'Logistics Coordinator',
+        photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Varun Bhat',
+        role: 'Equipment & Floor Tech',
+        photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+    ],
   },
   {
     name: 'Designing team',
@@ -58,6 +135,40 @@ export const portfolios = [
     interviewFocus: 'Visual composition, design portfolio, aesthetic sense & typography',
     badge: 'Creative Identity',
     color: '#ec4899',
+    lead: {
+      name: 'Ishita Sen',
+      role: 'Team Lead & Creative Director',
+      photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
+      github: 'https://github.com',
+      linkedin: 'https://linkedin.com',
+    },
+    members: [
+      {
+        name: 'Aditya Saxena',
+        role: 'UI/UX & Design Systems',
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Rhea Kapoor',
+        role: 'Motion & 3D Artist',
+        photo: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Kabir Mehta',
+        role: 'Brand & Visual Identity',
+        photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Sanya Mir',
+        role: 'Digital Illustrator',
+        photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+    ],
   },
   {
     name: 'Documentation team',
@@ -71,6 +182,40 @@ export const portfolios = [
     interviewFocus: 'Writing quality, storytelling, attention to detail & editorial voice',
     badge: 'Editorial & Archival',
     color: '#8b5cf6',
+    lead: {
+      name: 'Siddharth Menon',
+      role: 'Team Lead & Chief Editor',
+      photo: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=400&q=80',
+      github: 'https://github.com',
+      linkedin: 'https://linkedin.com',
+    },
+    members: [
+      {
+        name: 'Divya Reddy',
+        role: 'Senior Copywriter & Archivist',
+        photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Manish Paul',
+        role: 'Technical Writer & Reporter',
+        photo: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Pooja Hegde',
+        role: 'Content & Scriptwriter',
+        photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Vikram Malhotra',
+        role: 'Editorial & Research',
+        photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+    ],
   },
   {
     name: 'Social Media & Promotion team',
@@ -84,6 +229,39 @@ export const portfolios = [
     interviewFocus: 'Trend awareness, engagement strategies & campaign ideation',
     badge: 'Audience Growth',
     color: '#f59e0b',
+    lead: {
+      name: 'Zara Khan',
+      role: 'Team Lead & Growth Strategist',
+      photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      github: '',
+      linkedin: 'https://linkedin.com',
+    },
+    members: [
+      {
+        name: 'Ayush Trivedi',
+        role: 'Campaign Director',
+        photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Kavya Iyer',
+        role: 'Reels & Short-Form Lead',
+        photo: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Nikhil Bansal',
+        role: 'Analytics & Community',
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Tara Sen',
+        role: 'Public Relations Specialist',
+        photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+    ],
   },
   {
     name: 'Hospitality team',
@@ -97,6 +275,39 @@ export const portfolios = [
     interviewFocus: 'Communication etiquette, conflict resolution & hospitality instincts',
     badge: 'Guest Relations',
     color: '#14b8a6',
+    lead: {
+      name: 'Ritika Chawla',
+      role: 'Team Lead & Protocol Head',
+      photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+      github: '',
+      linkedin: 'https://linkedin.com',
+    },
+    members: [
+      {
+        name: 'Sameer Sheikh',
+        role: 'VIP Escort & Dignitary Lead',
+        photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Bhavna Pillai',
+        role: 'Delegate Coordinator',
+        photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Gaurav Sen',
+        role: 'Venue Flow Supervisor',
+        photo: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Simran Kaur',
+        role: 'Guest Experience Concierge',
+        photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+    ],
   },
   {
     name: 'Marketing & Sponsorship team',
@@ -110,6 +321,39 @@ export const portfolios = [
     interviewFocus: 'Pitch delivery, negotiation skills, confidence & professional outreach',
     badge: 'Industry Alliances',
     color: '#e11d48',
+    lead: {
+      name: 'Kunal Singhania',
+      role: 'Team Lead & Alliances Head',
+      photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80',
+      github: '',
+      linkedin: 'https://linkedin.com',
+    },
+    members: [
+      {
+        name: 'Akash Roy',
+        role: 'Corporate Outreach Lead',
+        photo: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Neha Joshi',
+        role: 'Sponsorship Strategist',
+        photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Rahul Bajaj',
+        role: 'Brand Partnership Associate',
+        photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+      {
+        name: 'Diya Mathur',
+        role: 'Financial Planning & CRM',
+        photo: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        linkedin: 'https://linkedin.com',
+      },
+    ],
   },
 ]
 

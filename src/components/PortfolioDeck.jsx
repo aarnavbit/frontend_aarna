@@ -1,263 +1,635 @@
-/** Motion-first portfolio explorer for AARNA's seven core teams. */
+/**
+ * PortfolioDeck - Compact lead cards with full-row expansion popup modal.
+ * Features Neo-Brutalist design, lead photo avatars, core team roster grid,
+ * smooth spring animations, keyboard navigation, and tab controls.
+ */
 
-import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
+  Github,
+  Linkedin,
+  Users,
+  X,
+} from 'lucide-react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { portfolios } from '../data/clubContent'
-import { useIsMobile } from '../hooks/useIsMobile'
+
+/**
+ * Avatar with graceful fallback to styled Neo-Brutalist initials
+ */
+function AvatarWithFallback({ src, alt, name, className }) {
+  const [error, setError] = useState(false)
+
+  const initials = name
+    ? name
+        .split(' ')
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : 'A'
+
+  if (error || !src) {
+    return (
+      <div className={`portfolio-avatar-placeholder ${className || ''}`} aria-label={alt || name}>
+        <span className="avatar-initials-text">{initials}</span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt || name}
+      className={`portfolio-avatar-img ${className || ''}`}
+      onError={() => setError(true)}
+      loading="lazy"
+    />
+  )
+}
 
 function PortfolioDeckComponent() {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [isHovered, setIsHovered] = useState(false)
   const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile(1024)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [selectedTeam, setSelectedTeam] = useState(null)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
-  const move = useCallback(
-    (direction) => {
-      setActiveIndex((prev) => {
-        const next = prev + direction
-        if (next < 0) return portfolios.length - 1
-        if (next >= portfolios.length) return 0
-        return next
-      })
-    },
-    []
-  )
+  const containerRef = useRef(null)
+  const cardRefs = useRef([])
+  const dragStartRef = useRef({ x: 0, scrollLeft: 0, hasDragged: false })
 
+  // Scroll carousel to a specific card index
+  const scrollToCard = useCallback((index) => {
+    const container = containerRef.current
+    if (!container) return
+
+    const clampedIndex = Math.max(0, Math.min(portfolios.length - 1, index))
+    const firstCard = container.querySelector('.portfolio-team-card')
+    const cardWidth = firstCard ? firstCard.offsetWidth : 300
+    const gap = 20
+
+    container.scrollTo({
+      left: clampedIndex * (cardWidth + gap),
+      behavior: 'smooth',
+    })
+    setActiveIndex(clampedIndex)
+  }, [])
+
+  // Move exactly one card left or right
+  const moveOneCard = useCallback((direction) => {
+    setActiveIndex((prev) => {
+      let next = prev + direction
+      if (next < 0) next = portfolios.length - 1
+      if (next >= portfolios.length) next = 0
+      scrollToCard(next)
+      return next
+    })
+  }, [scrollToCard])
+
+  // Open full-width modal for a selected team
+  const handleOpenTeam = useCallback((portfolio, index) => {
+    setSelectedTeam(portfolio)
+    setActiveIndex(index)
+    scrollToCard(index)
+  }, [scrollToCard])
+
+  // Close modal
+  const handleCloseModal = useCallback(() => {
+    setSelectedTeam(null)
+  }, [])
+
+  // Navigate between teams while in modal
+  const handlePrevTeam = useCallback(() => {
+    if (!selectedTeam) {
+      moveOneCard(-1)
+      return
+    }
+    const currentIdx = portfolios.findIndex((p) => p.name === selectedTeam.name)
+    const prevIdx = (currentIdx - 1 + portfolios.length) % portfolios.length
+    setSelectedTeam(portfolios[prevIdx])
+    scrollToCard(prevIdx)
+  }, [selectedTeam, moveOneCard, scrollToCard])
+
+  const handleNextTeam = useCallback(() => {
+    if (!selectedTeam) {
+      moveOneCard(1)
+      return
+    }
+    const currentIdx = portfolios.findIndex((p) => p.name === selectedTeam.name)
+    const nextIdx = (currentIdx + 1) % portfolios.length
+    setSelectedTeam(portfolios[nextIdx])
+    scrollToCard(nextIdx)
+  }, [selectedTeam, moveOneCard, scrollToCard])
+
+  // Keyboard navigation: Escape closes modal, Left/Right cycles teams/cards
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') move(-1)
-      if (e.key === 'ArrowRight') move(1)
+      const tag = document.activeElement ? document.activeElement.tagName : ''
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+      if (e.key === 'Escape') {
+        if (selectedTeam) {
+          e.preventDefault()
+          handleCloseModal()
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        if (selectedTeam) {
+          handleNextTeam()
+        } else {
+          moveOneCard(1)
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        if (selectedTeam) {
+          handlePrevTeam()
+        } else {
+          moveOneCard(-1)
+        }
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [move])
+  }, [selectedTeam, handleCloseModal, handleNextTeam, handlePrevTeam, moveOneCard])
 
+  // Prevent background scrolling while modal is open
   useEffect(() => {
-    if (isHovered) return
+    if (selectedTeam) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [selectedTeam])
 
-    const timer = setInterval(() => {
-      move(1)
-    }, 6000)
+  // Auto-scroll loop (pauses on hover, drag, or when modal is open)
+  useEffect(() => {
+    if (isHovered || isDragging || selectedTeam) return
 
-    return () => clearInterval(timer)
-  }, [move, isHovered])
+    const interval = setInterval(() => {
+      moveOneCard(1)
+    }, 4200)
+
+    return () => clearInterval(interval)
+  }, [isHovered, isDragging, selectedTeam, moveOneCard])
+
+  // Mouse drag-to-scroll handlers
+  const handleMouseDown = (e) => {
+    const container = containerRef.current
+    if (!container) return
+
+    setIsDragging(true)
+    dragStartRef.current = {
+      x: e.pageX - container.offsetLeft,
+      scrollLeft: container.scrollLeft,
+      hasDragged: false,
+    }
+  }
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return
+    const container = containerRef.current
+    if (!container) return
+
+    e.preventDefault()
+    const x = e.pageX - container.offsetLeft
+    const walk = (x - dragStartRef.current.x) * 1.5
+    if (Math.abs(walk) > 5) {
+      dragStartRef.current.hasDragged = true
+    }
+    container.scrollLeft = dragStartRef.current.scrollLeft - walk
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  // Update active index based on scroll position
+  const handleScroll = () => {
+    const container = containerRef.current
+    if (!container || isDragging) return
+
+    const firstCard = container.querySelector('.portfolio-team-card')
+    const cardWidth = firstCard ? firstCard.offsetWidth : 300
+    const gap = 20
+    const itemFullWidth = cardWidth + gap
+    const scrollPos = container.scrollLeft
+
+    const closestIndex = Math.round(scrollPos / itemFullWidth)
+    const clampedIndex = Math.max(0, Math.min(portfolios.length - 1, closestIndex))
+
+    if (clampedIndex !== activeIndex) {
+      setActiveIndex(clampedIndex)
+    }
+  }
+
+  const selectedTeamIndex = selectedTeam
+    ? portfolios.findIndex((p) => p.name === selectedTeam.name)
+    : -1
 
   return (
     <div
       className="portfolio-deck"
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false)
+        setIsDragging(false)
+      }}
     >
-      <div className="portfolio-tabs" role="tablist" aria-label="Portfolio list">
-        {portfolios.map((portfolio, index) => {
-          const isActive = index === activeIndex
-          return (
-            <button
-              key={portfolio.name}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={isActive ? 'is-active' : ''}
-              onClick={() => setActiveIndex(index)}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="tab-indicator"
-                  className="tab-indicator"
-                  transition={{
-                    type: 'spring',
-                    stiffness: 380,
-                    damping: 32,
-                    mass: 0.9,
-                  }}
-                >
-                  <motion.div
-                    animate={{
-                      scaleX: [1, 0.88, 1.15, 0.95, 1],
-                      scaleY: [1, 1.12, 0.85, 1.05, 1],
-                    }}
-                    transition={{
-                      duration: 0.55,
-                      times: [0, 0.4, 0.7, 0.88, 1],
-                      ease: 'easeInOut',
-                    }}
-                    className="tab-indicator-inner"
-                  />
-                </motion.div>
-              )}
-              <motion.span
-                style={{ position: 'relative', zIndex: 2 }}
-                animate={{
-                  scale: isActive ? 1.08 : 1,
-                  opacity: isActive ? 1 : 0.7,
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                0{index + 1}
-              </motion.span>
-            </button>
-          )
-        })}
-      </div>
-
-      <div className="portfolio-stage">
-        <div className="portfolio-stack">
+      {/* Top Number Tabs Navigation */}
+      <div className="portfolio-nav-header">
+        <div className="portfolio-tabs" role="tablist" aria-label="Portfolio teams list">
           {portfolios.map((portfolio, index) => {
-            const isPast = index < activeIndex
-            const isCurrent = index === activeIndex
-            const offset = index - activeIndex
-
+            const isActive = index === activeIndex
             return (
-              <motion.article
+              <button
                 key={portfolio.name}
-                layoutId={`card-${portfolio.name}`}
-                className={`portfolio-card ${isCurrent ? 'is-active' : ''}`}
-                drag={!isMobile && isCurrent ? 'x' : false}
-                dragDirectionLock={true}
-                dragMomentum={false}
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.15}
-                onDragEnd={(e, { offset: dragOffset, velocity }) => {
-                  if (dragOffset.x < -50 || velocity.x < -250) {
-                    move(1)
-                  } else if (dragOffset.x > 50 || velocity.x > 250) {
-                    move(-1)
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={isActive ? 'is-active' : ''}
+                onClick={() => {
+                  scrollToCard(index)
+                  if (selectedTeam) {
+                    setSelectedTeam(portfolio)
                   }
                 }}
-                style={{
-                  touchAction: isCurrent ? 'pan-y' : 'auto',
-                  pointerEvents: isCurrent ? 'auto' : 'none'
-                }}
-                initial={false}
-                animate={
-                  reduceMotion
-                    ? { opacity: isCurrent ? 1 : 0, zIndex: isCurrent ? 10 : 0, pointerEvents: isCurrent ? 'auto' : 'none' }
-                    : isPast
-                    ? {
-                        x: '115%',
-                        y: 40,
-                        rotate: 3.5,
-                        scale: 0.94,
-                        opacity: 0,
-                        zIndex: 0,
-                        pointerEvents: 'none',
-                      }
-                    : {
-                        x: 0,
-                        y: offset * 9,
-                        rotate: 0,
-                        scale: Math.max(0.88, 1 - offset * 0.025),
-                        opacity: Math.max(0, 1 - offset * 0.15),
-                        zIndex: portfolios.length - offset,
-                        pointerEvents: isCurrent ? 'auto' : 'none',
-                      }
-                }
-                transition={
-                  reduceMotion
-                    ? { duration: 0.2 }
-                    : {
-                        type: 'spring',
-                        stiffness: 260,
-                        damping: 26,
-                        mass: 0.9,
-                      }
-                }
               >
-                {/* Dynamic Background Rings - only animate continuous spin for active visible card */}
-                <motion.div
-                  className="portfolio-background-rings"
-                  animate={isMobile || !isCurrent ? false : { rotate: 360 }}
-                  transition={{ duration: 75, repeat: Infinity, ease: 'linear' }}
-                >
+                {isActive && (
                   <motion.div
-                    className="ring ring-outer"
-                    animate={{
-                      rotate: activeIndex * 15,
-                      scale: isCurrent ? [1, 1.05, 1] : 1,
+                    layoutId="portfolio-tab-indicator"
+                    className="tab-indicator"
+                    transition={{
+                      type: 'spring',
+                      stiffness: 400,
+                      damping: 30,
                     }}
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
                   />
-                  <motion.div
-                    className="ring ring-inner"
-                    animate={{
-                      rotate: -activeIndex * 20,
-                      scale: isCurrent ? [1, 1.08, 1] : 1,
-                    }}
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
-                  />
-                </motion.div>
-
-                {/* Card Content */}
-                <motion.span
-                  className="section-kicker"
-                  animate={isCurrent ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-                  transition={{ duration: 0.4, delay: isCurrent ? 0.12 : 0 }}
-                >
-                  {portfolio.eyebrow}
-                </motion.span>
-
-                <motion.h3
-                  animate={isCurrent ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-                  transition={{ duration: 0.45, delay: isCurrent ? 0.15 : 0, ease: [0.215, 0.61, 0.355, 1] }}
-                >
-                  {portfolio.name}
-                </motion.h3>
-
-                <motion.p
-                  animate={isCurrent ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-                  transition={{ duration: 0.45, delay: isCurrent ? 0.26 : 0 }}
-                >
-                  {portfolio.description}
-                </motion.p>
-
-                <motion.span
-                  className="portfolio-number"
-                  animate={isCurrent ? { opacity: 1, scale: 1 } : { opacity: 0.4, scale: 0.9 }}
-                  transition={{ duration: 0.3, delay: isCurrent ? 0.15 : 0 }}
-                >
-                  0{index + 1} / 0{portfolios.length}
-                </motion.span>
-              </motion.article>
+                )}
+                <span className="tab-number-text">0{index + 1}</span>
+              </button>
             )
           })}
         </div>
 
-        <div className="deck-controls">
-          <motion.button
+        {/* Arrow Controls */}
+        <div className="portfolio-arrow-controls">
+          <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              move(-1)
-            }}
-            aria-label="Previous portfolio"
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
+            className="portfolio-nav-arrow"
+            onClick={() => moveOneCard(-1)}
+            aria-label="Previous team"
           >
-            <motion.span style={{ display: 'flex' }} whileHover={{ x: -2 }} whileTap={{ x: -4 }}>
-              <ArrowLeft size={18} />
-            </motion.span>
-          </motion.button>
-          <motion.button
+            <ArrowLeft size={18} />
+          </button>
+          <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              move(1)
-            }}
-            aria-label="Next portfolio"
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
+            className="portfolio-nav-arrow"
+            onClick={() => moveOneCard(1)}
+            aria-label="Next team"
           >
-            <motion.span style={{ display: 'flex' }} whileHover={{ x: 2 }} whileTap={{ x: 4 }}>
-              <ArrowRight size={18} />
-            </motion.span>
-          </motion.button>
+            <ArrowRight size={18} />
+          </button>
         </div>
       </div>
+
+      {/* Draggable Carousel Track (Compact Cards - 3 per row on desktop) */}
+      <div
+        ref={containerRef}
+        className={`portfolio-scroll-track ${isDragging ? 'is-dragging' : ''}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onScroll={handleScroll}
+      >
+        {portfolios.map((portfolio, index) => {
+          return (
+            <motion.article
+              key={portfolio.name}
+              ref={(el) => (cardRefs.current[index] = el)}
+              className="portfolio-team-card"
+              onClick={() => {
+                if (!dragStartRef.current.hasDragged) {
+                  handleOpenTeam(portfolio, index)
+                }
+              }}
+              whileHover={
+                reduceMotion || isDragging
+                  ? {}
+                  : {
+                      y: -8,
+                      transition: { type: 'spring', stiffness: 350, damping: 25 },
+                    }
+              }
+            >
+              {/* Card Banner */}
+              <div
+                className="portfolio-card-banner"
+                style={{
+                  background: `linear-gradient(135deg, ${portfolio.color || 'var(--violet)'} 0%, var(--gold) 100%)`,
+                }}
+              >
+                <div className="portfolio-card-banner-overlay" />
+                <span className="portfolio-card-number">0{index + 1}</span>
+                <span className="portfolio-card-badge">{portfolio.eyebrow}</span>
+              </div>
+
+              {/* Card Body */}
+              <div className="portfolio-card-content">
+                {/* Team Lead Section */}
+                <div className="portfolio-lead-section">
+                  <div className="portfolio-lead-avatar-wrap">
+                    <AvatarWithFallback
+                      src={portfolio.lead?.photo}
+                      name={portfolio.lead?.name}
+                      alt={portfolio.lead?.name}
+                      className="portfolio-lead-avatar"
+                    />
+                    <span className="portfolio-lead-badge-mini" title="Team Lead">Lead</span>
+                  </div>
+                  <div className="portfolio-lead-meta">
+                    <span className="portfolio-lead-kicker">TEAM LEAD</span>
+                    <h4 className="portfolio-lead-name">{portfolio.lead?.name || 'Team Lead'}</h4>
+                    <span className="portfolio-lead-role">{portfolio.lead?.role || 'Lead Coordinator'}</span>
+                  </div>
+                </div>
+
+                {/* Team Info */}
+                <div className="portfolio-team-info">
+                  <h3 className="portfolio-card-title">{portfolio.name}</h3>
+                  <p className="portfolio-card-domain">{portfolio.domain}</p>
+                  <p className="portfolio-card-desc">{portfolio.desc || portfolio.description}</p>
+                </div>
+
+                {/* Footer Action Pill */}
+                <div className="portfolio-card-footer">
+                  <div className="portfolio-member-count-pill">
+                    <Users size={13} />
+                    <span>{(portfolio.members?.length || 0) + 1} Members</span>
+                  </div>
+                  <span className="portfolio-expand-cta">
+                    View Team
+                    <ChevronRight size={15} />
+                  </span>
+                </div>
+              </div>
+            </motion.article>
+          )
+        })}
+      </div>
+
+      {/* Full-Row Expansion Popup Modal (Portaled to document.body) */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {selectedTeam && (
+              <motion.div
+                key="portfolio-modal-backdrop"
+                className="portfolio-modal-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={handleCloseModal}
+                role="dialog"
+                aria-modal="true"
+                aria-label={`${selectedTeam.name} team roster`}
+              >
+                <motion.div
+                  key={`portfolio-modal-dialog-${selectedTeam.name}`}
+                  className="portfolio-modal-dialog"
+                  initial={{ opacity: 0, scale: 0.92, y: 24 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Modal Header Banner */}
+                  <div
+                    className="portfolio-modal-header"
+                    style={{
+                      background: `linear-gradient(135deg, ${selectedTeam.color || 'var(--violet)'} 0%, var(--gold) 100%)`,
+                    }}
+                  >
+                    <div className="portfolio-modal-header-top">
+                      <div className="portfolio-modal-badges">
+                        <span className="portfolio-modal-number">
+                          0{selectedTeamIndex + 1}
+                        </span>
+                        <span className="portfolio-modal-kicker">
+                          {selectedTeam.eyebrow}
+                        </span>
+                        <span className="portfolio-modal-badge-tag">
+                          {selectedTeam.badge || 'Team Roster'}
+                        </span>
+                      </div>
+
+                      <div className="portfolio-modal-actions">
+                        <button
+                          type="button"
+                          className="portfolio-modal-arrow-btn"
+                          onClick={handlePrevTeam}
+                          title="Previous team (Left arrow)"
+                          aria-label="Previous team"
+                        >
+                          <ArrowLeft size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          className="portfolio-modal-arrow-btn"
+                          onClick={handleNextTeam}
+                          title="Next team (Right arrow)"
+                          aria-label="Next team"
+                        >
+                          <ArrowRight size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          className="portfolio-modal-close-btn"
+                          onClick={handleCloseModal}
+                          title="Close team view (Escape)"
+                          aria-label="Close full team view"
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="portfolio-modal-header-info">
+                      <h2 className="portfolio-modal-title">{selectedTeam.name}</h2>
+                      <p className="portfolio-modal-domain">{selectedTeam.domain}</p>
+                      <p className="portfolio-modal-desc">
+                        {selectedTeam.description || selectedTeam.desc}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Modal Body */}
+                  <div className="portfolio-modal-body">
+                    {/* Team Lead Spotlight Section */}
+                    {selectedTeam.lead && (
+                      <div className="portfolio-lead-spotlight-card">
+                        <div className="portfolio-lead-spotlight-avatar-box">
+                          <AvatarWithFallback
+                            src={selectedTeam.lead.photo}
+                            name={selectedTeam.lead.name}
+                            alt={selectedTeam.lead.name}
+                            className="portfolio-spotlight-avatar"
+                          />
+                          <span className="portfolio-lead-tag-ribbon">LEAD</span>
+                        </div>
+
+                        <div className="portfolio-lead-spotlight-details">
+                          <div className="portfolio-lead-spotlight-header">
+                            <div>
+                              <span className="portfolio-spotlight-kicker">PORTFOLIO LEAD</span>
+                              <h3 className="portfolio-spotlight-name">{selectedTeam.lead.name}</h3>
+                              <p className="portfolio-spotlight-role">{selectedTeam.lead.role}</p>
+                            </div>
+
+                            <div className="portfolio-member-socials">
+                              {selectedTeam.lead.github ? (
+                                <a
+                                  href={selectedTeam.lead.github}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  className="portfolio-social-link"
+                                  title="GitHub Profile"
+                                  aria-label={`${selectedTeam.lead.name}'s GitHub`}
+                                >
+                                  <Github size={16} />
+                                </a>
+                              ) : null}
+                              {selectedTeam.lead.linkedin ? (
+                                <a
+                                  href={selectedTeam.lead.linkedin}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  className="portfolio-social-link"
+                                  title="LinkedIn Profile"
+                                  aria-label={`${selectedTeam.lead.name}'s LinkedIn`}
+                                >
+                                  <Linkedin size={16} />
+                                </a>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          {selectedTeam.tools && selectedTeam.tools.length > 0 && (
+                            <div className="portfolio-spotlight-tools">
+                              <span className="portfolio-tools-label">Core Focus & Tools:</span>
+                              <div className="portfolio-tools-wrap">
+                                {selectedTeam.tools.map((tool) => (
+                                  <span key={tool} className="portfolio-tool-pill">
+                                    {tool}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Team Members Grid Section */}
+                    <div className="portfolio-roster-section">
+                      <div className="portfolio-roster-header">
+                        <h4 className="portfolio-roster-title">
+                          Team Roster{' '}
+                          <span className="portfolio-roster-count">
+                            ({(selectedTeam.members?.length || 0) + 1} Total)
+                          </span>
+                        </h4>
+                        <span className="portfolio-roster-subtitle">
+                          Core contributors and specialists
+                        </span>
+                      </div>
+
+                      <div className="portfolio-roster-grid">
+                        {selectedTeam.members?.map((member) => (
+                          <div key={member.name} className="portfolio-member-card">
+                            <div className="portfolio-member-avatar-box">
+                              <AvatarWithFallback
+                                src={member.photo}
+                                name={member.name}
+                                alt={member.name}
+                                className="portfolio-member-avatar"
+                              />
+                            </div>
+                            <h5 className="portfolio-member-name">{member.name}</h5>
+                            <p className="portfolio-member-role">{member.role}</p>
+
+                            <div className="portfolio-member-socials">
+                              {member.github ? (
+                                <a
+                                  href={member.github}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  className="portfolio-social-link"
+                                  title="GitHub"
+                                  aria-label={`${member.name}'s GitHub`}
+                                >
+                                  <Github size={14} />
+                                </a>
+                              ) : null}
+                              {member.linkedin ? (
+                                <a
+                                  href={member.linkedin}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  className="portfolio-social-link"
+                                  title="LinkedIn"
+                                  aria-label={`${member.name}'s LinkedIn`}
+                                >
+                                  <Linkedin size={14} />
+                                </a>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Modal Quick Nav Footer */}
+                  <div className="portfolio-modal-footer">
+                    <button
+                      type="button"
+                      className="portfolio-footer-nav-btn"
+                      onClick={handlePrevTeam}
+                    >
+                      <ArrowLeft size={16} />
+                      <span>Previous Team</span>
+                    </button>
+                    <div className="portfolio-footer-counter">
+                      <span>
+                        0{selectedTeamIndex + 1} / 0{portfolios.length}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="portfolio-footer-nav-btn"
+                      onClick={handleNextTeam}
+                    >
+                      <span>Next Team</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   )
 }
 
 export const PortfolioDeck = memo(PortfolioDeckComponent)
-

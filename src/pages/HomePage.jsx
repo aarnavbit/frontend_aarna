@@ -102,35 +102,35 @@ export function HomePage() {
                 <X size={18} />
               </button>
 
-              <div className="notice-badge">
-                <span className="notice-badge-dot"></span>
-                <span>REGISTRATIONS CLOSED</span>
+              <div className="notice-badge" style={{ backgroundColor: 'var(--gold)', color: '#3b2412' }}>
+                <span className="notice-badge-dot" style={{ backgroundColor: '#3b2412' }}></span>
+                <span>REGISTRATIONS LIVE</span>
               </div>
 
               <h2 id="notice-title" className="notice-title">
-                OC Recruitment 2026 Registrations are Done!
+                Ishanya &rsquo;26 Registrations are Live!
               </h2>
 
               <p className="notice-description">
-                Thank you for the tremendous response! Registrations for AARNA OC 2026 are officially closed.
-                Explore the projects and moments from our previous events, or view task submission updates if you applied.
+                Join us for <strong>Ishanya &rsquo;26</strong> &mdash; Visualize. Create. Inspire.
+                Team registrations are now open! Form your 3-member team and register to secure your participation.
               </p>
 
               <div className="notice-actions">
-                <button
-                  type="button"
+                <Link
+                  to="/ishanya"
                   className="button button-primary notice-primary-btn"
-                  onClick={handleExplorePreviousWork}
+                  onClick={() => setShowNotice(false)}
                 >
-                  Explore previous work <ArrowRight size={17} />
-                </button>
+                  Register for Ishanya &rsquo;26 <ArrowRight size={17} />
+                </Link>
 
                 <Link
-                  to="/apply"
+                  to="/ishanya"
                   className="button button-quiet notice-secondary-btn"
                   onClick={() => setShowNotice(false)}
                 >
-                  View updates
+                  Check Team Status
                 </Link>
               </div>
             </motion.div>
@@ -154,22 +154,12 @@ export function HomePage() {
             />
             <p className="hero-tagline">Turning Passions into Profits</p>
             <div className="hero-actions">
-              <Link className="button button-primary" to="/apply">
-                New Updates <ArrowRight size={18} />
+              <Link className="button button-primary" to="/ishanya">
+                Ishanya &rsquo;26 Live <ArrowRight size={18} />
               </Link>
-              <a
-                className="button button-quiet"
-                href="#events"
-                onClick={(e) => {
-                  const el = document.getElementById('events')
-                  if (el) {
-                    e.preventDefault()
-                    el.scrollIntoView({ behavior: 'smooth' })
-                  }
-                }}
-              >
-                Events
-              </a>
+              <Link className="button button-quiet" to="/ishanya">
+                Events: Ishanya &rsquo;26
+              </Link>
               <a
                 className="button button-quiet hero-socials-btn"
                 href={SOCIAL_PAGES_URL || 'https://www.instagram.com/aarna.vbit/'}
@@ -242,6 +232,34 @@ export function HomePage() {
               </motion.li>
             ))}
           </ul>
+        </section>
+      </PageFlipSection>
+
+      <PageFlipSection zIndex={5.5}>
+        <section className="ishanya-home-event-section section-wrap" id="events">
+          <motion.div {...reveal} className="ishanya-home-card">
+            <span className="section-kicker">Upcoming &amp; Live Events</span>
+            <div className="ishanya-home-logo-wrap">
+              <img
+                src="/images/ishanya_logo.png"
+                alt="Ishanya 26 - Visualize. Create. Inspire."
+                className="ishanya-brand-logo"
+              />
+            </div>
+            <h2>Visualize. Create. Inspire.</h2>
+            <p>
+              Registrations for <strong>Ishanya &rsquo;26</strong> are officially open!
+              Form your 3-member team and register now to participate in our flagship event.
+            </p>
+            <div className="ishanya-home-actions">
+              <Link to="/ishanya" className="button button-primary">
+                Register for Ishanya &rsquo;26 <ArrowRight size={18} />
+              </Link>
+              <Link to="/ishanya" className="button button-quiet">
+                Check Registration Status
+              </Link>
+            </div>
+          </motion.div>
         </section>
       </PageFlipSection>
 
