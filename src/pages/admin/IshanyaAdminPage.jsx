@@ -1,15 +1,13 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Users, Search, Filter, Shield, X, CheckCircle, AlertCircle,
-  LoaderCircle, Eye, ArrowLeft, RefreshCw, MessageSquare, Image as ImageIcon
+  Search, X, LoaderCircle, Eye, ArrowLeft, RefreshCw, Image as ImageIcon
 } from 'lucide-react'
 import { adminApi } from '../../api/adminApi'
 import { ishanyaApi } from '../../api/ishanyaApi'
 
 export function IshanyaAdminPage() {
   const navigate = useNavigate()
-  const [admin, setAdmin] = useState(null)
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -24,29 +22,29 @@ export function IshanyaAdminPage() {
   const [screenshotModal, setScreenshotModal] = useState({ open: false, data: null, title: '' })
   const [actionLoading, setActionLoading] = useState(false)
 
-  // Edit / Decision notes state
-  const [editingNotesId, setEditingNotesId] = useState(null)
+  // Decision notes state
   const [adminNotes, setAdminNotes] = useState('')
 
   // Verify auth on mount
   useEffect(() => {
+    let ignore = false
     const checkAuth = async () => {
       try {
-        const meData = await adminApi.getMe()
-        setAdmin(meData.admin)
+        await adminApi.getMe()
       } catch {
-        navigate('/admin/login')
+        if (!ignore) navigate('/admin/login')
       }
     }
     checkAuth()
+    return () => { ignore = true }
   }, [navigate])
 
   // Fetch teams
   const fetchTeams = useCallback(async () => {
-    setError('')
     try {
       const data = await ishanyaApi.getTeams()
       setTeams(data.teams || [])
+      setError('')
     } catch (err) {
       if (err.status === 401) {
         navigate('/admin/login')
@@ -59,9 +57,30 @@ export function IshanyaAdminPage() {
     }
   }, [navigate])
 
+  // Fetch teams on mount
   useEffect(() => {
-    fetchTeams()
-  }, [fetchTeams])
+    let ignore = false
+    ishanyaApi.getTeams()
+      .then(data => {
+        if (!ignore) {
+          setTeams(data.teams || [])
+          setError('')
+        }
+      })
+      .catch(err => {
+        if (!ignore) {
+          if (err.status === 401) navigate('/admin/login')
+          else setError(err.message || 'Failed to load Ishanya teams')
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setLoading(false)
+          setRefreshing(false)
+        }
+      })
+    return () => { ignore = true }
+  }, [navigate])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -124,7 +143,6 @@ export function IshanyaAdminPage() {
         status: team.status,
         notes: adminNotes,
       })
-      setEditingNotesId(null)
       await fetchTeams()
     } catch (err) {
       alert(`Error saving notes: ${err.message}`)
@@ -143,10 +161,20 @@ export function IshanyaAdminPage() {
         t.registration_id?.toLowerCase().includes(term) ||
         t.team_name?.toLowerCase().includes(term) ||
         t.leader_name?.toLowerCase().includes(term) ||
+        t.leader_roll_no?.toLowerCase().includes(term) ||
+        t.leader_dept?.toLowerCase().includes(term) ||
+        t.leader_sec?.toLowerCase().includes(term) ||
         t.leader_email?.toLowerCase().includes(term) ||
         t.leader_phone?.includes(term) ||
         t.utr_number?.toLowerCase().includes(term) ||
-        t.members?.some(m => m.name?.toLowerCase().includes(term) || m.phone?.includes(term))
+        t.members?.some(m =>
+          m.name?.toLowerCase().includes(term) ||
+          m.roll_no?.toLowerCase().includes(term) ||
+          m.department?.toLowerCase().includes(term) ||
+          m.section?.toLowerCase().includes(term) ||
+          m.email?.toLowerCase().includes(term) ||
+          m.phone?.includes(term)
+        )
       return matchesStatus && matchesSearch
     })
   }, [teams, statusFilter, searchTerm])
@@ -441,7 +469,6 @@ export function IshanyaAdminPage() {
                 {filteredTeams.map((team) => {
                   const isAccepted = team.status === 'accepted'
                   const isRejected = team.status === 'rejected'
-                  const isPending = team.status === 'pending'
 
                   return (
                     <tr
@@ -477,6 +504,11 @@ export function IshanyaAdminPage() {
                       {/* Leader Info */}
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{team.leader_name}</div>
+                        {team.leader_roll_no && (
+                          <div style={{ fontSize: '11px', color: '#f59e0b', fontFamily: 'monospace' }}>
+                            {team.leader_roll_no} ({team.leader_dept || 'Dept'}-{team.leader_sec || 'Sec'})
+                          </div>
+                        )}
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{team.leader_email}</div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{team.leader_phone}</div>
                       </td>
@@ -485,8 +517,12 @@ export function IshanyaAdminPage() {
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ fontSize: '12px', color: '#94a3b8' }}>
                           {team.members?.map((m, idx) => (
-                            <div key={idx} style={{ marginBottom: '2px' }}>
-                              • <span style={{ color: '#e2e8f0' }}>{m.name}</span> ({m.phone})
+                            <div key={idx} style={{ marginBottom: '4px' }}>
+                              • <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{m.name}</span>
+                              {m.roll_no ? <span style={{ color: '#f59e0b', fontFamily: 'monospace', fontSize: '11px' }}> [{m.roll_no}]</span> : ''}
+                              <div style={{ fontSize: '11px', color: '#64748b', paddingLeft: '8px' }}>
+                                {m.department ? `${m.department}-${m.section || ''} | ` : ''}{m.email ? `${m.email} | ` : ''}{m.phone}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -765,10 +801,15 @@ export function IshanyaAdminPage() {
             {/* Leader Details */}
             <div style={{ marginBottom: '20px' }}>
               <h4 style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase', margin: '0 0 10px', letterSpacing: '0.05em' }}>
-                Team Leader
+                Member 1 (Team Leader)
               </h4>
-              <div style={{ backgroundColor: '#131e33', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontWeight: 600, color: '#f8fafc' }}>{selectedTeam.leader_name}</div>
+              <div style={{ backgroundColor: '#131e33', padding: '14px', borderRadius: '8px' }}>
+                <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '15px' }}>{selectedTeam.leader_name}</div>
+                {selectedTeam.leader_roll_no && (
+                  <div style={{ fontSize: '12px', color: '#f59e0b', fontFamily: 'monospace', marginTop: '4px' }}>
+                    Roll No: {selectedTeam.leader_roll_no} | Dept: {selectedTeam.leader_dept || 'N/A'} | Sec: {selectedTeam.leader_sec || 'N/A'}
+                  </div>
+                )}
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>📧 {selectedTeam.leader_email}</div>
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>📱 {selectedTeam.leader_phone}</div>
               </div>
@@ -780,9 +821,15 @@ export function IshanyaAdminPage() {
                 Team Members ({selectedTeam.members?.length || 0})
               </h4>
               {selectedTeam.members?.map((m, idx) => (
-                <div key={idx} style={{ backgroundColor: '#131e33', padding: '10px 12px', borderRadius: '8px', marginBottom: '8px' }}>
-                  <div style={{ fontWeight: 600, color: '#f8fafc' }}>Member {idx + 2}: {m.name}</div>
-                  <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>📱 {m.phone}</div>
+                <div key={idx} style={{ backgroundColor: '#131e33', padding: '12px', borderRadius: '8px', marginBottom: '8px' }}>
+                  <div style={{ fontWeight: 700, color: '#f8fafc' }}>Member {idx + 2}: {m.name}</div>
+                  {m.roll_no && (
+                    <div style={{ fontSize: '12px', color: '#f59e0b', fontFamily: 'monospace', marginTop: '3px' }}>
+                      Roll No: {m.roll_no} | Dept: {m.department || 'N/A'} | Sec: {m.section || 'N/A'}
+                    </div>
+                  )}
+                  {m.email && <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>📧 {m.email}</div>}
+                  <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>📱 {m.phone}</div>
                 </div>
               ))}
             </div>
@@ -793,6 +840,9 @@ export function IshanyaAdminPage() {
                 Payment Verification
               </h4>
               <div style={{ backgroundColor: '#131e33', padding: '12px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '4px' }}>
+                  Fee Amount: <span style={{ color: '#10b981', fontWeight: 800 }}>₹{selectedTeam.amount || 300} (3 Members)</span>
+                </div>
                 <div style={{ fontSize: '13px', color: '#94a3b8' }}>
                   UTR Number: <span style={{ fontFamily: 'monospace', color: '#38bdf8', fontWeight: 700 }}>{selectedTeam.utr_number || 'Not provided'}</span>
                 </div>

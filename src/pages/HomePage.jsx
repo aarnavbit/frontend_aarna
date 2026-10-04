@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, ChevronDown, ChevronUp, Instagram, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { PortfolioDeck } from '../components/PortfolioDeck'
 import { objectives } from '../data/clubContent'
 import { PageFlipSection } from '../components/PageFlipSection'
 import { HeroVideoBackground } from '../components/HeroVideoBackground'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { PreviousWork } from '../components/PreviousWork'
 
 // ============================================================
 // GLOBAL SOCIAL PAGES LINK CONFIGURATION
@@ -61,14 +59,6 @@ export function HomePage() {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [showNotice])
-
-  const handleExplorePreviousWork = () => {
-    setShowNotice(false)
-    const el = document.getElementById('events')
-    if (el) {
-      setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100)
-    }
-  }
 
   return (
     <div className="home-page-container">
@@ -207,17 +197,6 @@ export function HomePage() {
       </PageFlipSection>
 
       <PageFlipSection zIndex={7}>
-        <section className="portfolio-section section-wrap" id="portfolios">
-          <motion.div {...reveal} className="section-heading">
-            <span className="section-kicker">Find your room</span>
-            <h2>Seven teams. One bold collective.</h2>
-            <p>Choose the work that makes you curious, then bring your point of view.</p>
-          </motion.div>
-          <PortfolioDeck />
-        </section>
-      </PageFlipSection>
-
-      <PageFlipSection zIndex={6}>
         <section className="objective-section section-wrap">
           <motion.div {...reveal} className="objective-aside">
             <span className="section-kicker">Why join?</span>
@@ -235,7 +214,7 @@ export function HomePage() {
         </section>
       </PageFlipSection>
 
-      <PageFlipSection zIndex={5.5}>
+      <PageFlipSection zIndex={6}>
         <section className="ishanya-home-event-section section-wrap" id="events">
           <motion.div {...reveal} className="ishanya-home-card">
             <span className="section-kicker">Upcoming &amp; Live Events</span>
@@ -263,11 +242,7 @@ export function HomePage() {
         </section>
       </PageFlipSection>
 
-      <PageFlipSection zIndex={5}>
-        <PreviousWork />
-      </PageFlipSection>
-
-      <PageFlipSection zIndex={4} isLast={true}>
+      <PageFlipSection zIndex={5} isLast={true}>
         <div style={{ paddingBottom: '1px' }}>
           <section
             className="cta-section section-wrap"

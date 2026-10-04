@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Menu, Moon, Sun, X } from 'lucide-react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 
 function ThemeToggle({ theme, setTheme }) {
@@ -21,7 +21,6 @@ function ThemeToggle({ theme, setTheme }) {
 
 export function SiteShell({ children, theme, setTheme }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const location = useLocation()
 
   // Close mobile drawer on browser history navigation (back/forward)
   useEffect(() => {
@@ -67,8 +66,7 @@ export function SiteShell({ children, theme, setTheme }) {
           {/* Desktop Navigation */}
           <nav className="site-nav desktop-nav" aria-label="Main navigation">
             <NavLink end to="/">Home</NavLink>
-            <NavLink to="/ishanya">Events</NavLink>
-            <NavLink to="/apply">Updates</NavLink>
+            <NavLink to="/ishanya">Registration</NavLink>
           </nav>
 
           <div className="header-actions">
@@ -129,8 +127,7 @@ export function SiteShell({ children, theme, setTheme }) {
 
               <div className="mobile-drawer-links">
                 <NavLink end to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</NavLink>
-                <NavLink to="/ishanya" onClick={() => setIsMobileMenuOpen(false)}>Events</NavLink>
-                <NavLink to="/apply" onClick={() => setIsMobileMenuOpen(false)}>Updates</NavLink>
+                <NavLink to="/ishanya" onClick={() => setIsMobileMenuOpen(false)}>Registration</NavLink>
               </div>
 
               <div className="mobile-drawer-footer">

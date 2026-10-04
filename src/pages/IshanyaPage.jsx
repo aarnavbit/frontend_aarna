@@ -4,9 +4,18 @@ import './IshanyaPage.css'
 
 const TEAM_MEMBER_COUNT = 3
 const ADDITIONAL_MEMBERS = TEAM_MEMBER_COUNT - 1
+const FIXED_AMOUNT = 300
+const AMOUNT_PER_MEMBER = 100
 
 function createEmptyMembers() {
-  return Array.from({ length: ADDITIONAL_MEMBERS }, () => ({ name: '', phone: '' }))
+  return Array.from({ length: ADDITIONAL_MEMBERS }, () => ({
+    name: '',
+    roll_no: '',
+    department: '',
+    sec: '',
+    email: '',
+    phone: '',
+  }))
 }
 
 export function IshanyaPage() {
@@ -15,6 +24,9 @@ export function IshanyaPage() {
   // --- Register state ---
   const [teamName, setTeamName] = useState('')
   const [leaderName, setLeaderName] = useState('')
+  const [leaderRollNo, setLeaderRollNo] = useState('')
+  const [leaderDept, setLeaderDept] = useState('')
+  const [leaderSec, setLeaderSec] = useState('')
   const [leaderEmail, setLeaderEmail] = useState('')
   const [leaderPhone, setLeaderPhone] = useState('')
   const [members, setMembers] = useState(createEmptyMembers)
@@ -65,9 +77,20 @@ export function IshanyaPage() {
       const data = await ishanyaApi.register({
         team_name: teamName,
         leader_name: leaderName,
+        leader_roll_no: leaderRollNo,
+        leader_dept: leaderDept,
+        leader_sec: leaderSec,
         leader_email: leaderEmail,
         leader_phone: leaderPhone,
-        members,
+        amount: FIXED_AMOUNT,
+        members: members.map(m => ({
+          name: m.name,
+          roll_no: m.roll_no,
+          department: m.department,
+          sec: m.sec,
+          email: m.email,
+          phone: m.phone,
+        })),
       })
       setRegistrationId(data.registration_id)
       setShowModal(true)
@@ -133,6 +156,9 @@ export function IshanyaPage() {
     // Reset form
     setTeamName('')
     setLeaderName('')
+    setLeaderRollNo('')
+    setLeaderDept('')
+    setLeaderSec('')
     setLeaderEmail('')
     setLeaderPhone('')
     setMembers(createEmptyMembers())
@@ -161,14 +187,30 @@ export function IshanyaPage() {
 
   // --- Edit members ---
   const startEditMembers = () => {
-    setEditMembers(statusData.members.map(m => ({ name: m.name, phone: m.phone })))
+    setEditMembers(statusData.members.map(m => ({
+      name: m.name || '',
+      roll_no: m.roll_no || '',
+      department: m.department || '',
+      sec: m.section || m.sec || '',
+      email: m.email || '',
+      phone: m.phone || '',
+    })))
     setEditingMembers(true)
   }
 
   const handleSaveMembers = async () => {
     setEditSubmitting(true)
     try {
-      await ishanyaApi.updateMembers(statusData.registration_id, { members: editMembers })
+      await ishanyaApi.updateMembers(statusData.registration_id, {
+        members: editMembers.map(m => ({
+          name: m.name,
+          roll_no: m.roll_no,
+          department: m.department,
+          sec: m.sec,
+          email: m.email,
+          phone: m.phone,
+        }))
+      })
       const updated = await ishanyaApi.getStatus(statusData.registration_id)
       setStatusData(updated)
       setEditingMembers(false)
@@ -208,6 +250,7 @@ export function IshanyaPage() {
       {/* ========== REGISTER TAB ========== */}
       {activeTab === 'register' && (
         <form onSubmit={handleRegister}>
+          {/* Team Details & Automatic Amount Summary */}
           <div className="ishanya-card">
             <h2>Team Details</h2>
             <div className="ishanya-input-group">
@@ -221,72 +264,171 @@ export function IshanyaPage() {
                 required
               />
             </div>
+
+            <div className="ishanya-fee-summary-box">
+              <div className="ishanya-fee-summary-row">
+                <span className="ishanya-fee-label">Team Size:</span>
+                <span className="ishanya-fee-value">{TEAM_MEMBER_COUNT} Members (Fixed)</span>
+              </div>
+              <div className="ishanya-fee-summary-row">
+                <span className="ishanya-fee-label">Registration Fee:</span>
+                <span className="ishanya-fee-value highlight">₹{FIXED_AMOUNT}</span>
+              </div>
+              <p className="ishanya-fee-note">
+                ⚡ Automatic calculation: Fixed at ₹{AMOUNT_PER_MEMBER} per member (Total ₹{FIXED_AMOUNT} for {TEAM_MEMBER_COUNT} members).
+              </p>
+            </div>
           </div>
 
+          {/* Member 1 (Team Leader) */}
           <div className="ishanya-card">
-            <h2>Team Leader (Member 1)</h2>
-            <div className="ishanya-input-group">
-              <label className="ishanya-label">Name</label>
-              <input
-                className="ishanya-input"
-                type="text"
-                placeholder="Leader's full name"
-                value={leaderName}
-                onChange={(e) => setLeaderName(e.target.value)}
-                required
-              />
+            <div className="ishanya-card-header-badge">
+              <h2>Member 1 (Team Leader)</h2>
+              <span className="ishanya-member-badge">Leader</span>
             </div>
-            <div className="ishanya-input-group">
-              <label className="ishanya-label">Email</label>
-              <input
-                className="ishanya-input"
-                type="email"
-                placeholder="Leader's email address"
-                value={leaderEmail}
-                onChange={(e) => setLeaderEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="ishanya-input-group">
-              <label className="ishanya-label">Phone</label>
-              <input
-                className="ishanya-input"
-                type="tel"
-                placeholder="Leader's phone number"
-                value={leaderPhone}
-                onChange={(e) => setLeaderPhone(e.target.value)}
-                required
-              />
+            <div className="ishanya-member-grid">
+              <div className="ishanya-input-group">
+                <label className="ishanya-label">Name</label>
+                <input
+                  className="ishanya-input"
+                  type="text"
+                  placeholder="Leader's full name"
+                  value={leaderName}
+                  onChange={(e) => setLeaderName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="ishanya-input-group">
+                <label className="ishanya-label">Roll No</label>
+                <input
+                  className="ishanya-input"
+                  type="text"
+                  placeholder="Leader's roll number"
+                  value={leaderRollNo}
+                  onChange={(e) => setLeaderRollNo(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="ishanya-input-group">
+                <label className="ishanya-label">Department</label>
+                <input
+                  className="ishanya-input"
+                  type="text"
+                  placeholder="e.g. CSE / IT / ECE"
+                  value={leaderDept}
+                  onChange={(e) => setLeaderDept(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="ishanya-input-group">
+                <label className="ishanya-label">Sec</label>
+                <input
+                  className="ishanya-input"
+                  type="text"
+                  placeholder="e.g. A / B / C"
+                  value={leaderSec}
+                  onChange={(e) => setLeaderSec(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="ishanya-input-group">
+                <label className="ishanya-label">Email</label>
+                <input
+                  className="ishanya-input"
+                  type="email"
+                  placeholder="Leader's email address"
+                  value={leaderEmail}
+                  onChange={(e) => setLeaderEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="ishanya-input-group">
+                <label className="ishanya-label">Phone No</label>
+                <input
+                  className="ishanya-input"
+                  type="tel"
+                  placeholder="Leader's phone number"
+                  value={leaderPhone}
+                  onChange={(e) => setLeaderPhone(e.target.value)}
+                  required
+                />
+              </div>
             </div>
           </div>
 
+          {/* Members 2 & 3 (Exact same details collected) */}
           {members.map((member, i) => (
             <div className="ishanya-card" key={i}>
-              <div className="ishanya-member-card">
-                <h3>Member {i + 2}</h3>
-                <div className="ishanya-member-grid">
-                  <div className="ishanya-input-group">
-                    <label className="ishanya-label">Name</label>
-                    <input
-                      className="ishanya-input"
-                      type="text"
-                      placeholder="Member name"
-                      value={member.name}
-                      onChange={(e) => updateMember(i, 'name', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="ishanya-input-group">
-                    <label className="ishanya-label">Phone</label>
-                    <input
-                      className="ishanya-input"
-                      type="tel"
-                      placeholder="Member phone"
-                      value={member.phone}
-                      onChange={(e) => updateMember(i, 'phone', e.target.value)}
-                      required
-                    />
-                  </div>
+              <div className="ishanya-card-header-badge">
+                <h2>Member {i + 2}</h2>
+                <span className="ishanya-member-badge">Member</span>
+              </div>
+              <div className="ishanya-member-grid">
+                <div className="ishanya-input-group">
+                  <label className="ishanya-label">Name</label>
+                  <input
+                    className="ishanya-input"
+                    type="text"
+                    placeholder={`Member ${i + 2}'s full name`}
+                    value={member.name}
+                    onChange={(e) => updateMember(i, 'name', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="ishanya-input-group">
+                  <label className="ishanya-label">Roll No</label>
+                  <input
+                    className="ishanya-input"
+                    type="text"
+                    placeholder={`Member ${i + 2}'s roll number`}
+                    value={member.roll_no}
+                    onChange={(e) => updateMember(i, 'roll_no', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="ishanya-input-group">
+                  <label className="ishanya-label">Department</label>
+                  <input
+                    className="ishanya-input"
+                    type="text"
+                    placeholder="e.g. CSE / IT / ECE"
+                    value={member.department}
+                    onChange={(e) => updateMember(i, 'department', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="ishanya-input-group">
+                  <label className="ishanya-label">Sec</label>
+                  <input
+                    className="ishanya-input"
+                    type="text"
+                    placeholder="e.g. A / B / C"
+                    value={member.sec}
+                    onChange={(e) => updateMember(i, 'sec', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="ishanya-input-group">
+                  <label className="ishanya-label">Email</label>
+                  <input
+                    className="ishanya-input"
+                    type="email"
+                    placeholder={`Member ${i + 2}'s email address`}
+                    value={member.email}
+                    onChange={(e) => updateMember(i, 'email', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="ishanya-input-group">
+                  <label className="ishanya-label">Phone No</label>
+                  <input
+                    className="ishanya-input"
+                    type="tel"
+                    placeholder={`Member ${i + 2}'s phone number`}
+                    value={member.phone}
+                    onChange={(e) => updateMember(i, 'phone', e.target.value)}
+                    required
+                  />
                 </div>
               </div>
             </div>
@@ -296,7 +438,7 @@ export function IshanyaPage() {
 
           <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
             <button className="ishanya-btn" type="submit" disabled={submitting}>
-              {submitting ? 'Registering...' : 'Register Team'}
+              {submitting ? 'Registering...' : `Register Team (₹${FIXED_AMOUNT})`}
             </button>
           </div>
         </form>
@@ -328,26 +470,49 @@ export function IshanyaPage() {
 
           {statusData && (
             <div className="ishanya-card">
-              <h2>Team: {statusData.team_name}</h2>
-              <div style={{ marginBottom: '1rem' }}>
-                <span className="ishanya-label" style={{ marginRight: 8 }}>Status:</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
+                <h2>Team: {statusData.team_name}</h2>
                 <span className={`ishanya-status-badge ${statusData.status}`}>{statusData.status}</span>
               </div>
-              <div style={{ marginBottom: '0.5rem' }}><strong>ID:</strong> {statusData.registration_id}</div>
-              <div style={{ marginBottom: '0.5rem' }}><strong>Leader:</strong> {statusData.leader_name} ({statusData.leader_email})</div>
-              <div style={{ marginBottom: '0.5rem' }}><strong>Phone:</strong> {statusData.leader_phone}</div>
-              {statusData.utr_number && <div style={{ marginBottom: '0.5rem' }}><strong>UTR:</strong> {statusData.utr_number}</div>}
 
-              <h3 style={{ marginTop: '1.25rem', fontWeight: 700, color: '#291809' }}>Members</h3>
+              <div className="ishanya-status-summary-grid">
+                <div><strong>Registration ID:</strong> <span style={{ fontFamily: 'monospace', color: 'var(--gold)', fontWeight: 800 }}>{statusData.registration_id}</span></div>
+                <div><strong>Registration Fee:</strong> <span style={{ fontWeight: 800 }}>₹{statusData.amount || FIXED_AMOUNT} (Fixed: {TEAM_MEMBER_COUNT} Members)</span></div>
+                {statusData.utr_number && <div><strong>UTR:</strong> <span style={{ fontFamily: 'monospace' }}>{statusData.utr_number}</span></div>}
+              </div>
+
+              {/* Leader Details Card */}
+              <div className="ishanya-member-card" style={{ marginTop: '1.25rem' }}>
+                <h3>Member 1 (Team Leader)</h3>
+                <div className="ishanya-member-info-grid">
+                  <div><strong>Name:</strong> {statusData.leader_name}</div>
+                  <div><strong>Roll No:</strong> {statusData.leader_roll_no || 'N/A'}</div>
+                  <div><strong>Dept:</strong> {statusData.leader_dept || 'N/A'}</div>
+                  <div><strong>Sec:</strong> {statusData.leader_sec || 'N/A'}</div>
+                  <div><strong>Email:</strong> {statusData.leader_email}</div>
+                  <div><strong>Phone:</strong> {statusData.leader_phone}</div>
+                </div>
+              </div>
+
+              {/* Members 2 & 3 */}
+              <h3 style={{ marginTop: '1.25rem', fontWeight: 800, color: 'var(--ink)' }}>Other Members</h3>
               {!editingMembers ? (
                 <>
                   {statusData.members.map((m, i) => (
                     <div key={i} className="ishanya-member-card">
-                      <div><strong>{m.name}</strong> — {m.phone}</div>
+                      <h3>Member {i + 2}</h3>
+                      <div className="ishanya-member-info-grid">
+                        <div><strong>Name:</strong> {m.name}</div>
+                        <div><strong>Roll No:</strong> {m.roll_no || 'N/A'}</div>
+                        <div><strong>Dept:</strong> {m.department || 'N/A'}</div>
+                        <div><strong>Sec:</strong> {m.section || 'N/A'}</div>
+                        <div><strong>Email:</strong> {m.email || 'N/A'}</div>
+                        <div><strong>Phone:</strong> {m.phone}</div>
+                      </div>
                     </div>
                   ))}
                   {statusData.status === 'pending' && (
-                    <button className="ishanya-btn ishanya-btn-secondary" type="button" onClick={startEditMembers} style={{ marginTop: '0.5rem' }}>
+                    <button className="ishanya-btn ishanya-btn-secondary" type="button" onClick={startEditMembers} style={{ marginTop: '0.75rem' }}>
                       Edit Members
                     </button>
                   )}
@@ -363,13 +528,29 @@ export function IshanyaPage() {
                           <input className="ishanya-input" value={m.name} onChange={(e) => updateEditMember(i, 'name', e.target.value)} required />
                         </div>
                         <div className="ishanya-input-group">
-                          <label className="ishanya-label">Phone</label>
-                          <input className="ishanya-input" value={m.phone} onChange={(e) => updateEditMember(i, 'phone', e.target.value)} required />
+                          <label className="ishanya-label">Roll No</label>
+                          <input className="ishanya-input" value={m.roll_no} onChange={(e) => updateEditMember(i, 'roll_no', e.target.value)} required />
+                        </div>
+                        <div className="ishanya-input-group">
+                          <label className="ishanya-label">Department</label>
+                          <input className="ishanya-input" value={m.department} onChange={(e) => updateEditMember(i, 'department', e.target.value)} required />
+                        </div>
+                        <div className="ishanya-input-group">
+                          <label className="ishanya-label">Sec</label>
+                          <input className="ishanya-input" value={m.sec} onChange={(e) => updateEditMember(i, 'sec', e.target.value)} required />
+                        </div>
+                        <div className="ishanya-input-group">
+                          <label className="ishanya-label">Email</label>
+                          <input className="ishanya-input" type="email" value={m.email} onChange={(e) => updateEditMember(i, 'email', e.target.value)} required />
+                        </div>
+                        <div className="ishanya-input-group">
+                          <label className="ishanya-label">Phone No</label>
+                          <input className="ishanya-input" type="tel" value={m.phone} onChange={(e) => updateEditMember(i, 'phone', e.target.value)} required />
                         </div>
                       </div>
                     </div>
                   ))}
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
                     <button className="ishanya-btn ishanya-btn-success" type="button" onClick={handleSaveMembers} disabled={editSubmitting}>
                       {editSubmitting ? 'Saving...' : 'Save'}
                     </button>
@@ -397,11 +578,18 @@ export function IshanyaPage() {
             {modalStep === 'qr' && (
               <>
                 <h2>Complete Payment</h2>
-                <p style={{ color: '#291809', marginBottom: '0.5rem' }}>Scan the QR code below to pay</p>
+                <div className="ishanya-payment-amount-box">
+                  <span className="ishanya-payment-amount-label">Payable Amount</span>
+                  <span className="ishanya-payment-amount-val">₹{FIXED_AMOUNT}</span>
+                  <span className="ishanya-payment-amount-sub">Fixed: {TEAM_MEMBER_COUNT} Members × ₹{AMOUNT_PER_MEMBER}</span>
+                </div>
+                <p style={{ color: 'var(--ink)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                  Scan the QR code below to pay <strong>₹{FIXED_AMOUNT}</strong>
+                </p>
                 <img src="/images/ishanya_payment_qr.svg" alt="Payment QR Code" className="ishanya-qr-image" />
                 <div style={{ marginTop: '1.25rem' }}>
                   <button className="ishanya-btn" type="button" onClick={() => setModalStep('utr')}>
-                    Done
+                    Done — Enter UTR Number
                   </button>
                 </div>
               </>
@@ -410,12 +598,15 @@ export function IshanyaPage() {
             {modalStep === 'utr' && (
               <>
                 <h2>Submit Payment Details</h2>
+                <div className="ishanya-payment-amount-box small">
+                  <span>Payable Amount: <strong>₹{FIXED_AMOUNT}</strong> ({TEAM_MEMBER_COUNT} Members)</span>
+                </div>
                 <div className="ishanya-input-group" style={{ textAlign: 'left' }}>
                   <label className="ishanya-label">UTR / Transaction Number</label>
                   <input
                     className="ishanya-input"
                     type="text"
-                    placeholder="Enter UTR number"
+                    placeholder="Enter 12-digit UTR number"
                     value={utrNumber}
                     onChange={(e) => setUtrNumber(e.target.value)}
                   />
@@ -440,12 +631,12 @@ export function IshanyaPage() {
             {modalStep === 'done' && (
               <>
                 <h2>🎉 Registration Complete!</h2>
-                <p style={{ color: '#291809' }}>Save your registration ID:</p>
+                <p style={{ color: 'var(--ink)' }}>Save your registration ID:</p>
                 <div className="ishanya-success-id">
                   <span>{registrationId}</span>
                   <button onClick={handleCopy}>{copied ? 'Copied!' : 'Copy'}</button>
                 </div>
-                <p style={{ color: '#666', fontSize: '0.85rem' }}>Use this ID to check your status later.</p>
+                <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem' }}>Use this ID to check your status later.</p>
                 <button className="ishanya-btn" type="button" onClick={handleCloseModal} style={{ marginTop: '1rem' }}>
                   Close
                 </button>
