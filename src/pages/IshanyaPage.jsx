@@ -622,7 +622,7 @@ export function IshanyaPage() {
                 <p style={{ color: 'var(--ink)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                   Scan the QR code below to pay <strong>₹{FIXED_AMOUNT}</strong>
                 </p>
-                <img src="/images/ishanya_payment_qr.svg" alt="Payment QR Code" className="ishanya-qr-image" />
+                <img src="/images/ishanya_payment_qr.png" alt="Payment QR Code" className="ishanya-qr-image" />
                 <div style={{ marginTop: '1.25rem' }}>
                   <button className="ishanya-btn" type="button" onClick={() => setModalStep('utr')}>
                     Done — Enter UTR Number

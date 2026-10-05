@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search, X, LoaderCircle, Eye, ArrowLeft, RefreshCw, Image as ImageIcon
+  Search, X, LoaderCircle, Eye, ArrowLeft, RefreshCw, Image as ImageIcon, Trash2, RotateCcw, Download
 } from 'lucide-react'
 import { adminApi } from '../../api/adminApi'
 import { ishanyaApi } from '../../api/ishanyaApi'
@@ -151,10 +151,138 @@ export function IshanyaAdminPage() {
     }
   }
 
+  // Delete / Trash team
+  const handleDeleteTeam = async (team) => {
+    if (!window.confirm(`Move team "${team.team_name}" (${team.registration_id}) to trash?`)) return
+    setActionLoading(true)
+    try {
+      await ishanyaApi.deleteTeam(team.registration_id)
+      await fetchTeams()
+      if (selectedTeam?.registration_id === team.registration_id) setSelectedTeam(null)
+    } catch (err) {
+      alert(`Error moving to trash: ${err.message}`)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Restore team from trash
+  const handleRestoreTeam = async (team) => {
+    setActionLoading(true)
+    try {
+      await ishanyaApi.restoreTeam(team.registration_id)
+      await fetchTeams()
+      if (selectedTeam?.registration_id === team.registration_id) setSelectedTeam(null)
+    } catch (err) {
+      alert(`Error restoring team: ${err.message}`)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Permanently delete team
+  const handlePermanentDeleteTeam = async (team) => {
+    if (!window.confirm(`Permanently remove team "${team.team_name}" (${team.registration_id}) from database? This cannot be undone.`)) return
+    setActionLoading(true)
+    try {
+      await ishanyaApi.permanentDeleteTeam(team.registration_id)
+      await fetchTeams()
+      if (selectedTeam?.registration_id === team.registration_id) setSelectedTeam(null)
+    } catch (err) {
+      alert(`Error permanently deleting team: ${err.message}`)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Download all registration documents as CSV
+  const handleDownloadCsv = () => {
+    const listToExport = teams.filter(t => t.status !== 'deleted')
+    if (listToExport.length === 0) {
+      alert('No documents to download')
+      return
+    }
+    const headers = [
+      'Registration ID',
+      'Team Name',
+      'Status',
+      'Amount',
+      'UTR Number',
+      'Leader Name',
+      'Leader Roll No',
+      'Leader Dept',
+      'Leader Sec',
+      'Leader Email',
+      'Leader Phone',
+      'Member 2 Name',
+      'Member 2 Roll No',
+      'Member 2 Dept',
+      'Member 2 Email',
+      'Member 2 Phone',
+      'Member 3 Name',
+      'Member 3 Roll No',
+      'Member 3 Dept',
+      'Member 3 Email',
+      'Member 3 Phone',
+      'Admin Notes',
+      'Created At'
+    ]
+    const rows = listToExport.map(t => {
+      const m2 = t.members?.[0] || {}
+      const m3 = t.members?.[1] || {}
+      return [
+        t.registration_id,
+        t.team_name,
+        t.status,
+        t.amount || 150,
+        t.utr_number || '',
+        t.leader_name,
+        t.leader_roll_no || '',
+        t.leader_dept || '',
+        t.leader_sec || '',
+        t.leader_email,
+        t.leader_phone,
+        m2.name || '',
+        m2.roll_no || '',
+        m2.department ? `${m2.department}-${m2.section || ''}` : '',
+        m2.email || '',
+        m2.phone || '',
+        m3.name || '',
+        m3.roll_no || '',
+        m3.department ? `${m3.department}-${m3.section || ''}` : '',
+        m3.email || '',
+        m3.phone || '',
+        t.admin_notes || '',
+        t.created_at ? new Date(Number(t.created_at)).toLocaleString('en-IN') : ''
+      ]
+    })
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.map(val => `"${String(val ?? '').replace(/"/g, '""')}"`).join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `Ishanya_Registrations_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   // Filtered and searched teams
   const filteredTeams = useMemo(() => {
     return teams.filter(t => {
-      const matchesStatus = statusFilter === 'all' || t.status === statusFilter
+      let matchesStatus = false
+      if (statusFilter === 'all') {
+        matchesStatus = t.status !== 'deleted'
+      } else if (statusFilter === 'trash') {
+        matchesStatus = t.status === 'deleted'
+      } else {
+        matchesStatus = t.status === statusFilter
+      }
       const term = searchTerm.toLowerCase().trim()
       const matchesSearch =
         !term ||
@@ -182,10 +310,11 @@ export function IshanyaAdminPage() {
   // Stats
   const stats = useMemo(() => {
     return {
-      total: teams.length,
+      total: teams.filter(t => t.status !== 'deleted').length,
       pending: teams.filter(t => t.status === 'pending').length,
       accepted: teams.filter(t => t.status === 'accepted').length,
       rejected: teams.filter(t => t.status === 'rejected').length,
+      trash: teams.filter(t => t.status === 'deleted').length,
     }
   }, [teams])
 
@@ -266,6 +395,26 @@ export function IshanyaAdminPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={handleDownloadCsv}
+            title="Download all documents as CSV"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.35)',
+            }}
+          >
+            <Download size={15} /> Download CSV
+          </button>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
@@ -380,7 +529,7 @@ export function IshanyaAdminPage() {
 
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <span style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 600 }}>Status:</span>
-            {['all', 'pending', 'accepted', 'rejected'].map((s) => (
+            {['all', 'pending', 'accepted', 'rejected', 'trash'].map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
@@ -391,12 +540,12 @@ export function IshanyaAdminPage() {
                   fontWeight: 700,
                   textTransform: 'capitalize',
                   cursor: 'pointer',
-                  border: statusFilter === s ? '1px solid #ea580c' : '1px solid #334155',
-                  backgroundColor: statusFilter === s ? '#ea580c' : '#1e293b',
+                  border: statusFilter === s ? (s === 'trash' ? '1px solid #ef4444' : '1px solid #ea580c') : '1px solid #334155',
+                  backgroundColor: statusFilter === s ? (s === 'trash' ? '#ef4444' : '#ea580c') : '#1e293b',
                   color: statusFilter === s ? '#fff' : '#94a3b8',
                 }}
               >
-                {s}
+                {s === 'trash' ? `Trash (${stats.trash})` : s}
               </button>
             ))}
           </div>
@@ -591,67 +740,132 @@ export function IshanyaAdminPage() {
 
                       {/* Actions */}
                       <td style={{ padding: '14px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'inline-flex', gap: '8px' }}>
-                          {/* Accept Button */}
-                          <button
-                            onClick={() => handleStatusChange(team, 'accepted')}
-                            disabled={actionLoading || isAccepted}
-                            title="Accept registration (sends acceptance email)"
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: isAccepted ? 'transparent' : '#059669',
-                              color: isAccepted ? '#059669' : '#fff',
-                              border: isAccepted ? '1px solid #059669' : 'none',
-                              borderRadius: '6px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              cursor: isAccepted ? 'default' : 'pointer',
-                              opacity: actionLoading ? 0.6 : 1,
-                            }}
-                          >
-                            Accept
-                          </button>
+                        {team.status === 'deleted' ? (
+                          <div style={{ display: 'inline-flex', gap: '8px' }}>
+                            <button
+                              onClick={() => handleRestoreTeam(team)}
+                              disabled={actionLoading}
+                              title="Restore team to pending"
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#2563eb',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <RotateCcw size={13} /> Restore
+                            </button>
+                            <button
+                              onClick={() => handlePermanentDeleteTeam(team)}
+                              disabled={actionLoading}
+                              title="Delete permanently from database"
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#dc2626',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <Trash2 size={13} /> Delete Forever
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'inline-flex', gap: '8px' }}>
+                            {/* Accept Button */}
+                            <button
+                              onClick={() => handleStatusChange(team, 'accepted')}
+                              disabled={actionLoading || isAccepted}
+                              title="Accept registration (sends acceptance email)"
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: isAccepted ? 'transparent' : '#059669',
+                                color: isAccepted ? '#059669' : '#fff',
+                                border: isAccepted ? '1px solid #059669' : 'none',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: isAccepted ? 'default' : 'pointer',
+                                opacity: actionLoading ? 0.6 : 1,
+                              }}
+                            >
+                              Accept
+                            </button>
 
-                          {/* Reject Button */}
-                          <button
-                            onClick={() => handleStatusChange(team, 'rejected')}
-                            disabled={actionLoading || isRejected}
-                            title="Reject registration (sends rejection email)"
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: isRejected ? 'transparent' : '#dc2626',
-                              color: isRejected ? '#dc2626' : '#fff',
-                              border: isRejected ? '1px solid #dc2626' : 'none',
-                              borderRadius: '6px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              cursor: isRejected ? 'default' : 'pointer',
-                              opacity: actionLoading ? 0.6 : 1,
-                            }}
-                          >
-                            Reject
-                          </button>
+                            {/* Reject Button */}
+                            <button
+                              onClick={() => handleStatusChange(team, 'rejected')}
+                              disabled={actionLoading || isRejected}
+                              title="Reject registration (sends rejection email)"
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: isRejected ? 'transparent' : '#dc2626',
+                                color: isRejected ? '#dc2626' : '#fff',
+                                border: isRejected ? '1px solid #dc2626' : 'none',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: isRejected ? 'default' : 'pointer',
+                                opacity: actionLoading ? 0.6 : 1,
+                              }}
+                            >
+                              Reject
+                            </button>
 
-                          {/* Details / Edit Notes */}
-                          <button
-                            onClick={() => {
-                              setSelectedTeam(team)
-                              setAdminNotes(team.admin_notes || '')
-                            }}
-                            title="View Full Details / Edit Notes"
-                            style={{
-                              padding: '6px 10px',
-                              backgroundColor: '#1e293b',
-                              color: '#94a3b8',
-                              border: '1px solid #334155',
-                              borderRadius: '6px',
-                              fontSize: '12px',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Eye size={14} />
-                          </button>
-                        </div>
+                            {/* Details / Edit Notes */}
+                            <button
+                              onClick={() => {
+                                setSelectedTeam(team)
+                                setAdminNotes(team.admin_notes || '')
+                              }}
+                              title="View Full Details / Edit Notes"
+                              style={{
+                                padding: '6px 10px',
+                                backgroundColor: '#1e293b',
+                                color: '#94a3b8',
+                                border: '1px solid #334155',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Eye size={14} />
+                            </button>
+
+                            {/* Move to Trash Button */}
+                            <button
+                              onClick={() => handleDeleteTeam(team)}
+                              disabled={actionLoading}
+                              title="Move team to trash"
+                              style={{
+                                padding: '6px 10px',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                color: '#f87171',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )
@@ -764,38 +978,89 @@ export function IshanyaAdminPage() {
                   {selectedTeam.status}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => handleStatusChange(selectedTeam, 'accepted')}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#059669',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Accept
-                </button>
-                <button
-                  onClick={() => handleStatusChange(selectedTeam, 'rejected')}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#dc2626',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Reject
-                </button>
-              </div>
+              {selectedTeam.status === 'deleted' ? (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => handleRestoreTeam(selectedTeam)}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#2563eb',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Restore
+                  </button>
+                  <button
+                    onClick={() => handlePermanentDeleteTeam(selectedTeam)}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#dc2626',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Delete Forever
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => handleStatusChange(selectedTeam, 'accepted')}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#059669',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(selectedTeam, 'rejected')}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#dc2626',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTeam(selectedTeam)}
+                    style={{
+                      padding: '6px 10px',
+                      backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                      color: '#f87171',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                    title="Move to Trash"
+                  >
+                    Trash
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Leader Details */}

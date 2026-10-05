@@ -59,26 +59,6 @@ export function AdminLogin() {
           <p style={{ color: '#94a3b8', fontSize: '0.925rem', margin: '0 0 1rem 0' }}>
             Sign in with your admin Roll Number to access live applicants data.
           </p>
-
-          {/* Default Credentials Helper */}
-          <div style={{
-            padding: '10px 14px',
-            borderRadius: '8px',
-            background: 'rgba(99, 102, 241, 0.12)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
-            fontSize: '0.825rem',
-            color: '#c7d2fe',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            textAlign: 'left'
-          }}>
-            <div>
-              <strong style={{ color: '#fff', display: 'block' }}>Default Super Admin Credentials:</strong>
-              <span>Roll: <code style={{ color: '#a5b4fc', background: 'rgba(0,0,0,0.3)', padding: '1px 4px', borderRadius: '4px' }}>ADMIN001</code> | Pass: <code style={{ color: '#a5b4fc', background: 'rgba(0,0,0,0.3)', padding: '1px 4px', borderRadius: '4px' }}>adminpassword123</code></span>
-            </div>
-          </div>
         </div>
 
         {error && (

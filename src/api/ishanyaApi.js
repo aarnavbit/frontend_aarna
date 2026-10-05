@@ -131,4 +131,37 @@ export const ishanyaApi = {
     })
     return handleResponse(res)
   },
+
+  /**
+   * Admin: move team to trash (soft delete).
+   */
+  deleteTeam: async (registrationId) => {
+    const res = await fetch(`${BASE}/admin/teams/${registrationId}`, {
+      method: 'DELETE',
+      headers: { ...getAuthHeaders() },
+    })
+    return handleResponse(res)
+  },
+
+  /**
+   * Admin: restore team from trash to pending.
+   */
+  restoreTeam: async (registrationId) => {
+    const res = await fetch(`${BASE}/admin/teams/${registrationId}/restore`, {
+      method: 'POST',
+      headers: { ...getAuthHeaders() },
+    })
+    return handleResponse(res)
+  },
+
+  /**
+   * Admin: permanently delete team from database.
+   */
+  permanentDeleteTeam: async (registrationId) => {
+    const res = await fetch(`${BASE}/admin/teams/${registrationId}/permanent`, {
+      method: 'DELETE',
+      headers: { ...getAuthHeaders() },
+    })
+    return handleResponse(res)
+  },
 }

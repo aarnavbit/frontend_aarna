@@ -5,7 +5,8 @@ import {
   X, CheckCircle, AlertCircle, LoaderCircle, Eye, Star,
   GraduationCap, Download,
   ArrowUpDown, ArrowUp, ArrowDown, Briefcase, ChevronDown,
-  FileSpreadsheet, FileText, RefreshCw, Sparkles, Trophy
+  FileSpreadsheet, FileText, RefreshCw, Sparkles, Trophy,
+  Trash2, RotateCcw
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { adminApi } from '../../api/adminApi'
@@ -33,7 +34,15 @@ export function AdminDashboardPage() {
   const [subadmins, setSubadmins] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState('applicants') // 'applicants' | 'subadmins'
+  const [activeTab, setActiveTab] = useState('applicants') // 'applicants' | 'subadmins' | 'trash'
+  const [trashedIds, setTrashedIds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('aarna_trashed_applicants')
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('')
@@ -165,9 +174,48 @@ export function AdminDashboardPage() {
     }
   }
 
+  // Trash & delete handlers
+  const handleTrashApplicant = (app) => {
+    if (!window.confirm(`Move applicant "${app.fullname}" (${app.rollnumber}) to Trash?`)) return
+    setTrashedIds(prev => {
+      const next = [...new Set([...prev, app.id])]
+      localStorage.setItem('aarna_trashed_applicants', JSON.stringify(next))
+      return next
+    })
+    if (selectedApplicant?.id === app.id) setSelectedApplicant(null)
+  }
+
+  const handleRestoreApplicant = (app) => {
+    setTrashedIds(prev => {
+      const next = prev.filter(id => id !== app.id)
+      localStorage.setItem('aarna_trashed_applicants', JSON.stringify(next))
+      return next
+    })
+  }
+
+  const handlePermanentDeleteApplicant = (app) => {
+    if (!window.confirm(`Permanently remove applicant "${app.fullname}" (${app.rollnumber}) from dashboard? This cannot be undone.`)) return
+    setApplicants(prev => prev.filter(a => a.id !== app.id))
+    setTrashedIds(prev => {
+      const next = prev.filter(id => id !== app.id)
+      localStorage.setItem('aarna_trashed_applicants', JSON.stringify(next))
+      return next
+    })
+    if (selectedApplicant?.id === app.id) setSelectedApplicant(null)
+  }
+
+  const activeApplicants = useMemo(() => {
+    return applicants.filter(app => !trashedIds.includes(app.id))
+  }, [applicants, trashedIds])
+
+  const trashedApplicants = useMemo(() => {
+    return applicants.filter(app => trashedIds.includes(app.id))
+  }, [applicants, trashedIds])
+
   // Filter applicants
   const filteredApplicants = useMemo(() => {
-    return applicants.filter(app => {
+    const sourceList = activeTab === 'trash' ? trashedApplicants : activeApplicants
+    return sourceList.filter(app => {
       const term = deferredSearchTerm.trim().toLowerCase()
       const matchesSearch = !term || 
         (app.fullname && app.fullname.toLowerCase().includes(term)) ||
@@ -186,7 +234,7 @@ export function AdminDashboardPage() {
 
       return matchesSearch && matchesDept && matchesSec && matchesYear && matchesPortfolio
     })
-  }, [applicants, deferredSearchTerm, deptFilter, sectionFilter, yearFilter, portfolioFilter])
+  }, [activeTab, activeApplicants, trashedApplicants, deferredSearchTerm, deptFilter, sectionFilter, yearFilter, portfolioFilter])
 
   // Sort applicants
   const sortedApplicants = useMemo(() => {
@@ -412,6 +460,30 @@ export function AdminDashboardPage() {
             }}
           >
             <RefreshCw size={15} /> Refresh
+          </button>
+
+          {/* Direct Download CSV Button */}
+          <button
+            onClick={() => triggerExport(activeApplicants, 'csv', 'All')}
+            title="Download all applicants as CSV"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '9px 16px',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              border: 'none',
+              color: '#fff',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+              transition: 'transform 0.15s, boxShadow 0.15s'
+            }}
+          >
+            <Download size={16} />
+            <span>Download CSV</span>
           </button>
 
           {/* Export Dropdown Button */}
@@ -660,7 +732,7 @@ export function AdminDashboardPage() {
             <Users size={18} style={{ color: '#6366f1' }} />
           </div>
           <div style={{ fontSize: '1.9rem', fontWeight: '800', color: '#fff', marginTop: '0.5rem' }}>
-            {applicants.length}
+            {activeApplicants.length}
           </div>
         </div>
 
@@ -731,27 +803,27 @@ export function AdminDashboardPage() {
         )}
       </div>
 
-      {/* Tabs navigation for Super Admin */}
-      {admin?.role === 'superadmin' && (
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '8px' }}>
-          <button
-            onClick={() => setActiveTab('applicants')}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '6px',
-              border: 'none',
-              background: activeTab === 'applicants' ? '#6366f1' : 'transparent',
-              color: activeTab === 'applicants' ? '#fff' : '#94a3b8',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.9rem'
-            }}
-          >
-            <Users size={16} /> Applicants List ({applicants.length})
-          </button>
+      {/* Tabs navigation */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '8px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setActiveTab('applicants')}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '6px',
+            border: 'none',
+            background: activeTab === 'applicants' ? '#6366f1' : 'transparent',
+            color: activeTab === 'applicants' ? '#fff' : '#94a3b8',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.9rem'
+          }}
+        >
+          <Users size={16} /> Applicants List ({activeApplicants.length})
+        </button>
+        {admin?.role === 'superadmin' && (
           <button
             onClick={() => setActiveTab('subadmins')}
             style={{
@@ -770,11 +842,29 @@ export function AdminDashboardPage() {
           >
             <UserPlus size={16} /> Manage Sub-Admins ({subadmins.length})
           </button>
-        </div>
-      )}
+        )}
+        <button
+          onClick={() => setActiveTab('trash')}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '6px',
+            border: 'none',
+            background: activeTab === 'trash' ? '#ef4444' : 'transparent',
+            color: activeTab === 'trash' ? '#fff' : '#94a3b8',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.9rem'
+          }}
+        >
+          <Trash2 size={16} /> Trash ({trashedApplicants.length})
+        </button>
+      </div>
 
-      {/* TAB 1: Applicants List */}
-      {activeTab === 'applicants' && (
+      {/* TAB 1: Applicants List / Trash */}
+      {(activeTab === 'applicants' || activeTab === 'trash') && (
         <div>
           {/* Filter Bar */}
           <div style={{
@@ -1024,7 +1114,7 @@ export function AdminDashboardPage() {
                 {sortedApplicants.length === 0 ? (
                   <tr>
                     <td colSpan="14" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                      No applicants found matching your criteria.
+                      {activeTab === 'trash' ? 'Trash is empty.' : 'No applicants found matching your criteria.'}
                     </td>
                   </tr>
                 ) : (
@@ -1110,26 +1200,92 @@ export function AdminDashboardPage() {
                       </td>
                       {/* Action */}
                       <td style={{ padding: '12px 14px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => setSelectedApplicant(app)}
-                          style={{
-                            padding: '5px 10px',
-                            borderRadius: '6px',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            border: '1px solid rgba(255, 255, 255, 0.15)',
-                            color: '#fff',
-                            fontSize: '0.78rem',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            transition: 'background 0.15s'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.25)'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
-                        >
-                          <Eye size={13} /> View
-                        </button>
+                        <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                          {activeTab === 'trash' ? (
+                            <>
+                              <button
+                                onClick={() => handleRestoreApplicant(app)}
+                                title="Restore applicant to active list"
+                                style={{
+                                  padding: '5px 10px',
+                                  borderRadius: '6px',
+                                  background: 'rgba(59, 130, 246, 0.2)',
+                                  border: '1px solid rgba(59, 130, 246, 0.4)',
+                                  color: '#93c5fd',
+                                  fontSize: '0.78rem',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <RotateCcw size={13} /> Restore
+                              </button>
+                              <button
+                                onClick={() => handlePermanentDeleteApplicant(app)}
+                                title="Permanently delete from dashboard"
+                                style={{
+                                  padding: '5px 10px',
+                                  borderRadius: '6px',
+                                  background: 'rgba(239, 68, 68, 0.2)',
+                                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                                  color: '#fca5a5',
+                                  fontSize: '0.78rem',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <Trash2 size={13} /> Delete Forever
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setSelectedApplicant(app)}
+                                style={{
+                                  padding: '5px 10px',
+                                  borderRadius: '6px',
+                                  background: 'rgba(255, 255, 255, 0.08)',
+                                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                                  color: '#fff',
+                                  fontSize: '0.78rem',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  transition: 'background 0.15s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.25)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                              >
+                                <Eye size={13} /> View
+                              </button>
+                              <button
+                                onClick={() => handleTrashApplicant(app)}
+                                title="Move applicant to Trash"
+                                style={{
+                                  padding: '5px 8px',
+                                  borderRadius: '6px',
+                                  background: 'rgba(239, 68, 68, 0.1)',
+                                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                                  color: '#f87171',
+                                  fontSize: '0.78rem',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  transition: 'background 0.15s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                       )
@@ -1174,7 +1330,17 @@ export function AdminDashboardPage() {
                         </div>
                         <div className="applicant-card-footer" style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: '#64748b' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontWeight: '600' }}><Star size={12} fill="#f59e0b" /> {app.leadershiprating}/10</span>
-                          <span style={{ color: '#6366f1' }}>Tap for details →</span>
+                          {activeTab === 'trash' ? (
+                            <div style={{ display: 'flex', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
+                              <button onClick={() => handleRestoreApplicant(app)} style={{ padding: '4px 8px', borderRadius: '4px', background: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Restore</button>
+                              <button onClick={() => handlePermanentDeleteApplicant(app)} style={{ padding: '4px 8px', borderRadius: '4px', background: '#dc2626', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Delete</button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <span style={{ color: '#6366f1' }}>Tap for details →</span>
+                              <button onClick={(e) => { e.stopPropagation(); handleTrashApplicant(app) }} style={{ padding: '4px 6px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', cursor: 'pointer' }} title="Move to Trash"><Trash2 size={12} /></button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )
@@ -1504,6 +1670,72 @@ export function AdminDashboardPage() {
                 <p style={{ margin: 0, fontSize: '0.9rem', color: '#cbd5e1', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
                   {selectedApplicant.knowaboutaarna}
                 </p>
+              </div>
+
+              {/* Drawer Actions */}
+              <div style={{ marginTop: '1.5rem', display: 'flex', gap: '10px' }}>
+                {trashedIds.includes(selectedApplicant.id) ? (
+                  <>
+                    <button
+                      onClick={() => handleRestoreApplicant(selectedApplicant)}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '8px',
+                        background: '#2563eb',
+                        color: '#fff',
+                        border: 'none',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <RotateCcw size={16} /> Restore Applicant
+                    </button>
+                    <button
+                      onClick={() => handlePermanentDeleteApplicant(selectedApplicant)}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '8px',
+                        background: '#dc2626',
+                        color: '#fff',
+                        border: 'none',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Trash2 size={16} /> Delete Permanently
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => handleTrashApplicant(selectedApplicant)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#f87171',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Trash2 size={16} /> Move to Trash
+                  </button>
+                )}
               </div>
             </div>
           </div>
