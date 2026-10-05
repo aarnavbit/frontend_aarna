@@ -4,8 +4,8 @@ import './IshanyaPage.css'
 
 const TEAM_MEMBER_COUNT = 3
 const ADDITIONAL_MEMBERS = TEAM_MEMBER_COUNT - 1
-const FIXED_AMOUNT = 300
-const AMOUNT_PER_MEMBER = 100
+const FIXED_AMOUNT = 150
+const AMOUNT_PER_MEMBER = 50
 
 function createEmptyMembers() {
   return Array.from({ length: ADDITIONAL_MEMBERS }, () => ({
@@ -561,10 +561,46 @@ export function IshanyaPage() {
                 </>
               )}
 
-              {statusData.status === 'accepted' && statusData.whatsapp_link && (
-                <a href={statusData.whatsapp_link} target="_blank" rel="noopener noreferrer" className="ishanya-whatsapp-link">
-                  📱 Join WhatsApp Group
-                </a>
+              {statusData.status === 'accepted' && (
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.05))',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  borderRadius: '12px',
+                  padding: '1.25rem',
+                  marginTop: '1.5rem',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ color: '#10b981', fontWeight: 800, fontSize: '1.15rem', marginBottom: '0.35rem' }}>
+                    🎉 Payment Verified & Registration Confirmed!
+                  </div>
+                  <p style={{ color: 'var(--ink-muted)', fontSize: '0.875rem', margin: '0 0 1rem' }}>
+                    Your team is officially cleared to participate in Ishanya. Keep your Registration ID (<strong style={{ color: 'var(--gold)' }}>{statusData.registration_id}</strong>) ready or screenshot this pass for gate entry.
+                  </p>
+                  {statusData.whatsapp_link && (
+                    <a
+                      href={statusData.whatsapp_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ishanya-whatsapp-link"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '0.85rem 1.75rem',
+                        background: '#25D366',
+                        color: '#fff',
+                        textDecoration: 'none',
+                        borderRadius: '8px',
+                        fontWeight: 700,
+                        fontSize: '0.95rem',
+                        boxShadow: '0 4px 14px rgba(37, 211, 102, 0.35)',
+                      }}
+                    >
+                      📱 Join Official WhatsApp Group
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           )}
