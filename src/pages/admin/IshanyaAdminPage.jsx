@@ -87,28 +87,17 @@ export function IshanyaAdminPage() {
     fetchTeams()
   }
 
-  // Handle status update (accept / reject / edit)
+  // Handle status update (accept / reject) directly without browser prompt
   const handleStatusChange = async (team, newStatus) => {
-    const actionLabel = newStatus === 'accepted' ? 'ACCEPT' : 'REJECT'
-    const promptNotes = prompt(
-      `Are you sure you want to ${actionLabel} team "${team.team_name}" (${team.registration_id})?\n\nAn automated email will be sent to ${team.leader_email}.\n\nOptional note for internal record:`,
-      team.admin_notes || ''
-    )
-
-    if (promptNotes === null) {
-      // User clicked cancel
-      return
-    }
-
     setActionLoading(true)
     try {
       await ishanyaApi.updateTeamStatus(team.registration_id, {
         status: newStatus,
-        notes: promptNotes.trim() || undefined,
+        notes: team.admin_notes || undefined,
       })
       await fetchTeams()
       if (selectedTeam?.registration_id === team.registration_id) {
-        setSelectedTeam(prev => prev ? { ...prev, status: newStatus, admin_notes: promptNotes.trim() } : null)
+        setSelectedTeam(prev => prev ? { ...prev, status: newStatus } : null)
       }
     } catch (err) {
       alert(`Error updating status: ${err.message}`)
@@ -212,16 +201,19 @@ export function IshanyaAdminPage() {
       'Leader Roll No',
       'Leader Dept',
       'Leader Sec',
+      'Leader Year',
       'Leader Email',
       'Leader Phone',
       'Member 2 Name',
       'Member 2 Roll No',
       'Member 2 Dept',
+      'Member 2 Year',
       'Member 2 Email',
       'Member 2 Phone',
       'Member 3 Name',
       'Member 3 Roll No',
       'Member 3 Dept',
+      'Member 3 Year',
       'Member 3 Email',
       'Member 3 Phone',
       'Admin Notes',
@@ -240,16 +232,19 @@ export function IshanyaAdminPage() {
         t.leader_roll_no || '',
         t.leader_dept || '',
         t.leader_sec || '',
+        t.leader_year || '',
         t.leader_email,
         t.leader_phone,
         m2.name || '',
         m2.roll_no || '',
         m2.department ? `${m2.department}-${m2.section || ''}` : '',
+        m2.year || '',
         m2.email || '',
         m2.phone || '',
         m3.name || '',
         m3.roll_no || '',
         m3.department ? `${m3.department}-${m3.section || ''}` : '',
+        m3.year || '',
         m3.email || '',
         m3.phone || '',
         t.admin_notes || '',
@@ -292,6 +287,7 @@ export function IshanyaAdminPage() {
         t.leader_roll_no?.toLowerCase().includes(term) ||
         t.leader_dept?.toLowerCase().includes(term) ||
         t.leader_sec?.toLowerCase().includes(term) ||
+        t.leader_year?.toLowerCase().includes(term) ||
         t.leader_email?.toLowerCase().includes(term) ||
         t.leader_phone?.includes(term) ||
         t.utr_number?.toLowerCase().includes(term) ||
@@ -300,6 +296,7 @@ export function IshanyaAdminPage() {
           m.roll_no?.toLowerCase().includes(term) ||
           m.department?.toLowerCase().includes(term) ||
           m.section?.toLowerCase().includes(term) ||
+          m.year?.toLowerCase().includes(term) ||
           m.email?.toLowerCase().includes(term) ||
           m.phone?.includes(term)
         )
@@ -655,7 +652,7 @@ export function IshanyaAdminPage() {
                         <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{team.leader_name}</div>
                         {team.leader_roll_no && (
                           <div style={{ fontSize: '11px', color: '#f59e0b', fontFamily: 'monospace' }}>
-                            {team.leader_roll_no} ({team.leader_dept || 'Dept'}-{team.leader_sec || 'Sec'})
+                            {team.leader_roll_no} ({team.leader_dept || 'Dept'}-{team.leader_sec || 'Sec'}{team.leader_year ? ` | Yr ${team.leader_year}` : ''})
                           </div>
                         )}
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{team.leader_email}</div>
@@ -670,7 +667,7 @@ export function IshanyaAdminPage() {
                               • <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{m.name}</span>
                               {m.roll_no ? <span style={{ color: '#f59e0b', fontFamily: 'monospace', fontSize: '11px' }}> [{m.roll_no}]</span> : ''}
                               <div style={{ fontSize: '11px', color: '#64748b', paddingLeft: '8px' }}>
-                                {m.department ? `${m.department}-${m.section || ''} | ` : ''}{m.email ? `${m.email} | ` : ''}{m.phone}
+                                {m.department ? `${m.department}-${m.section || ''}` : ''}{m.year ? ` (Yr ${m.year}) | ` : (m.department ? ' | ' : '')}{m.email ? `${m.email} | ` : ''}{m.phone}
                               </div>
                             </div>
                           ))}
@@ -1072,7 +1069,7 @@ export function IshanyaAdminPage() {
                 <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '15px' }}>{selectedTeam.leader_name}</div>
                 {selectedTeam.leader_roll_no && (
                   <div style={{ fontSize: '12px', color: '#f59e0b', fontFamily: 'monospace', marginTop: '4px' }}>
-                    Roll No: {selectedTeam.leader_roll_no} | Dept: {selectedTeam.leader_dept || 'N/A'} | Sec: {selectedTeam.leader_sec || 'N/A'}
+                    Roll No: {selectedTeam.leader_roll_no} | Dept: {selectedTeam.leader_dept || 'N/A'} | Sec: {selectedTeam.leader_sec || 'N/A'}{selectedTeam.leader_year ? ` | Year: ${selectedTeam.leader_year}` : ''}
                   </div>
                 )}
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>📧 {selectedTeam.leader_email}</div>
@@ -1090,7 +1087,7 @@ export function IshanyaAdminPage() {
                   <div style={{ fontWeight: 700, color: '#f8fafc' }}>Member {idx + 2}: {m.name}</div>
                   {m.roll_no && (
                     <div style={{ fontSize: '12px', color: '#f59e0b', fontFamily: 'monospace', marginTop: '3px' }}>
-                      Roll No: {m.roll_no} | Dept: {m.department || 'N/A'} | Sec: {m.section || 'N/A'}
+                      Roll No: {m.roll_no} | Dept: {m.department || 'N/A'} | Sec: {m.section || 'N/A'}{m.year ? ` | Year: ${m.year}` : ''}
                     </div>
                   )}
                   {m.email && <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>📧 {m.email}</div>}
