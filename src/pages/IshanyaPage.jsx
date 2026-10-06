@@ -13,6 +13,7 @@ function createEmptyMembers() {
     roll_no: '',
     department: '',
     sec: '',
+    year: '',
     email: '',
     phone: '',
   }))
@@ -27,6 +28,7 @@ export function IshanyaPage() {
   const [leaderRollNo, setLeaderRollNo] = useState('')
   const [leaderDept, setLeaderDept] = useState('')
   const [leaderSec, setLeaderSec] = useState('')
+  const [leaderYear, setLeaderYear] = useState('')
   const [leaderEmail, setLeaderEmail] = useState('')
   const [leaderPhone, setLeaderPhone] = useState('')
   const [members, setMembers] = useState(createEmptyMembers)
@@ -80,6 +82,7 @@ export function IshanyaPage() {
         leader_roll_no: leaderRollNo,
         leader_dept: leaderDept,
         leader_sec: leaderSec,
+        leader_year: leaderYear,
         leader_email: leaderEmail,
         leader_phone: leaderPhone,
         amount: FIXED_AMOUNT,
@@ -88,6 +91,7 @@ export function IshanyaPage() {
           roll_no: m.roll_no,
           department: m.department,
           sec: m.sec,
+          year: m.year,
           email: m.email,
           phone: m.phone,
         })),
@@ -159,6 +163,7 @@ export function IshanyaPage() {
     setLeaderRollNo('')
     setLeaderDept('')
     setLeaderSec('')
+    setLeaderYear('')
     setLeaderEmail('')
     setLeaderPhone('')
     setMembers(createEmptyMembers())
@@ -332,6 +337,19 @@ export function IshanyaPage() {
                 />
               </div>
               <div className="ishanya-input-group">
+                <label className="ishanya-label">Year</label>
+                <select
+                  className="ishanya-input"
+                  value={leaderYear}
+                  onChange={(e) => setLeaderYear(e.target.value)}
+                >
+                  <option value="">Select year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
+                </select>
+              </div>
+              <div className="ishanya-input-group">
                 <label className="ishanya-label">Email</label>
                 <input
                   className="ishanya-input"
@@ -407,6 +425,19 @@ export function IshanyaPage() {
                     onChange={(e) => updateMember(i, 'sec', e.target.value)}
                     required
                   />
+                </div>
+                <div className="ishanya-input-group">
+                  <label className="ishanya-label">Year</label>
+                  <select
+                    className="ishanya-input"
+                    value={member.year}
+                    onChange={(e) => updateMember(i, 'year', e.target.value)}
+                  >
+                    <option value="">Select year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                  </select>
                 </div>
                 <div className="ishanya-input-group">
                   <label className="ishanya-label">Email</label>

@@ -36,7 +36,7 @@ function validateStep(step, values) {
   if (step === 1) {
     if (values.rollNumber.trim().length < 2) errors.rollNumber = 'Enter your college roll number.'
     if (!values.academicDepartment) errors.academicDepartment = 'Select your department.'
-    if (!['2', '3'].includes(String(values.year))) errors.year = 'Choose your year.'
+    if (!['2', '3', '4'].includes(String(values.year))) errors.year = 'Choose your year.'
     if (!values.section) errors.section = 'Select your section.'
   }
   if (step === 2) {
@@ -380,6 +380,7 @@ export function ApplicationForm({ onSuccess, onReset }) {
                       <option value="">Select your year</option>
                       <option value="2">Second year</option>
                       <option value="3">Third year</option>
+                      <option value="4">Fourth year</option>
                     </select>
                   </FormField>
                   <FormField label="Section" name="section" error={errors.section}>
