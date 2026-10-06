@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { adminApi } from '../../api/adminApi'
 import { ishanyaApi } from '../../api/ishanyaApi'
+import { downloadRegistrationPass } from '../../utils/ishanyaPassGenerator'
 
 export function IshanyaAdminPage() {
   const navigate = useNavigate()
@@ -13,9 +14,37 @@ export function IshanyaAdminPage() {
   const [error, setError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
 
-  // Search & Filter
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  // Search & Filter (persisted to localStorage so accidental back click doesn't lose state)
+  const [searchTerm, setSearchTerm] = useState(() => {
+    try {
+      return localStorage.getItem('ishanya_admin_search') || ''
+    } catch {
+      return ''
+    }
+  })
+  const [statusFilter, setStatusFilter] = useState(() => {
+    try {
+      return localStorage.getItem('ishanya_admin_filter') || 'all'
+    } catch {
+      return 'all'
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ishanya_admin_search', searchTerm)
+    } catch (err) {
+      console.debug(err)
+    }
+  }, [searchTerm])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ishanya_admin_filter', statusFilter)
+    } catch (err) {
+      console.debug(err)
+    }
+  }, [statusFilter])
 
   // Selected team for drawer / screenshot
   const [selectedTeam, setSelectedTeam] = useState(null)
@@ -270,7 +299,7 @@ export function IshanyaAdminPage() {
   // Filtered and searched teams
   const filteredTeams = useMemo(() => {
     return teams.filter(t => {
-      let matchesStatus = false
+      let matchesStatus
       if (statusFilter === 'all') {
         matchesStatus = t.status !== 'deleted'
       } else if (statusFilter === 'trash') {
@@ -822,6 +851,25 @@ export function IshanyaAdminPage() {
                               Reject
                             </button>
 
+                            {/* Download Pass Image */}
+                            <button
+                              onClick={() => downloadRegistrationPass(team)}
+                              title="Download Registration Pass as Image"
+                              style={{
+                                padding: '6px 10px',
+                                backgroundColor: '#1e293b',
+                                color: '#f59e0b',
+                                border: '1px solid #334155',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <Download size={14} />
+                            </button>
+
                             {/* Details / Edit Notes */}
                             <button
                               onClick={() => {
@@ -938,17 +986,38 @@ export function IshanyaAdminPage() {
           }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <div>
-                <span style={{
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  backgroundColor: '#1e293b',
-                  color: '#f59e0b',
-                  padding: '3px 8px',
-                  borderRadius: '4px',
-                }}>
-                  {selectedTeam.registration_id}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    backgroundColor: '#1e293b',
+                    color: '#f59e0b',
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                  }}>
+                    {selectedTeam.registration_id}
+                  </span>
+                  <button
+                    onClick={() => downloadRegistrationPass(selectedTeam)}
+                    title="Download Registration Pass as Image"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '3px 8px',
+                      backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                      color: '#f59e0b',
+                      border: '1px solid rgba(245, 158, 11, 0.4)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <Download size={12} /> Download Pass Image
+                  </button>
+                </div>
                 <h2 style={{ margin: '8px 0 0', fontSize: '20px', color: '#f8fafc' }}>{selectedTeam.team_name}</h2>
               </div>
               <button

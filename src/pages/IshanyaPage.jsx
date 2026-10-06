@@ -1,11 +1,15 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { Download, Copy, Check, Search } from 'lucide-react'
 import { ishanyaApi } from '../api/ishanyaApi'
+import { downloadRegistrationPass } from '../utils/ishanyaPassGenerator'
 import './IshanyaPage.css'
 
 const TEAM_MEMBER_COUNT = 3
 const ADDITIONAL_MEMBERS = TEAM_MEMBER_COUNT - 1
 const FIXED_AMOUNT = 150
 const AMOUNT_PER_MEMBER = 50
+const DRAFT_STORAGE_KEY = 'ishanya_registration_draft'
+const SAVED_CODE_STORAGE_KEY = 'ishanya_saved_registration_code'
 
 function createEmptyMembers() {
   return Array.from({ length: ADDITIONAL_MEMBERS }, () => ({
@@ -19,36 +23,82 @@ function createEmptyMembers() {
   }))
 }
 
-export function IshanyaPage() {
-  const [activeTab, setActiveTab] = useState('register')
+function getSavedDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch (err) {
+    console.debug('Could not read saved draft:', err)
+  }
+  return null
+}
 
-  // --- Register state ---
-  const [teamName, setTeamName] = useState('')
-  const [leaderName, setLeaderName] = useState('')
-  const [leaderRollNo, setLeaderRollNo] = useState('')
-  const [leaderDept, setLeaderDept] = useState('')
-  const [leaderSec, setLeaderSec] = useState('')
-  const [leaderYear, setLeaderYear] = useState('')
-  const [leaderEmail, setLeaderEmail] = useState('')
-  const [leaderPhone, setLeaderPhone] = useState('')
-  const [members, setMembers] = useState(createEmptyMembers)
+function getSavedCode() {
+  try {
+    return localStorage.getItem(SAVED_CODE_STORAGE_KEY) || localStorage.getItem('ishanya_last_registration_id') || ''
+  } catch (err) {
+    console.debug('Could not read saved code:', err)
+    return ''
+  }
+}
+
+export function IshanyaPage() {
+  // Query param id (e.g. from scanning pass QR code)
+  const [initialUrlId] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    const params = new URLSearchParams(window.location.search)
+    return params.get('id')?.trim() || ''
+  })
+
+  // Lazy draft retrieval
+  const [initialDraft] = useState(getSavedDraft)
+  const [initialSavedCode] = useState(() => initialUrlId || getSavedCode())
+
+  const [activeTab, setActiveTab] = useState(() => (initialUrlId ? 'status' : 'register'))
+
+  // --- Register state (restored lazily from localStorage if user clicks back or refreshes) ---
+  const [teamName, setTeamName] = useState(() => initialDraft?.teamName || '')
+  const [leaderName, setLeaderName] = useState(() => initialDraft?.leaderName || '')
+  const [leaderRollNo, setLeaderRollNo] = useState(() => initialDraft?.leaderRollNo || '')
+  const [leaderDept, setLeaderDept] = useState(() => initialDraft?.leaderDept || '')
+  const [leaderSec, setLeaderSec] = useState(() => initialDraft?.leaderSec || '')
+  const [leaderYear, setLeaderYear] = useState(() => initialDraft?.leaderYear || '')
+  const [leaderEmail, setLeaderEmail] = useState(() => initialDraft?.leaderEmail || '')
+  const [leaderPhone, setLeaderPhone] = useState(() => initialDraft?.leaderPhone || '')
+  const [members, setMembers] = useState(() => {
+    if (Array.isArray(initialDraft?.members) && initialDraft.members.length === ADDITIONAL_MEMBERS) {
+      return initialDraft.members
+    }
+    return createEmptyMembers()
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // --- Payment modal state ---
-  const [showModal, setShowModal] = useState(false)
-  const [modalStep, setModalStep] = useState('qr') // 'qr' | 'utr' | 'done'
-  const [registrationId, setRegistrationId] = useState('')
-  const [utrNumber, setUtrNumber] = useState('')
+  // --- Draft restore & persistence state ---
+  const [draftRestored, setDraftRestored] = useState(() => {
+    return Boolean(
+      initialDraft &&
+      (initialDraft.teamName || initialDraft.leaderName || initialDraft.leaderRollNo || initialDraft.leaderEmail || initialDraft.registrationId)
+    )
+  })
+  const [savedCode, setSavedCode] = useState(() => initialSavedCode)
+  const [downloadingPass, setDownloadingPass] = useState(false)
+  const [passDownloaded, setPassDownloaded] = useState(false)
+
+  // --- Payment modal state (persisted if user was mid-payment) ---
+  const [showModal, setShowModal] = useState(() => Boolean(initialDraft?.showModal))
+  const [modalStep, setModalStep] = useState(() => initialDraft?.modalStep || 'qr') // 'qr' | 'utr' | 'done'
+  const [registrationId, setRegistrationId] = useState(() => initialDraft?.registrationId || '')
+  const [utrNumber, setUtrNumber] = useState(() => initialDraft?.utrNumber || '')
   const [screenshotFile, setScreenshotFile] = useState(null)
   const [paymentSubmitting, setPaymentSubmitting] = useState(false)
   const [paymentError, setPaymentError] = useState('')
   const [copied, setCopied] = useState(false)
 
   // --- Status tab state ---
-  const [statusId, setStatusId] = useState('')
+  const [statusId, setStatusId] = useState(() => initialSavedCode)
   const [statusData, setStatusData] = useState(null)
-  const [statusLoading, setStatusLoading] = useState(false)
+  const [statusLoading, setStatusLoading] = useState(() => Boolean(initialUrlId))
   const [statusError, setStatusError] = useState('')
   const [editingMembers, setEditingMembers] = useState(false)
   const [editMembers, setEditMembers] = useState([])
@@ -69,6 +119,179 @@ export function IshanyaPage() {
       return updated
     })
   }, [])
+
+  // --- Status check by ID (for manual trigger and button clicks) ---
+  const fetchStatusById = useCallback(async (idToQuery) => {
+    const cleanId = (idToQuery || statusId || '').trim()
+    if (!cleanId) {
+      setStatusError('Please enter your registration ID')
+      return
+    }
+    setStatusError('')
+    setStatusData(null)
+    setEditingMembers(false)
+    setStatusLoading(true)
+    try {
+      const data = await ishanyaApi.getStatus(cleanId)
+      setStatusData(data)
+      setSavedCode(cleanId)
+      try {
+        localStorage.setItem(SAVED_CODE_STORAGE_KEY, cleanId)
+        localStorage.setItem('ishanya_last_registration_id', cleanId)
+      } catch (err) {
+        console.debug('Error saving code to local storage:', err)
+      }
+    } catch (err) {
+      setStatusError(err.message)
+    } finally {
+      setStatusLoading(false)
+    }
+  }, [statusId])
+
+  // --- Auto-fetch status if URL ?id= was provided on mount ---
+  useEffect(() => {
+    if (!initialUrlId) return
+    let ignore = false
+    ishanyaApi.getStatus(initialUrlId)
+      .then((data) => {
+        if (!ignore) {
+          setStatusData(data)
+          setSavedCode(initialUrlId)
+          try {
+            localStorage.setItem(SAVED_CODE_STORAGE_KEY, initialUrlId)
+            localStorage.setItem('ishanya_last_registration_id', initialUrlId)
+          } catch (err) {
+            console.debug('Error saving code to local storage:', err)
+          }
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setStatusError(err.message)
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setStatusLoading(false)
+        }
+      })
+    return () => {
+      ignore = true
+    }
+  }, [initialUrlId])
+
+  // --- Auto-save form progress to localStorage so clicking back or refreshing never loses data ---
+  useEffect(() => {
+    const hasData =
+      teamName ||
+      leaderName ||
+      leaderRollNo ||
+      leaderEmail ||
+      leaderPhone ||
+      members.some((m) => m.name || m.roll_no || m.phone) ||
+      registrationId
+
+    if (!hasData) return
+
+    const draft = {
+      teamName,
+      leaderName,
+      leaderRollNo,
+      leaderDept,
+      leaderSec,
+      leaderYear,
+      leaderEmail,
+      leaderPhone,
+      members,
+      registrationId,
+      showModal,
+      modalStep,
+      utrNumber,
+      savedAt: Date.now(),
+    }
+
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft))
+    } catch (err) {
+      console.debug('Error saving draft to storage:', err)
+    }
+  }, [
+    teamName,
+    leaderName,
+    leaderRollNo,
+    leaderDept,
+    leaderSec,
+    leaderYear,
+    leaderEmail,
+    leaderPhone,
+    members,
+    registrationId,
+    showModal,
+    modalStep,
+    utrNumber,
+  ])
+
+  // --- Clear saved draft ---
+  const handleClearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY)
+    } catch (err) {
+      console.debug(err)
+    }
+    setDraftRestored(false)
+    setTeamName('')
+    setLeaderName('')
+    setLeaderRollNo('')
+    setLeaderDept('')
+    setLeaderSec('')
+    setLeaderYear('')
+    setLeaderEmail('')
+    setLeaderPhone('')
+    setMembers(createEmptyMembers())
+    setRegistrationId('')
+    setShowModal(false)
+    setModalStep('qr')
+    setUtrNumber('')
+  }
+
+  // --- Download registration pass as image ---
+  const handleDownloadPass = async (teamInfo = null) => {
+    setDownloadingPass(true)
+    try {
+      const dataToDownload = teamInfo || {
+        registration_id: registrationId || savedCode,
+        team_name: teamName,
+        leader_name: leaderName,
+        leader_roll_no: leaderRollNo,
+        leader_dept: leaderDept,
+        leader_sec: leaderSec,
+        leader_year: leaderYear,
+        leader_email: leaderEmail,
+        leader_phone: leaderPhone,
+        members: members,
+        amount: FIXED_AMOUNT,
+        status: 'pending',
+        utr_number: utrNumber,
+      }
+      await downloadRegistrationPass(dataToDownload)
+      setPassDownloaded(true)
+      setTimeout(() => setPassDownloaded(false), 3000)
+    } catch (err) {
+      alert('Error generating pass image: ' + err.message)
+    } finally {
+      setDownloadingPass(false)
+    }
+  }
+
+  // --- Directly switch to status tab and check status result ---
+  const handleDirectStatusCheck = (codeToCheck) => {
+    const code = (codeToCheck || registrationId || savedCode || '').trim()
+    if (!code) return
+    setShowModal(false)
+    setActiveTab('status')
+    setStatusId(code)
+    fetchStatusById(code)
+  }
 
   // --- Register submit ---
   const handleRegister = async (e) => {
@@ -97,6 +320,13 @@ export function IshanyaPage() {
         })),
       })
       setRegistrationId(data.registration_id)
+      setSavedCode(data.registration_id)
+      try {
+        localStorage.setItem(SAVED_CODE_STORAGE_KEY, data.registration_id)
+        localStorage.setItem('ishanya_last_registration_id', data.registration_id)
+      } catch (err) {
+        console.warn('Error saving code to local storage:', err)
+      }
       setShowModal(true)
       setModalStep('qr')
     } catch (err) {
@@ -157,6 +387,13 @@ export function IshanyaPage() {
     setScreenshotFile(null)
     setPaymentError('')
     setCopied(false)
+    // Clear saved draft once registration is done
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY)
+    } catch (err) {
+      console.debug(err)
+    }
+    setDraftRestored(false)
     // Reset form
     setTeamName('')
     setLeaderName('')
@@ -169,25 +406,9 @@ export function IshanyaPage() {
     setMembers(createEmptyMembers())
   }
 
-  // --- Status check ---
   const handleCheckStatus = async (e) => {
-    e.preventDefault()
-    setStatusError('')
-    setStatusData(null)
-    setEditingMembers(false)
-    if (!statusId.trim()) {
-      setStatusError('Please enter your registration ID')
-      return
-    }
-    setStatusLoading(true)
-    try {
-      const data = await ishanyaApi.getStatus(statusId.trim())
-      setStatusData(data)
-    } catch (err) {
-      setStatusError(err.message)
-    } finally {
-      setStatusLoading(false)
-    }
+    if (e && e.preventDefault) e.preventDefault()
+    fetchStatusById(statusId)
   }
 
   // --- Edit members ---
@@ -254,9 +475,26 @@ export function IshanyaPage() {
 
       {/* ========== REGISTER TAB ========== */}
       {activeTab === 'register' && (
-        <form onSubmit={handleRegister}>
-          {/* Team Details & Automatic Amount Summary */}
-          <div className="ishanya-card">
+        <>
+          {draftRestored && (
+            <div className="ishanya-draft-banner">
+              <div className="ishanya-draft-banner-text">
+                <span>📋 Restored your saved form progress from browser storage.</span>
+              </div>
+              <button
+                type="button"
+                className="ishanya-draft-clear-btn"
+                onClick={handleClearDraft}
+                title="Discard saved draft and start fresh"
+              >
+                Clear Draft
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleRegister}>
+            {/* Team Details & Automatic Amount Summary */}
+            <div className="ishanya-card">
             <h2>Team Details</h2>
             <div className="ishanya-input-group">
               <label className="ishanya-label">Team Name</label>
@@ -473,11 +711,32 @@ export function IshanyaPage() {
             </button>
           </div>
         </form>
+        </>
       )}
 
       {/* ========== STATUS TAB ========== */}
       {activeTab === 'status' && (
         <div>
+          {savedCode && (
+            <div className="ishanya-saved-code-banner">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--ink)' }}>Saved Registration:</span>
+                <span className="ishanya-saved-code-tag">{savedCode}</span>
+              </div>
+              <button
+                type="button"
+                className="ishanya-quick-status-btn"
+                onClick={() => {
+                  setStatusId(savedCode)
+                  fetchStatusById(savedCode)
+                }}
+                disabled={statusLoading}
+              >
+                Directly Check Status Result &rarr;
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleCheckStatus}>
             <div className="ishanya-card">
               <h2>Check Registration Status</h2>
@@ -502,8 +761,20 @@ export function IshanyaPage() {
           {statusData && (
             <div className="ishanya-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
-                <h2>Team: {statusData.team_name}</h2>
-                <span className={`ishanya-status-badge ${statusData.status}`}>{statusData.status}</span>
+                <h2 style={{ margin: 0, paddingBottom: 0, borderBottom: 'none' }}>Team: {statusData.team_name}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="ishanya-mini-btn"
+                    onClick={() => handleDownloadPass(statusData)}
+                    disabled={downloadingPass}
+                    title="Download Registration Pass as Image"
+                    style={{ padding: '6px 12px' }}
+                  >
+                    <Download size={14} /> {downloadingPass ? 'Generating...' : 'Download Pass Image'}
+                  </button>
+                  <span className={`ishanya-status-badge ${statusData.status}`}>{statusData.status}</span>
+                </div>
               </div>
 
               <div className="ishanya-status-summary-grid">
@@ -635,6 +906,62 @@ export function IshanyaPage() {
               )}
             </div>
           )}
+
+          {/* Contact Support Section */}
+          <div className="ishanya-card" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '1.05rem', marginBottom: '0.85rem' }}>Contact Us</h2>
+            <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem', margin: '0 0 1rem' }}>
+              Have questions regarding your registration or status verification? Reach out to the event coordinators:
+            </p>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '1.25rem',
+              flexWrap: 'wrap',
+            }}>
+              <a
+                href="tel:8688364266"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'var(--surface-raised)',
+                  border: '2px solid var(--border)',
+                  borderRadius: '12px',
+                  padding: '0.75rem 1.25rem',
+                  color: 'var(--ink)',
+                  textDecoration: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  fontFamily: "var(--font-display, 'Tektur', sans-serif)",
+                  boxShadow: '3px 3px 0px var(--border)',
+                }}
+              >
+                <span style={{ color: 'var(--gold)' }}>📱 Amogh:</span> 8688364266
+              </a>
+              <a
+                href="tel:7013066187"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'var(--surface-raised)',
+                  border: '2px solid var(--border)',
+                  borderRadius: '12px',
+                  padding: '0.75rem 1.25rem',
+                  color: 'var(--ink)',
+                  textDecoration: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  fontFamily: "var(--font-display, 'Tektur', sans-serif)",
+                  boxShadow: '3px 3px 0px var(--border)',
+                }}
+              >
+                <span style={{ color: 'var(--gold)' }}>📱 Rohan:</span> 7013066187
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
@@ -645,6 +972,35 @@ export function IshanyaPage() {
             {modalStep === 'qr' && (
               <>
                 <h2>Complete Payment</h2>
+
+                {registrationId && (
+                  <div className="ishanya-reg-code-box">
+                    <span className="ishanya-reg-code-label">Registration Code Generated:</span>
+                    <div className="ishanya-reg-code-value-row">
+                      <span className="ishanya-reg-code-val">{registrationId}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopy}
+                        className="ishanya-mini-btn"
+                        title="Copy Code"
+                      >
+                        {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPass()}
+                      className="ishanya-download-pass-btn"
+                      disabled={downloadingPass}
+                    >
+                      <Download size={16} /> {downloadingPass ? 'Generating Image...' : (passDownloaded ? '✓ Pass Downloaded!' : 'Download Code as Image')}
+                    </button>
+                    <span className="ishanya-reg-code-hint">
+                      💾 Saved in local storage. Even if you click back by mistake, all progress & registration data are preserved!
+                    </span>
+                  </div>
+                )}
+
                 <div className="ishanya-payment-amount-box">
                   <span className="ishanya-payment-amount-label">Payable Amount</span>
                   <span className="ishanya-payment-amount-val">₹{FIXED_AMOUNT}</span>
@@ -665,6 +1021,32 @@ export function IshanyaPage() {
             {modalStep === 'utr' && (
               <>
                 <h2>Submit Payment Details</h2>
+
+                {registrationId && (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '1rem',
+                    background: 'var(--surface-raised)',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    border: '1.5px solid var(--border)'
+                  }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
+                      Code: <strong style={{ fontFamily: 'monospace', color: 'var(--gold)' }}>{registrationId}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      className="ishanya-mini-btn"
+                      onClick={() => handleDownloadPass()}
+                      disabled={downloadingPass}
+                    >
+                      <Download size={13} /> {downloadingPass ? '...' : 'Download Pass Image'}
+                    </button>
+                  </div>
+                )}
+
                 <div className="ishanya-payment-amount-box small">
                   <span>Payable Amount: <strong>₹{FIXED_AMOUNT}</strong> ({TEAM_MEMBER_COUNT} Members)</span>
                 </div>
@@ -703,8 +1085,37 @@ export function IshanyaPage() {
                   <span>{registrationId}</span>
                   <button onClick={handleCopy}>{copied ? 'Copied!' : 'Copy'}</button>
                 </div>
-                <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem' }}>Use this ID to check your status later.</p>
-                <button className="ishanya-btn" type="button" onClick={handleCloseModal} style={{ marginTop: '1rem' }}>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadPass()}
+                  className="ishanya-download-pass-btn"
+                  disabled={downloadingPass}
+                  style={{ marginBottom: '0.85rem' }}
+                >
+                  <Download size={16} /> {downloadingPass ? 'Generating Image...' : (passDownloaded ? '✓ Pass Downloaded!' : 'Download Code as Image (Pass)')}
+                </button>
+
+                <button
+                  type="button"
+                  className="ishanya-btn ishanya-btn-secondary"
+                  onClick={() => handleDirectStatusCheck(registrationId)}
+                  style={{
+                    width: '100%',
+                    marginBottom: '0.75rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <Search size={15} /> Directly Check Status Result
+                </button>
+
+                <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem', margin: '0 0 1rem' }}>
+                  Your registration code is saved in local storage. You can check your status anytime.
+                </p>
+                <button className="ishanya-btn" type="button" onClick={handleCloseModal}>
                   Close
                 </button>
               </>

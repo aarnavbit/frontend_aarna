@@ -570,3 +570,193 @@
     padding: 1.5rem;
   }
 }
+
+/* Local storage draft restore banner */
+.ishanya-draft-banner {
+  max-width: 620px;
+  margin: 0 auto 1.5rem;
+  background: var(--violet);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  box-shadow: 4px 4px 0px var(--border);
+}
+
+.ishanya-draft-banner-text {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ishanya-draft-clear-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+
+.ishanya-draft-clear-btn:hover {
+  background: #d94e34;
+  color: #ffffff;
+  border-color: #d94e34;
+}
+
+/* Saved registration code banner in Status tab */
+.ishanya-saved-code-banner {
+  max-width: 620px;
+  margin: 0 auto 1.25rem;
+  background: var(--surface);
+  border: 2px solid var(--gold);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: 4px 4px 0px var(--border);
+}
+
+.ishanya-saved-code-tag {
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 1rem;
+  background: var(--surface-raised);
+  color: var(--gold);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  letter-spacing: 0.05em;
+}
+
+.ishanya-quick-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--coral, #ea580c) 100%);
+  color: #1a0f08;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 2px 2px 0px var(--border);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.ishanya-quick-status-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--border);
+}
+
+/* Registration Code Box in Modal */
+.ishanya-reg-code-box {
+  background: var(--surface-raised);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.ishanya-reg-code-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+}
+
+.ishanya-reg-code-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ishanya-reg-code-val {
+  font-family: monospace;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+
+.ishanya-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  transition: all 0.15s ease;
+}
+
+.ishanya-mini-btn:hover {
+  background: var(--gold);
+  color: #1a0f08;
+}
+
+.ishanya-download-pass-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ea580c 0%, #f59e0b 100%);
+  color: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-display, 'Tektur', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 3px 3px 0px var(--border);
+  transition: transform 0.15s, box-shadow 0.15s;
+  margin-top: 6px;
+}
+
+.ishanya-download-pass-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px var(--border);
+}
+
+.ishanya-reg-code-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: 8px;
+  line-height: 1.3;
+}
