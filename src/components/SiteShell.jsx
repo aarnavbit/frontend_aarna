@@ -66,7 +66,7 @@ export function SiteShell({ children, theme, setTheme }) {
           {/* Desktop Navigation */}
           <nav className="site-nav desktop-nav" aria-label="Main navigation">
             <NavLink end to="/">Home</NavLink>
-            <NavLink to="/ishanya">Registration</NavLink>
+            <NavLink to="/ishanya">Ishanya '26</NavLink>
           </nav>
 
           <div className="header-actions">
@@ -127,7 +127,7 @@ export function SiteShell({ children, theme, setTheme }) {
 
               <div className="mobile-drawer-links">
                 <NavLink end to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</NavLink>
-                <NavLink to="/ishanya" onClick={() => setIsMobileMenuOpen(false)}>Registration</NavLink>
+            <NavLink to="/ishanya" onClick={() => setIsMobileMenuOpen(false)}>Ishanya '26</NavLink>
               </div>
 
               <div className="mobile-drawer-footer">

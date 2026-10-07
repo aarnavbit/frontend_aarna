@@ -54,7 +54,7 @@ export function IshanyaPage() {
   const [initialDraft] = useState(getSavedDraft)
   const [initialSavedCode] = useState(() => initialUrlId || getSavedCode())
 
-  const [activeTab, setActiveTab] = useState(() => (initialUrlId ? 'status' : 'register'))
+  const [activeTab, setActiveTab] = useState(() => (initialUrlId ? 'status' : 'status'))
 
   // --- Register state (restored lazily from localStorage if user clicks back or refreshes) ---
   const [teamName, setTeamName] = useState(() => initialDraft?.teamName || '')
@@ -455,7 +455,7 @@ export function IshanyaPage() {
           alt="Ishanya 26 - Visualize. Create. Inspire."
           className="ishanya-brand-logo"
         />
-        <p className="ishanya-header-sub">Team Registration &bull; Visualize. Create. Inspire.</p>
+        <p className="ishanya-header-sub">Registrations Closed &bull; Visualize. Create. Inspire.</p>
       </div>
 
       <div className="ishanya-tabs">
@@ -473,10 +473,77 @@ export function IshanyaPage() {
         </button>
       </div>
 
-      {/* ========== REGISTER TAB ========== */}
+      {/* ========== REGISTER TAB — REGISTRATIONS CLOSED ========== */}
       {activeTab === 'register' && (
+        <div style={{ maxWidth: 560, margin: '2rem auto', padding: '0 1rem' }}>
+          <div className="ishanya-card" style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
+            {/* Sorry icon */}
+            <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>🙏</div>
+
+            <h2 style={{ marginBottom: '0.5rem', fontSize: '1.5rem', fontWeight: 800 }}>
+              Registrations are now closed
+            </h2>
+
+            <p style={{ color: 'var(--text-subtle)', marginBottom: '1.5rem', lineHeight: 1.6, fontSize: '0.97rem' }}>
+              Sorry! We've reached our team capacity and registrations for{' '}
+              <strong>Ishanya&nbsp;'26</strong> have officially closed.
+              <br />
+              Thank you to everyone who signed up — we're excited to see you there! 🎉
+            </p>
+
+            {/* Divider */}
+            <div style={{ borderTop: '1px solid var(--border)', margin: '1.5rem 0' }} />
+
+            <p style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '1rem', color: 'var(--ink)' }}>
+              If you have any issues with your registration, reach out to us:
+            </p>
+
+            {/* Contact cards */}
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+              <a
+                href="tel:8688364266"
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                  background: 'var(--surface-alt, var(--card-bg))', border: '1.5px solid var(--border)',
+                  borderRadius: '12px', padding: '1rem 1.4rem', textDecoration: 'none',
+                  color: 'var(--ink)', minWidth: '150px', transition: 'box-shadow 0.15s ease',
+                }}
+              >
+                <span style={{ fontSize: '1.5rem' }}>📱</span>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Amogh</span>
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1rem', color: 'var(--gold)' }}>
+                  86883 64266
+                </span>
+              </a>
+
+              <a
+                href="tel:7013066187"
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                  background: 'var(--surface-alt, var(--card-bg))', border: '1.5px solid var(--border)',
+                  borderRadius: '12px', padding: '1rem 1.4rem', textDecoration: 'none',
+                  color: 'var(--ink)', minWidth: '150px', transition: 'box-shadow 0.15s ease',
+                }}
+              >
+                <span style={{ fontSize: '1.5rem' }}>📱</span>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Rohan</span>
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1rem', color: 'var(--gold)' }}>
+                  70130 66187
+                </span>
+              </a>
+            </div>
+
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-subtle)' }}>
+              Already registered? Use the <strong>Check Status</strong> tab above to view your registration details.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ========== (Legacy register tab content removed — registrations closed) ========== */}
+      {false && (
         <>
-          {draftRestored && (
+          {false && (
             <div className="ishanya-draft-banner">
               <div className="ishanya-draft-banner-text">
                 <span>📋 Restored your saved form progress from browser storage.</span>
